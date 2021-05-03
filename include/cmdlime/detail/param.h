@@ -11,6 +11,22 @@
 namespace cmdlime::detail{
 
 template<typename T>
+std::stringstream& operator >>(std::stringstream& stream, std::optional<T>& val)
+{
+    auto value = T{};
+    stream >> value;
+    val = value;
+    return stream;
+}
+
+template<typename T>
+std::stringstream& operator <<(std::stringstream& stream, const std::optional<T>& val)
+{
+    stream << val.value();
+    return stream;
+}
+
+template<typename T>
 class Param : public IParam, public ConfigVar{
 public:
     Param(const std::string& name, const std::string& shortName, const std::string& type, std::function<T&()> paramGetter)

@@ -19,6 +19,12 @@ public:
     {
     }
 
+    void setDefaultValue(const std::vector<T>& value)
+    {
+        hasValue_ = true;
+        defaultValue_ = value;
+    }
+
 private:
     ConfigVar& info() override
     {
@@ -35,10 +41,40 @@ private:
         auto stream = std::stringstream{data};
         argListGetter_().emplace_back();
         stream >> argListGetter_().back();
+        hasValue_ = true;
+    }
+
+    bool hasValue() const override
+    {
+        return hasValue_;
+    }
+
+    bool isOptional() const override
+    {
+        return defaultValue_.has_value();
+    }
+
+    std::string defaultValue() const override
+    {
+        if (!defaultValue_.has_value())
+            return {};
+        auto stream = std::stringstream{"{"};
+        auto firstVal = true;
+        for (auto& val : defaultValue_.value()){
+            if (firstVal)
+                stream << val;
+            else
+                stream << ", " << val;
+            firstVal = false;
+        }
+        stream << "}";
+        return stream.str();
     }
 
 private:        
     std::function<std::vector<T>&()> argListGetter_;
+    bool hasValue_ = false;
+    std::optional<std::vector<T>> defaultValue_;
 };
 
 template<typename T, typename TConfig>
@@ -62,6 +98,13 @@ public:
         return *this;
     }
 
+    ArgListCreator<T, TConfig>& operator()(const std::vector<T>& defaultValue)
+    {
+        defaultValue_ = defaultValue;
+        argList_->setDefaultValue(defaultValue_);
+        return *this;
+    }
+
     operator std::vector<T>()
     {
         ConfigAccess<TConfig>{cfg_}.setArgList(std::move(argList_));
@@ -70,6 +113,7 @@ public:
 
 private:
     std::unique_ptr<ArgList<T>> argList_;
+    std::vector<T> defaultValue_;
     TConfig& cfg_;
 };
 

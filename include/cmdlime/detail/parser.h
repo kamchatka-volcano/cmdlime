@@ -32,8 +32,8 @@ public:
         std::copy(args_.begin(), args_.end(), std::back_inserter(argsToRead_));
         process(cmdLine);
         checkUnreadParams();
-        if(!argsToRead_.empty())
-            throw std::runtime_error{"Positional argument " + argsToRead_.front()->info().name() + " is missing."};
+        checkUnreadArgs();
+        checkUnreadArgList();
     }
 
 protected:
@@ -76,6 +76,17 @@ private:
                 throw std::runtime_error{"Param " + OutputFormatter::paramPrefix() + param->info().name() + " is missing."};
     }
 
+    void checkUnreadArgs()
+    {
+        if(!argsToRead_.empty())
+            throw std::runtime_error{"Positional argument " + argsToRead_.front()->info().name() + " is missing."};
+    }
+
+    void checkUnreadArgList()
+    {
+        if (argList_ && !argList_->hasValue())
+            throw std::runtime_error{"Required catch-all arguments list " + argList_->info().name() + " is empty."};
+    }
 
 protected:
     std::vector<IParam*> params_;
