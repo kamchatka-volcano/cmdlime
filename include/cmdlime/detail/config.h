@@ -27,13 +27,13 @@ std::vector<T*> getPtrList(const std::vector<std::unique_ptr<T>>& ownerList)
 
 template<FormatType formatType>
 class Config{
-    template<typename TConfig>
-    friend class ConfigAccess;
-
 public:
-    constexpr static FormatType format = formatType;
+    void readCommandLine(int argc, char** argv)
+    {
+        auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
+        read(cmdLine);
+    }
 
-    void readCommandLine(int argc, char** argv);
     void read(const std::vector<std::string>& cmdLine)
     {
         auto params = getPtrList(params_);
@@ -86,6 +86,20 @@ private:
     std::vector<std::unique_ptr<IFlag>> flags_;
     std::vector<std::unique_ptr<IArg>> args_;
     std::unique_ptr<detail::IArgList> argList_;
+
+private:
+    template<typename TConfig>
+    friend class ConfigAccess;
+    template<typename T, typename TConfig>
+    friend class ParamCreator;
+    template<typename TConfig>
+    friend class FlagCreator;
+    template<typename T, typename TConfig>
+    friend class ArgCreator;
+    template<typename T, typename TConfig>
+    friend class ArgListCreator;
+
+    constexpr static FormatType format = formatType;
 };
 
 }
