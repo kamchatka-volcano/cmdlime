@@ -3,6 +3,7 @@
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
+#include "errors.h"
 #include <sstream>
 #include <functional>
 #include <memory>
@@ -32,12 +33,24 @@ private:
     void read(const std::string& data) override
     {
         auto stream = std::stringstream{data};
-        stream >> argGetter_();
+        stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
+        try{
+            stream >> argGetter_();
+        }
+        catch(const std::exception&){
+            throw ParsingError{"Couldn't set argument '" + name() + "' value from '" + data + "'"};
+        }
     }
 
 private:    
     std::function<T&()> argGetter_;
 };
+
+template <>
+void Arg<std::string>::read(const std::string& data)
+{
+    argGetter_() = data;
+}
 
 template<typename T, typename TConfig>
 class ArgCreator{

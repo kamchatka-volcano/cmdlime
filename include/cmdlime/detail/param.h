@@ -3,6 +3,7 @@
 #include "configaccess.h"
 #include "configvar.h"
 #include "format.h"
+#include "errors.h"
 #include <sstream>
 #include <optional>
 #include <memory>
@@ -54,8 +55,14 @@ private:
 
     void read(const std::string& data) override
     {
-        auto stream = std::stringstream{data};        
-        stream >> paramGetter_();
+        auto stream = std::stringstream{data};
+        stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
+        try{
+            stream >> paramGetter_();
+        }
+        catch(const std::exception&){
+            throw ParsingError{"Couldn't set parameter '" + name() + "' value from '" + data + "'"};
+        }
         hasValue_ = true;
     }
 
@@ -78,12 +85,18 @@ private:
         return stream.str();
     }
 
-
 private:
     std::function<T&()> paramGetter_;
     std::optional<T> defaultValue_;
     bool hasValue_ = false;
 };
+
+template <>
+void Param<std::string>::read(const std::string& data)
+{    
+    paramGetter_() = data;
+    hasValue_ = true;
+}
 
 template<typename T, typename TConfig>
 class ParamCreator{
@@ -105,7 +118,7 @@ public:
         return *this;
     }
 
-    ParamCreator<T, TConfig>& operator()(T&& defaultValue)
+    ParamCreator<T, TConfig>& operator()(const T& defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
         param_->setDefaultValue(defaultValue_);

@@ -4,6 +4,7 @@
 #include "iarg.h"
 #include "iarglist.h"
 #include "format.h"
+#include "errors.h"
 #include <vector>
 #include <deque>
 #include <algorithm>
@@ -37,11 +38,13 @@ public:
     }
 
 protected:
-    void readParam(const std::string& name, const std::string& value)
+    void readParam(const std::string& name, std::string value)
     {
+        if (value.empty())
+            throw ParsingError{"Parameter '" + OutputFormatter::paramPrefix() + name + "' value can't be empty"};
         auto paramIt = std::find_if(params_.begin(), params_.end(), [name](auto param){return param->info().name() == name;});
         if (paramIt == params_.end())
-            throw std::runtime_error("Encountered unrecognized param " + OutputFormatter::paramPrefix() + name);
+            throw ParsingError{"Encountered unknown parameter '" + OutputFormatter::paramPrefix() + name + "'"};
         (*paramIt)->read(value);
     }
 
@@ -49,7 +52,7 @@ protected:
     {
         auto flagIt = std::find_if(flags_.begin(), flags_.end(), [name](auto flag){return flag->info().name() == name;});
         if (flagIt == flags_.end())
-            throw std::runtime_error{"Encountered unrecognized flag " + OutputFormatter::flagPrefix() + name};
+            throw ParsingError{"Encountered unknown flag '" + OutputFormatter::flagPrefix() + name + "'"};
         (*flagIt)->set();
     }
 
@@ -57,13 +60,18 @@ protected:
     {
         if (!argsToRead_.empty()){
             auto arg = argsToRead_.front();
+            if (value.empty())
+                throw ParsingError{"Arg '" + arg->info().name() + "' value can't be empty"};
             argsToRead_.pop_front();
             arg->read(value);
         }
-        else if (argList_)
+        else if (argList_){
+            if (value.empty())
+                throw ParsingError{"Arg list '" + argList_->info().name() + "' element value can't be empty"};
             argList_->read(value);
+        }
         else
-            throw std::runtime_error("Encountered unrecognized positional argument " + value);
+            throw ParsingError("Encountered unknown positional argument '" + value + "'");
     }
 
 private:
@@ -73,19 +81,19 @@ private:
     {
         for (const auto& param : params_)
             if (!param->hasValue())
-                throw std::runtime_error{"Param " + OutputFormatter::paramPrefix() + param->info().name() + " is missing."};
+                throw ParsingError{"Parameter '" + OutputFormatter::paramPrefix() + param->info().name() + "' is missing."};
     }
 
     void checkUnreadArgs()
     {
         if(!argsToRead_.empty())
-            throw std::runtime_error{"Positional argument " + argsToRead_.front()->info().name() + " is missing."};
+            throw ParsingError{"Positional argument '" + argsToRead_.front()->info().name() + "' is missing."};
     }
 
     void checkUnreadArgList()
     {
         if (argList_ && !argList_->hasValue())
-            throw std::runtime_error{"Required catch-all arguments list " + argList_->info().name() + " is empty."};
+            throw ParsingError{"Required catch-all arguments list '" + argList_->info().name() + "' is missing."};
     }
 
 protected:

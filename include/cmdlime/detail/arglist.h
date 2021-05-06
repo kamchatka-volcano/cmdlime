@@ -3,6 +3,7 @@
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
+#include "errors.h"
 #include <vector>
 #include <sstream>
 #include <functional>
@@ -39,8 +40,14 @@ private:
     void read(const std::string& data) override
     {
         auto stream = std::stringstream{data};
+        stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
         argListGetter_().emplace_back();
-        stream >> argListGetter_().back();
+        try{
+            stream >> argListGetter_().back();
+        }
+        catch(const std::exception&){
+            throw ParsingError{"Couldn't set argument list '" + name() + "' value from '" + data + "'"};
+        }
         hasValue_ = true;
     }
 
@@ -77,6 +84,13 @@ private:
     std::optional<std::vector<T>> defaultValue_;
 };
 
+template <>
+void ArgList<std::string>::read(const std::string& data)
+{
+    argListGetter_().push_back(data);
+    hasValue_ = true;
+}
+
 template<typename T, typename TConfig>
 class ArgListCreator{
     using NameProvider = typename Format<TConfig::format>::nameProvider;
@@ -98,7 +112,7 @@ public:
         return *this;
     }
 
-    ArgListCreator<T, TConfig>& operator()(const std::vector<T>& defaultValue)
+    ArgListCreator<T, TConfig>& operator()(const std::vector<T>& defaultValue = {})
     {
         defaultValue_ = defaultValue;
         argList_->setDefaultValue(defaultValue_);
