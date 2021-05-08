@@ -246,3 +246,86 @@ TEST(DefaultConfig, NegativeNumberWithoutArg)
         });
 }
 
+TEST(DefaultConfig, ArgsDelimiter)
+{
+    struct Cfg : public Config{
+        PARAM(param, int);
+        PARAM(optionalParam, int)(0);
+        ARGLIST(argList, std::string);
+    };
+
+    auto cfg = Cfg{};
+    cfg.read({"0", "-param=11", "--", "1", "-optionalParam", "2"});
+    EXPECT_EQ(cfg.param, 11);
+    EXPECT_EQ(cfg.optionalParam, 0);
+    EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "-optionalParam", "2"}));
+}
+
+TEST(DefaultConfig, ArgsDelimiterFront)
+{
+    struct Cfg : public Config{
+        PARAM(optionalParam, int)(0);
+        ARGLIST(argList, std::string);
+    };
+
+    auto cfg = Cfg{};
+    cfg.read({"--", "0", "1", "-optionalParam=1", "2"});
+    EXPECT_EQ(cfg.optionalParam, 0);
+    EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "-optionalParam=1", "2"}));
+}
+
+TEST(DefaultConfig, ArgsDelimiterBack)
+{
+    struct Cfg : public Config{
+        PARAM(optionalParam, int)(0);
+        ARGLIST(argList, std::string);
+    };
+
+    auto cfg = Cfg{};
+    cfg.read({"0", "1", "-optionalParam=1", "2", "--"});
+    EXPECT_EQ(cfg.optionalParam, 1);
+    EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "2"}));
+}
+
+TEST(DefaultConfig, PascalNames)
+{
+    struct PascalConfig : public Config{
+        PARAM(RequiredParam, std::string);
+        PARAM(OptionalParam, std::string)("defaultValue");
+        PARAM(OptionalIntParam, std::optional<int>)();
+        FLAG(Flag);
+        ARG(Arg, double);
+        ARGLIST(ArgList, float);
+    };
+    auto cfg = PascalConfig{};
+    cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flag", "4.2", "1.1", "2.2f", "3.3"});
+    EXPECT_EQ(cfg.RequiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.OptionalParam, std::string{"BAR"});
+    EXPECT_EQ(cfg.OptionalIntParam, 9);
+    EXPECT_EQ(cfg.Flag, true);
+    EXPECT_EQ(cfg.Arg, 4.2);
+    EXPECT_EQ(cfg.ArgList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+}
+
+TEST(DefaultConfig, SnakeNames)
+{
+    struct PascalConfig : public Config{
+        PARAM(required_param, std::string);
+        PARAM(optional_param, std::string)("defaultValue");
+        PARAM(optional_int_param, std::optional<int>)();
+        FLAG(flag_);
+        ARG(arg_, double);
+        ARGLIST(arg_list_, float);
+    };
+    auto cfg = PascalConfig{};
+    cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flag", "4.2", "1.1", "2.2f", "3.3"});
+    EXPECT_EQ(cfg.required_param, std::string{"FOO"});
+    EXPECT_EQ(cfg.optional_param, std::string{"BAR"});
+    EXPECT_EQ(cfg.optional_int_param, 9);
+    EXPECT_EQ(cfg.flag_, true);
+    EXPECT_EQ(cfg.arg_, 4.2);
+    EXPECT_EQ(cfg.arg_list_, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+}
+
+
+

@@ -31,7 +31,17 @@ public:
     {
         argsToRead_.clear();
         std::copy(args_.begin(), args_.end(), std::back_inserter(argsToRead_));
-        process(cmdLine);
+
+        auto argsDelimiterIt = std::find(cmdLine.begin(), cmdLine.end(), "--");
+        auto cmdLineBeforeDelimiter = std::vector<std::string>(cmdLine.begin(), argsDelimiterIt);
+        process(cmdLineBeforeDelimiter);
+
+        if (argsDelimiterIt != cmdLine.end()){
+            auto argsAfterDelimiter = std::vector<std::string>(argsDelimiterIt + 1, cmdLine.end());
+            for (const auto& arg : argsAfterDelimiter)
+                readArg(arg);
+        }
+
         checkUnreadParams();
         checkUnreadArgs();
         checkUnreadArgList();

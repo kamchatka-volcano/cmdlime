@@ -35,4 +35,16 @@ inline std::string trimmedFront(const std::string& str)
     return res;
 }
 
+
+inline std::string replace(const std::string &str, const std::string &subStr, const std::string &val)
+{
+    std::string res = std::string(str);
+    auto pos = res.find(subStr);
+    while (pos != std::string::npos){
+        res.replace(pos, subStr.size(), val);
+        pos = res.find(subStr, pos + val.size());
+    }
+    return res;
+}
+
 };

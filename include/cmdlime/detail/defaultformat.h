@@ -2,6 +2,7 @@
 #include "parser.h"
 #include "format.h"
 #include "string_utils.h"
+#include "nameutils.h"
 #include "errors.h"
 #include <algorithm>
 #include <sstream>
@@ -23,14 +24,13 @@ inline bool isNameCorrect(const std::string& name)
     return nonAlphaNumCharIt == name.end();
 }
 
-
+//2do: custom name and shortName, paramList, commands
 template <FormatType formatType>
 class DefaultParser : public Parser<formatType>
 {
     using Parser<formatType>::Parser;
     void process(const std::vector<std::string>& cmdLine) override
-    {        
-        //2do: check '--' separator, check for negative digits        
+    {                
         for (const auto& part : cmdLine)
         {
             if (str::startsWith(part, "--")){
@@ -68,7 +68,7 @@ class DefaultNameProvider{
 public:
     static std::string name(const std::string& configVarName)
     {
-        return configVarName;
+        return toCamelCase(configVarName);
     }
 
     static std::string shortName(const std::string&)
