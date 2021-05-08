@@ -85,7 +85,7 @@ TEST(DefaultConfig, MissingArgList)
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flag", "4.2"});},
         [](const cmdlime::ParsingError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Required catch-all arguments list 'argList' is missing."});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'argList' is missing."});
         });
 }
 
@@ -325,6 +325,54 @@ TEST(DefaultConfig, SnakeNames)
     EXPECT_EQ(cfg.flag_, true);
     EXPECT_EQ(cfg.arg_, 4.2);
     EXPECT_EQ(cfg.arg_list_, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+}
+
+TEST(DefaultConfig, CustomNames)
+{
+    struct TestConfig : public Config{
+        PARAM(requiredParam, std::string) << cmdlime::Name{"customRequiredParam"};
+        PARAM(optionalParam, std::string)("defaultValue") << cmdlime::Name{"customOptionalParam"};
+        PARAM(optionalIntParam, std::optional<int>)() << cmdlime::Name{"customOptionalIntParam"};
+        FLAG(flag) << cmdlime::Name{"customFlag"};
+        ARG(arg, double) << cmdlime::Name{"customArg"};
+        ARGLIST(argList, float) << cmdlime::Name{"customArgList"};
+    };
+    auto cfg = TestConfig{};
+    cfg.read({"-customRequiredParam=FOO", "-customOptionalParam=BAR", "-customOptionalIntParam=9", "--customFlag", "4.2", "1.1", "2.2f", "3.3"});
+    EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
+    EXPECT_EQ(cfg.optionalIntParam, 9);
+    EXPECT_EQ(cfg.flag, true);
+    EXPECT_EQ(cfg.arg, 4.2);
+    EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+}
+
+TEST(DefaultConfig, CustomNamesMissingArg)
+{
+    struct TestConfig : public Config{
+        ARG(arg, double) << cmdlime::Name{"customArg"};
+        ARGLIST(argList, float) << cmdlime::Name{"customArgList"};
+    };
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Positional argument 'customArg' is missing."});
+        });
+}
+
+TEST(DefaultConfig, CustomNamesMissingArgList)
+{
+    struct TestConfig : public Config{
+        ARG(arg, double) << cmdlime::Name{"customArg"};
+        ARGLIST(argList, float) << cmdlime::Name{"customArgList"};
+    };
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"1.0"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'customArgList' is missing."});
+        });
 }
 
 

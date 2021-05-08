@@ -4,6 +4,7 @@
 #include "configvar.h"
 #include "format.h"
 #include "errors.h"
+#include "customnames.h"
 #include <sstream>
 #include <optional>
 #include <memory>
@@ -115,6 +116,19 @@ public:
     ParamCreator<T, TConfig>& operator<<(const std::string& info)
     {
         param_->addDescription(info);
+        return *this;
+    }
+
+    ParamCreator<T, TConfig>& operator<<(const Name& customName)
+    {
+        param_->resetName(customName.value());
+        return *this;
+    }
+
+    ParamCreator<T, TConfig>& operator<<(const ShortName& customName)
+    {
+        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
+        param_->resetShortName(customName.value());
         return *this;
     }
 

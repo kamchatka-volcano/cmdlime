@@ -38,7 +38,7 @@ inline std::string toCamelCase(const std::string& name)
             continue;
         }
         if (prevCharNonAlpha)
-            ch = std::toupper(ch);
+            ch = static_cast<char>(std::toupper(ch));
         result.push_back(ch);
         prevCharNonAlpha = false;
     }
@@ -64,7 +64,7 @@ inline std::string toLowerCase(const std::string& name)
     auto result = std::string{};
     for (auto ch : util::formatName(name)){
         if (std::isalnum(ch))
-            result.push_back(std::tolower(ch));
+            result.push_back(static_cast<char>(std::tolower(ch)));
     }
     return result;
 }

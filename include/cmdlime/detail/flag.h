@@ -3,6 +3,7 @@
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
+#include "customnames.h"
 #include <memory>
 #include <functional>
 
@@ -53,6 +54,19 @@ public:
     FlagCreator& operator<<(const std::string& info)
     {
         flag_->addDescription(info);
+        return *this;
+    }
+
+    FlagCreator& operator<<(const Name& customName)
+    {
+        flag_->resetName(customName.value());
+        return *this;
+    }
+
+    FlagCreator& operator<<(const ShortName& customName)
+    {
+        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
+        flag_->resetShortName(customName.value());
         return *this;
     }
 

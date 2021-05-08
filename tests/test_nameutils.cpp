@@ -5,6 +5,7 @@ using namespace cmdlime::detail;
 
 TEST(NameUtils, SnakeToCamel)
 {
+    EXPECT_EQ(toCamelCase(""), "");
     EXPECT_EQ(toCamelCase("hello_world"), "helloWorld");
     EXPECT_EQ(toCamelCase("_hello_world_"), "helloWorld");
     EXPECT_EQ(toCamelCase("great_2_see_u"), "great2SeeU");
@@ -15,6 +16,7 @@ TEST(NameUtils, SnakeToCamel)
 
 TEST(NameUtils, SnakeToKebab)
 {
+    EXPECT_EQ(toKebabCase(""), "");
     EXPECT_EQ(toKebabCase("hello_world"), "hello-world");
     EXPECT_EQ(toKebabCase("hello1_"), "hello1");
     EXPECT_EQ(toKebabCase("_hello"), "hello");
@@ -31,6 +33,7 @@ TEST(NameUtils, CamelToKebab)
 
 TEST(NameUtils, SnakeToLower)
 {
+    EXPECT_EQ(toLowerCase(""), "");
     EXPECT_EQ(toLowerCase("hello_world"), "helloworld");
     EXPECT_EQ(toLowerCase("_hello_world_"), "helloworld");
     EXPECT_EQ(toLowerCase("hello"), "hello");

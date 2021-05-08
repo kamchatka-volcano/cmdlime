@@ -24,7 +24,7 @@ inline bool isNameCorrect(const std::string& name)
     return nonAlphaNumCharIt == name.end();
 }
 
-//2do: custom name and shortName, paramList, commands
+//2do: paramList, commands
 template <FormatType formatType>
 class DefaultParser : public Parser<formatType>
 {
@@ -155,7 +155,7 @@ struct Format<FormatType::Default>
     using parser = DefaultParser<FormatType::Default>;
     using nameProvider = DefaultNameProvider;
     using outputFormatter = DefaultOutputFormatter;
-
+    static constexpr bool shortNamesEnabled = false;
 };
 
 

@@ -4,6 +4,7 @@
 #include "configaccess.h"
 #include "format.h"
 #include "errors.h"
+#include "customnames.h"
 #include <vector>
 #include <sstream>
 #include <functional>
@@ -109,6 +110,19 @@ public:
     ArgListCreator<T, TConfig>& operator<<(const std::string& info)
     {
         argList_->addDescription(info);
+        return *this;
+    }
+
+    ArgListCreator<T, TConfig>& operator<<(const Name& customName)
+    {
+        argList_->resetName(customName.value());
+        return *this;
+    }
+
+    ArgListCreator<T, TConfig>& operator<<(const ShortName& customName)
+    {
+        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
+        argList_->resetShortName(customName.value());
         return *this;
     }
 

@@ -52,7 +52,10 @@ protected:
     {
         if (value.empty())
             throw ParsingError{"Parameter '" + OutputFormatter::paramPrefix() + name + "' value can't be empty"};
-        auto paramIt = std::find_if(params_.begin(), params_.end(), [name](auto param){return param->info().name() == name;});
+        auto paramIt = std::find_if(params_.begin(), params_.end(),
+            [&name](auto param){
+                return param->info().name() == name || param->info().shortName() == name;
+            });
         if (paramIt == params_.end())
             throw ParsingError{"Encountered unknown parameter '" + OutputFormatter::paramPrefix() + name + "'"};
         (*paramIt)->read(value);
@@ -60,7 +63,10 @@ protected:
 
     void readFlag(const std::string& name)
     {
-        auto flagIt = std::find_if(flags_.begin(), flags_.end(), [name](auto flag){return flag->info().name() == name;});
+        auto flagIt = std::find_if(flags_.begin(), flags_.end(),
+            [&name](auto flag){
+                return flag->info().name() == name || flag->info().shortName() == name;
+            });
         if (flagIt == flags_.end())
             throw ParsingError{"Encountered unknown flag '" + OutputFormatter::flagPrefix() + name + "'"};
         (*flagIt)->set();
@@ -103,7 +109,7 @@ private:
     void checkUnreadArgList()
     {
         if (argList_ && !argList_->hasValue())
-            throw ParsingError{"Required catch-all arguments list '" + argList_->info().name() + "' is missing."};
+            throw ParsingError{"Arguments list '" + argList_->info().name() + "' is missing."};
     }
 
 protected:
