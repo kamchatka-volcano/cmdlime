@@ -8,6 +8,7 @@
 #include "errors.h"
 #include <vector>
 #include <deque>
+#include <unordered_set>
 #include <algorithm>
 
 namespace cmdlime::detail{
@@ -32,6 +33,7 @@ public:
 
     void parse(const std::vector<std::string>& cmdLine)
     {
+        checkNames();
         argsToRead_.clear();
         std::copy(args_.begin(), args_.end(), std::back_inserter(argsToRead_));
 
@@ -127,6 +129,33 @@ private:
     {
         if (argList_ && !argList_->hasValue())
             throw ParsingError{"Arguments list '" + argList_->info().name() + "' is missing."};
+    }
+
+    void checkNames()
+    {
+        std::unordered_set<std::string> names;
+        auto processName = [&names](const std::string& varType, const ConfigVar& var){
+            if (var.name().empty())
+                throw ConfigError{varType + " name '" + var.name() + "' can't be empty."};
+            if (names.count(var.name()))
+                throw ConfigError{varType + " name '" + var.name() + "' is already used."};
+            names.insert(var.name());
+            if (var.shortName().empty())
+                return;
+            if (names.count(var.shortName()))
+                throw ConfigError{varType + " short name '" + var.shortName() + "' is already used."};
+            names.insert(var.shortName());
+        };
+        for (auto param : params_)
+            processName("Parameter's", param->info());
+        for (auto paramList : paramLists_)
+            processName("Parameter's", paramList->info());
+        for (auto flag : flags_)
+            processName("Flag's", flag->info());
+        for (auto arg : args_)
+            processName("Argument's", arg->info());
+        if (argList_)
+            processName("Argument list's", argList_->info());
     }
 
 protected:

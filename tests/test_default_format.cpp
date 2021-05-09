@@ -456,6 +456,19 @@ TEST(DefaultConfig, CustomNamesMissingArgList)
         });
 }
 
+TEST(DefaultConfig, ConfigErrorRepeatingNames)
+{
+    struct TestConfig : public Config{
+        PARAM(Param, double)();
+        PARAM(param, int)();
+    };
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'param' is already used."});
+        });
+}
 
 
 

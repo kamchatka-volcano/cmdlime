@@ -3,9 +3,19 @@
 
 namespace cmdlime{
 
-class ParsingError : public std::runtime_error
+class Error : public std::runtime_error
 {
     using std::runtime_error::runtime_error;
+};
+
+class ParsingError : public Error
+{
+    using Error::Error;
+};
+
+class ConfigError : public Error
+{
+    using Error::Error;
 };
 
 }
