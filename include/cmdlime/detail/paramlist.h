@@ -1,5 +1,5 @@
 #pragma once
-#include "iarglist.h"
+#include "iparamlist.h"
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
@@ -13,11 +13,11 @@
 namespace cmdlime::detail{
 
 template <typename T>
-class ArgList : public IArgList, public ConfigVar{
+class ParamList : public IParamList, public ConfigVar{
 public:
-    ArgList(const std::string& name, const std::string& shortName, const std::string& type, std::function<std::vector<T>&()> argListGetter)
+    ParamList(const std::string& name, const std::string& shortName, const std::string& type, std::function<std::vector<T>&()> paramListGetter)
         : ConfigVar(name, shortName, type)
-        , argListGetter_(argListGetter)
+        , paramListGetter_(paramListGetter)
     {
     }
 
@@ -41,17 +41,18 @@ private:
     void read(const std::string& data) override
     {
         if (!isDefaultValueOverwritten_){
-            argListGetter_().clear();
+            paramListGetter_().clear();
             isDefaultValueOverwritten_ = true;
         }
+
         auto stream = std::stringstream{data};
         stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
-        argListGetter_().emplace_back();
+        paramListGetter_().emplace_back();
         try{
-            stream >> argListGetter_().back();
+            stream >> paramListGetter_().back();
         }
         catch(const std::exception&){
-            throw ParsingError{"Couldn't set argument list '" + name() + "' value from '" + data + "'"};
+            throw ParsingError{"Couldn't set param '" + name() + "' value from '" + data + "'"};
         }
         hasValue_ = true;
     }
@@ -83,69 +84,69 @@ private:
         return stream.str();
     }
 
-private:        
-    std::function<std::vector<T>&()> argListGetter_;
+private:
+    std::function<std::vector<T>&()> paramListGetter_;
     bool hasValue_ = false;
     std::optional<std::vector<T>> defaultValue_;
     bool isDefaultValueOverwritten_ = false;
 };
 
 template <>
-void ArgList<std::string>::read(const std::string& data)
+void ParamList<std::string>::read(const std::string& data)
 {
-    argListGetter_().push_back(data);
+    paramListGetter_().push_back(data);
     hasValue_ = true;
 }
 
 template<typename T, typename TConfig>
-class ArgListCreator{
+class ParamListCreator{
     using NameProvider = typename Format<TConfig::format>::nameProvider;
 
 public:
-    ArgListCreator(TConfig& cfg,
+    ParamListCreator(TConfig& cfg,
                    const std::string& varName,
                    const std::string& type,
                    std::function<std::vector<T>&()> argListGetter)
-        : argList_(std::make_unique<ArgList<T>>(NameProvider::name(varName),
-                                                NameProvider::shortName(varName),
-                                                type, argListGetter))
+        : paramList_(std::make_unique<ParamList<T>>(NameProvider::name(varName),
+                                                  NameProvider::shortName(varName),
+                                                  type, argListGetter))
         , cfg_(cfg)
     {}
 
-    ArgListCreator<T, TConfig>& operator<<(const std::string& info)
+    ParamListCreator<T, TConfig>& operator<<(const std::string& info)
     {
-        argList_->addDescription(info);
+        paramList_->addDescription(info);
         return *this;
     }
 
-    ArgListCreator<T, TConfig>& operator<<(const Name& customName)
+    ParamListCreator<T, TConfig>& operator<<(const Name& customName)
     {
-        argList_->resetName(customName.value());
+        paramList_->resetName(customName.value());
         return *this;
     }
 
-    ArgListCreator<T, TConfig>& operator<<(const ShortName& customName)
+    ParamListCreator<T, TConfig>& operator<<(const ShortName& customName)
     {
         static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
-        argList_->resetShortName(customName.value());
+        paramList_->resetShortName(customName.value());
         return *this;
     }
 
-    ArgListCreator<T, TConfig>& operator()(const std::vector<T>& defaultValue = {})
+    ParamListCreator<T, TConfig>& operator()(const std::vector<T>& defaultValue = {})
     {
         defaultValue_ = defaultValue;
-        argList_->setDefaultValue(defaultValue_);
+        paramList_->setDefaultValue(defaultValue_);
         return *this;
     }
 
     operator std::vector<T>()
     {
-        ConfigAccess<TConfig>{cfg_}.setArgList(std::move(argList_));
+        ConfigAccess<TConfig>{cfg_}.addParamList(std::move(paramList_));
         return defaultValue_;
     }
 
 private:
-    std::unique_ptr<ArgList<T>> argList_;
+    std::unique_ptr<ParamList<T>> paramList_;
     std::vector<T> defaultValue_;
     TConfig& cfg_;
 };

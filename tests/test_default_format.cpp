@@ -9,6 +9,8 @@ struct FullConfig : public Config{
     PARAM(requiredParam, std::string);
     PARAM(optionalParam, std::string)("defaultValue");
     PARAM(optionalIntParam, std::optional<int>)();
+    PARAMLIST(paramList, std::string);
+    PARAMLIST(optionalParamList, int)(std::vector<int>{99,100});
     FLAG(flag);
     ARG(arg, double);
     ARGLIST(argList, float);
@@ -17,10 +19,13 @@ struct FullConfig : public Config{
 TEST(DefaultConfig, AllSet)
 {
     auto cfg = FullConfig{};
-    cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flag", "4.2", "1.1", "2.2f", "3.3"});
+    cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-paramList=zero", "-paramList=one",
+              "-optionalParamList=1", "-optionalParamList=2", "--flag", "4.2", "1.1", "2.2f", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
     EXPECT_EQ(cfg.optionalIntParam, 9);
+    EXPECT_EQ(cfg.paramList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.optionalParamList, (std::vector<int>{1, 2}));
     EXPECT_EQ(cfg.flag, true);
     EXPECT_EQ(cfg.arg, 4.2);
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
@@ -29,10 +34,12 @@ TEST(DefaultConfig, AllSet)
 TEST(DefaultConfig, MissingOptionals)
 {
     auto cfg = FullConfig{};
-    cfg.read({"-requiredParam=FOO", "4.2", "1.1", "2.2f", "3.3"});
+    cfg.read({"-requiredParam=FOO", "-paramList=zero", "4.2", "1.1", "2.2f", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_EQ(cfg.optionalIntParam.has_value(), false);
+    EXPECT_EQ(cfg.paramList, (std::vector<std::string>{"zero"}));
+    EXPECT_EQ(cfg.optionalParamList, (std::vector<int>{99,100}));
     EXPECT_EQ(cfg.flag, false);
     EXPECT_EQ(cfg.arg, 4.2);
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
@@ -44,7 +51,7 @@ struct FullConfigWithOptionalArgList : public Config{
     PARAM(optionalIntParam, std::optional<int>)();
     FLAG(flag);
     ARG(arg, double);
-    ARGLIST(argList, float)();
+    ARGLIST(argList, float)({1.f, 2.f});
 };
 
 TEST(DefaultConfig, MissingOptionalArgList)
@@ -56,14 +63,14 @@ TEST(DefaultConfig, MissingOptionalArgList)
     EXPECT_EQ(cfg.optionalIntParam.has_value(), false);
     EXPECT_EQ(cfg.flag, false);
     EXPECT_EQ(cfg.arg, 4.2);
-    EXPECT_EQ(cfg.argList.empty(), true);
+    EXPECT_EQ(cfg.argList, (std::vector<float>{1.f, 2.f}));
 }
 
-TEST(DefaultConfig, MissingRequiredParam)
+TEST(DefaultConfig, MissingParam)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-optionalParam=FOO", "4.2", "1.1", "2.2f", "3.3"});},
+        [&cfg]{cfg.read({"-optionalParam=FOO","-paramList=zero", "4.2", "1.1", "2.2f", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-requiredParam' is missing."});
         });
@@ -83,9 +90,19 @@ TEST(DefaultConfig, MissingArgList)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flag", "4.2"});},
+        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9","-paramList=zero","--flag", "4.2"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'argList' is missing."});
+        });
+}
+
+TEST(DefaultConfig, MissingParamList)
+{
+    auto cfg = FullConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9","--flag", "4.2", "1.1", "2.2f", "3.3"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-paramList' is missing."});
         });
 }
 
@@ -93,7 +110,7 @@ TEST(DefaultConfig, UnexpectedParam)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-requiredParam=FOO", "-testParam=TEST", "4.2", "1.1", "2.2f", "3.3"});},
+        [&cfg]{cfg.read({"-requiredParam=FOO", "-testParam=TEST","-paramList=zero", "4.2", "1.1", "2.2f", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter '-testParam'"});
         });
@@ -103,7 +120,7 @@ TEST(DefaultConfig, UnexpectedFlag)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-requiredParam=FOO", "--testFlag","4.2", "1.1", "2.2f", "3.3"});},
+        [&cfg]{cfg.read({"-requiredParam=FOO", "--testFlag", "-paramList=zero", "4.2", "1.1", "2.2f", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown flag '--testFlag'"});
         });
@@ -127,9 +144,19 @@ TEST(DefaultConfig, WrongParamType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=nine", "--flag", "4.2", "1.1", "2.2f", "3.3"});},
+        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=nine", "-paramList=zero", "--flag", "4.2", "1.1", "2.2f", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set parameter 'optionalIntParam' value from 'nine'"});
+        });
+}
+
+TEST(DefaultConfig, WrongParamListElementType)
+{
+    auto cfg = FullConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-paramList=zero", "-optionalParamList=not-int", "--flag", "4.2", "1.1", "2.2f", "3.3"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set param 'optionalParamList' value from 'not-int'"});
         });
 }
 
@@ -137,7 +164,7 @@ TEST(DefaultConfig, WrongArgType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flag", "fortytwo", "1.1", "2.2f", "3.3"});},
+        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9","-paramList=zero", "--flag", "fortytwo", "1.1", "2.2f", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set argument 'arg' value from 'fortytwo'"});
         });
@@ -147,7 +174,7 @@ TEST(DefaultConfig, WrongArgListElementType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flag", "4.2", "1.1", "2.2f", "three"});},
+        [&cfg]{cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-paramList=zero", "--flag", "4.2", "1.1", "2.2f", "three"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set argument list 'argList' value from 'three'"});
         });
@@ -163,6 +190,19 @@ TEST(DefaultConfig, ParamEmptyValue)
         [&cfg]{cfg.read({"-param="});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-param' value can't be empty"});
+        });
+}
+
+TEST(DefaultConfig, ParamListEmptyValue)
+{
+    struct Cfg : public Config{
+        PARAMLIST(params, std::string);
+    };
+    auto cfg = Cfg{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-params=", ""});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-params' value can't be empty"});
         });
 }
 
@@ -192,16 +232,19 @@ TEST(DefaultConfig, ArgListEmptyValue)
         });
 }
 
+
 TEST(DefaultConfig, ValuesWithWhitespace)
 {
     struct Cfg : public Config{
         PARAM(param, std::string);
+        PARAMLIST(paramList, std::string);
         ARG(arg, std::string);
         ARGLIST(argList, std::string);
     };
     auto cfg = Cfg{};
-    cfg.read({"-param=Hello world", "foo bar", "forty two"});
+    cfg.read({"-param=Hello world", "-paramList=foo bar", "foo bar", "forty two"});
     EXPECT_EQ(cfg.param, "Hello world");
+    EXPECT_EQ(cfg.paramList, (std::vector<std::string>{"foo bar"}));
     EXPECT_EQ(cfg.arg, "foo bar");
     EXPECT_EQ(cfg.argList, (std::vector<std::string>{"forty two"}));
 }
@@ -293,15 +336,20 @@ TEST(DefaultConfig, PascalNames)
         PARAM(RequiredParam, std::string);
         PARAM(OptionalParam, std::string)("defaultValue");
         PARAM(OptionalIntParam, std::optional<int>)();
+        PARAMLIST(ParamList, std::string);
+        PARAMLIST(OptionalParamList, int)(std::vector<int>{99,100});
         FLAG(Flag);
         ARG(Arg, double);
         ARGLIST(ArgList, float);
     };
-    auto cfg = PascalConfig{};
-    cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flag", "4.2", "1.1", "2.2f", "3.3"});
+    auto cfg = PascalConfig{};    
+    cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-paramList=zero", "-paramList=one",
+              "-optionalParamList=1", "-optionalParamList=2", "--flag", "4.2", "1.1", "2.2f", "3.3"});
     EXPECT_EQ(cfg.RequiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.OptionalParam, std::string{"BAR"});
     EXPECT_EQ(cfg.OptionalIntParam, 9);
+    EXPECT_EQ(cfg.ParamList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.OptionalParamList, (std::vector<int>{1, 2}));
     EXPECT_EQ(cfg.Flag, true);
     EXPECT_EQ(cfg.Arg, 4.2);
     EXPECT_EQ(cfg.ArgList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
@@ -313,15 +361,20 @@ TEST(DefaultConfig, SnakeNames)
         PARAM(required_param, std::string);
         PARAM(optional_param, std::string)("defaultValue");
         PARAM(optional_int_param, std::optional<int>)();
+        PARAMLIST(param_list, std::string);
+        PARAMLIST(optional_param_list_, int)(std::vector<int>{99,100});
         FLAG(flag_);
         ARG(arg_, double);
         ARGLIST(arg_list_, float);
     };
     auto cfg = PascalConfig{};
-    cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flag", "4.2", "1.1", "2.2f", "3.3"});
+    cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-paramList=zero", "-paramList=one",
+              "-optionalParamList=1", "-optionalParamList=2", "--flag", "4.2", "1.1", "2.2f", "3.3"});
     EXPECT_EQ(cfg.required_param, std::string{"FOO"});
     EXPECT_EQ(cfg.optional_param, std::string{"BAR"});
     EXPECT_EQ(cfg.optional_int_param, 9);
+    EXPECT_EQ(cfg.param_list, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.optional_param_list_, (std::vector<int>{1, 2}));
     EXPECT_EQ(cfg.flag_, true);
     EXPECT_EQ(cfg.arg_, 4.2);
     EXPECT_EQ(cfg.arg_list_, (std::vector<float>{1.1f, 2.2f, 3.3f}));
@@ -345,6 +398,34 @@ TEST(DefaultConfig, CustomNames)
     EXPECT_EQ(cfg.flag, true);
     EXPECT_EQ(cfg.arg, 4.2);
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+}
+
+TEST(DefaultConfig, CustomNamesMissingParam)
+{
+    struct TestConfig : public Config{
+        PARAM(param, double) << cmdlime::Name{"customParam"};
+        PARAMLIST(paramList, float) << cmdlime::Name{"customArgList"};
+    };
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-customParam' is missing."});
+        });
+}
+
+TEST(DefaultConfig, CustomNamesMissingParamList)
+{
+    struct TestConfig : public Config{
+        PARAM(param, double) << cmdlime::Name{"customParam"};
+        PARAMLIST(paramList, float) << cmdlime::Name{"customParamList"};
+    };
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-customParam=1"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-customParamList' is missing."});
+        });
 }
 
 TEST(DefaultConfig, CustomNamesMissingArg)
@@ -374,6 +455,7 @@ TEST(DefaultConfig, CustomNamesMissingArgList)
             EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'customArgList' is missing."});
         });
 }
+
 
 
 

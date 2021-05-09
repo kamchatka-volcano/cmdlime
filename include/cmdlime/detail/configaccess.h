@@ -3,6 +3,7 @@
 
 namespace cmdlime::detail{
 class IParam;
+class IParamList;
 class IFlag;
 class IArg;
 class IArgList;
@@ -17,6 +18,11 @@ public:
     void addParam(std::unique_ptr<IParam> param)
     {
         config_.addParam(std::move(param));
+    }
+
+    void addParamList(std::unique_ptr<IParamList> param)
+    {
+        config_.addParamList(std::move(param));
     }
 
     void addFlag(std::unique_ptr<IFlag> flag)

@@ -12,6 +12,7 @@
 
 namespace cmdlime::detail{
 class IParam;
+class IParamList;
 class IFlag;
 class IArg;
 class IArgList;
@@ -37,10 +38,11 @@ public:
     void read(const std::vector<std::string>& cmdLine)
     {
         auto params = getPtrList(params_);
+        auto paramLists = getPtrList(paramLists_);
         auto flags = getPtrList(flags_);
         auto args = getPtrList(args_);
         using ParserType = typename Format<formatType>::parser;
-        auto parser = ParserType{params, flags, args, argList_.get()};
+        auto parser = ParserType{params, paramLists, flags, args, argList_.get()};
         parser.parse(cmdLine);
     }
 
@@ -65,6 +67,12 @@ private:
     {
         params_.emplace_back(std::move(param));
     }
+
+    void addParamList(std::unique_ptr<IParamList> paramList)
+    {
+        paramLists_.emplace_back(std::move(paramList));
+    }
+
     void addFlag(std::unique_ptr<IFlag> flag)
     {
         flags_.emplace_back(std::move(flag));
@@ -83,6 +91,7 @@ private:
 
 private:
     std::vector<std::unique_ptr<IParam>> params_;
+    std::vector<std::unique_ptr<IParamList>> paramLists_;
     std::vector<std::unique_ptr<IFlag>> flags_;
     std::vector<std::unique_ptr<IArg>> args_;
     std::unique_ptr<detail::IArgList> argList_;
@@ -92,6 +101,8 @@ private:
     friend class ConfigAccess;
     template<typename T, typename TConfig>
     friend class ParamCreator;
+    template<typename T, typename TConfig>
+    friend class ParamListCreator;
     template<typename TConfig>
     friend class FlagCreator;
     template<typename T, typename TConfig>

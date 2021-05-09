@@ -24,7 +24,6 @@ inline bool isNameCorrect(const std::string& name)
     return nonAlphaNumCharIt == name.end();
 }
 
-//2do: paramList, commands
 template <FormatType formatType>
 class DefaultParser : public Parser<formatType>
 {
