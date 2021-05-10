@@ -63,7 +63,7 @@ public:
                std::function<T&()> argGetter)
         : arg_(std::make_unique<Arg<T>>(NameProvider::name(varName),
                                         NameProvider::shortName(varName),
-                                        type, argGetter))
+                                        NameProvider::valueName(type), argGetter))
         , cfg_(cfg)
     {}
 
@@ -83,6 +83,12 @@ public:
     {
         static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
         arg_->resetShortName(customName.value());
+        return *this;
+    }
+
+    ArgCreator<T, TConfig>& operator<<(const ValueName& valueName)
+    {
+        arg_->resetValueName(valueName.value());
         return *this;
     }
 

@@ -24,7 +24,8 @@ std::stringstream& operator >>(std::stringstream& stream, std::optional<T>& val)
 template<typename T>
 std::stringstream& operator <<(std::stringstream& stream, const std::optional<T>& val)
 {
-    stream << val.value();
+    if (val)
+        stream << val.value();
     return stream;
 }
 
@@ -109,7 +110,7 @@ public:
                  std::function<T&()> paramGetter)
         : param_(std::make_unique<Param<T>>(NameProvider::name(varName),
                                             NameProvider::shortName(varName),
-                                            type, paramGetter))
+                                            NameProvider::valueName(type), paramGetter))
         , cfg_(cfg)
     {}
 
@@ -129,6 +130,12 @@ public:
     {
         static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
         param_->resetShortName(customName.value());
+        return *this;
+    }
+
+    ParamCreator<T, TConfig>& operator<<(const ValueName& valueName)
+    {
+        param_->resetValueName(valueName.value());
         return *this;
     }
 

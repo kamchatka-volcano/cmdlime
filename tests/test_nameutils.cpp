@@ -46,3 +46,14 @@ TEST(NameUtils, CamelToLower)
     EXPECT_EQ(toLowerCase("hello"), "hello");
 }
 
+TEST(NameUtils, NamespaceRemoval)
+{
+    EXPECT_EQ(typeNameWithoutNamespace("foo::bar"), "bar");
+    EXPECT_EQ(typeNameWithoutNamespace("foo"), "foo");
+}
+
+TEST(NameUtils, GetTemplateType)
+{
+    EXPECT_EQ(templateType("optional<foo>"), "foo");
+    EXPECT_EQ(typeNameWithoutNamespace("foo"), "foo");
+}

@@ -74,6 +74,11 @@ public:
     {
         return {};
     }
+
+    static std::string valueName(const std::string& typeName)
+    {
+        return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
+    }
 };
 
 
@@ -82,7 +87,20 @@ public:
     static std::string paramUsageName(const IParam& param)
     {
         auto stream = std::stringstream{};
-        stream << paramPrefix() << param.info().name() << "=<" << param.info().type() << ">";
+        if (param.isOptional())
+            stream << "[" << paramPrefix() << param.info().name() << "=<" << param.info().valueName() << ">]";
+        else
+            stream << paramPrefix() << param.info().name() << "=<" << param.info().valueName() << ">";
+        return stream.str();
+    }
+
+    static std::string paramListUsageName(const IParamList& param)
+    {
+        auto stream = std::stringstream{};
+        if (param.isOptional())
+            stream << "[" << paramPrefix() << param.info().name() << "=<" << param.info().valueName() << ">...]";
+        else
+            stream << paramPrefix() << param.info().name() << "=<" << param.info().valueName() << ">...";
         return stream.str();
     }
 
@@ -90,7 +108,15 @@ public:
     {
         auto stream = std::stringstream{};
         stream << std::setw(indent) << paramPrefix()
-               << param.info().name() << "=<" << param.info().type() << ">";
+               << param.info().name() << "=<" << param.info().valueName() << ">";
+        return stream.str();
+    }
+
+    static std::string paramListDescriptionName(const IParamList& param, int indent = 0)
+    {
+        auto stream = std::stringstream{};
+        stream << std::setw(indent) << paramPrefix()
+               << param.info().name() << "=<" << param.info().valueName() << ">";
         return stream.str();
     }
 
@@ -102,7 +128,7 @@ public:
     static std::string flagUsageName(const IFlag& flag)
     {
         auto stream = std::stringstream{};
-        stream << flagPrefix() << flag.info().name();
+        stream << "[" << flagPrefix() << flag.info().name() << "]";
         return stream.str();
     }
 
@@ -128,21 +154,28 @@ public:
     static std::string argDescriptionName(const IArg& arg, int indent = 0)
     {
         auto stream = std::stringstream{};
-        stream << std::setw(indent) << " " << "<" << arg.info().name() << "> (" << arg.info().type() << ")";
+        if (indent)
+            stream << std::setw(indent) << " ";
+        stream << "<" << arg.info().name() << "> (" << arg.info().valueName() << ")";
         return stream.str();
     }
 
     static std::string argListUsageName(const IArgList& argList)
     {
         auto stream = std::stringstream{};
-        stream << "[" << argList.info().name() << "...]";
+        if (argList.isOptional())
+            stream << "[" << argList.info().name() << "...]";
+        else
+            stream << "<" << argList.info().name() << "...>";
         return stream.str();
     }
 
     static std::string argListDescriptionName(const IArgList& argList, int indent = 0)
     {
         auto stream = std::stringstream{};
-        stream << std::setw(indent) << " " << "<" << argList.info().name() << ">... (" << argList.info().type() << ")";
+        if (indent)
+            stream << std::setw(indent) << " ";
+        stream << "<" << argList.info().name() << "> (" << argList.info().valueName() << ")";
         return stream.str();
     }
 

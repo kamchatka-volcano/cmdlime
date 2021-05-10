@@ -4,20 +4,12 @@
 
 namespace cmdlime::detail{
 
-inline std::string typeNameWithoutNamespace(const std::string& type)
-{
-    auto pos = type.rfind(':');
-    if (pos == std::string::npos || pos == type.size() - 1)
-        return type;
-    return std::string(type.begin() + static_cast<int>(pos + 1), type.end());
-}
-
 class ConfigVar{
 public:
-    ConfigVar(const std::string& name, const std::string& shortName, const std::string& type)
+    ConfigVar(const std::string& name, const std::string& shortName, const std::string& valueName)
         : name_(name)
         , shortName_(shortName)
-        , type_(typeNameWithoutNamespace(type))
+        , valueName_(valueName)
     {
     }
 
@@ -29,6 +21,11 @@ public:
     void resetName(const std::string& name)
     {
         name_ = name;
+    }
+
+    void resetValueName(const std::string& name)
+    {
+        valueName_ = name;
     }
 
     void resetShortName(const std::string& shortName)
@@ -46,9 +43,9 @@ public:
         return shortName_;
     }
 
-    const std::string& type() const
+    const std::string& valueName() const
     {
-        return type_;
+        return valueName_;
     }
 
     const std::string& description() const
@@ -59,7 +56,7 @@ public:
 private:
     std::string name_;
     std::string shortName_;
-    std::string type_;
+    std::string valueName_;
     std::string info_;        
 };
 

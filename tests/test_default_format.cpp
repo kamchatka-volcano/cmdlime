@@ -470,5 +470,87 @@ TEST(DefaultConfig, ConfigErrorRepeatingNames)
         });
 }
 
+TEST(DefaultConfig, UsageInfo)
+{
+    auto cfg = FullConfig{};
+    auto expectedInfo = std::string{
+    "Usage: testproc <arg> -requiredParam=<string> -paramList=<string>... "
+    "[-optionalParam=<string>] [-optionalIntParam=<int>] [-optionalParamList=<int>...] [--flag] <argList...>\n"
+    };
+    EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
+}
 
+TEST(DefaultConfig, DetailedUsageInfo)
+{
+    auto cfg = FullConfig{};    
+    auto expectedDetailedInfo = std::string{
+    "Usage: testproc <arg> -requiredParam=<string> -paramList=<string>... [params] [flags] <argList...>\n"
+    "Arguments:\n"
+    "    <arg> (double)             \n"
+    "    <argList> (float)          List (can be used multiple times).\n"
+    "Parameters:\n"
+    "   -requiredParam=<string>     \n"
+    "   -paramList=<string>         List (can be used multiple times).\n"
+    "   -optionalParam=<string>     Optional, default: defaultValue\n"
+    "   -optionalIntParam=<int>     Optional.\n"
+    "   -optionalParamList=<int>    List (can be used multiple times).\n"
+    "                                 Optional, default: {99, 100}\n"
+    "Flags:\n"
+    "  --flag                       \n"};
+    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
+}
+
+TEST(DefaultConfig, DetailedUsageInfoFormat)
+{
+    auto cfg = FullConfig{};
+    auto format = cmdlime::UsageInfoFormat{};
+    format.columnsSpacing = 2;
+    format.nameIndentation = 0;
+    format.terminalWidth = 50;
+    auto expectedDetailedInfo = std::string{
+    "Usage: testproc <arg> -requiredParam=<string> -paramList=<string>... [params] [flags] <argList...>\n"
+    "Arguments:\n"
+    "<arg> (double)            \n"
+    "<argList> (float)         List (can be used \n"
+    "                            multiple times).\n"
+    "Parameters:\n"
+    "-requiredParam=<string>   \n"
+    "-paramList=<string>       List (can be used \n"
+    "                            multiple times).\n"
+    "-optionalParam=<string>   Optional, default: \n"
+    "                            defaultValue\n"
+    "-optionalIntParam=<int>   Optional.\n"
+    "-optionalParamList=<int>  List (can be used \n"
+    "                            multiple times).\n"
+    "                            Optional, default: \n"
+    "                            {99, 100}\n"
+    "Flags:\n"
+    "--flag                    \n"
+    };
+    EXPECT_EQ(cfg.usageInfoDetailed("testproc", format), expectedDetailedInfo);
+}
+
+
+TEST(DefaultConfig, CustomValueNames)
+{
+    struct TestConfig : public Config{
+        PARAM(param, std::string) << cmdlime::ValueName{"STRING"};
+        PARAMLIST(paramList, int)() << cmdlime::ValueName{"INTS"};
+        ARG(arg, double) << cmdlime::ValueName{"DOUBLE"};
+        ARGLIST(argList, float) << cmdlime::ValueName{"FLOATS"};
+    };
+
+    auto cfg = TestConfig{};
+    auto expectedInfo = std::string{
+    "Usage: testproc <arg> -param=<STRING> [params] <argList...>\n"
+    "Arguments:\n"
+    "    <arg> (DOUBLE)         \n"
+    "    <argList> (FLOATS)     List (can be used multiple times).\n"
+    "Parameters:\n"
+    "   -param=<STRING>         \n"
+    "   -paramList=<INTS>       List (can be used multiple times).\n"
+    "                             Optional, default: {}\n"
+    };
+    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedInfo);
+}
 

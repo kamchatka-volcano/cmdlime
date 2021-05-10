@@ -69,4 +69,19 @@ inline std::string toLowerCase(const std::string& name)
     return result;
 }
 
+inline std::string typeNameWithoutNamespace(const std::string& type)
+{
+    auto pos = type.rfind(':');
+    if (pos == std::string::npos || pos == type.size() - 1)
+        return type;
+    return std::string(type.begin() + static_cast<int>(pos + 1), type.end());
+}
+
+inline std::string templateType(const std::string& type)
+{
+    if (type.find('<') != std::string::npos)
+        return str::before(str::after(type, "<"), ">");
+    return type;
+}
+
 }

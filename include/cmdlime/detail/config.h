@@ -49,17 +49,19 @@ public:
     std::string usageInfo(const std::string& name, UsageInfoFormat outputSettings = {})
     {
         auto params = getPtrList(params_);
+        auto paramLists = getPtrList(paramLists_);
         auto flags = getPtrList(flags_);
         auto args = getPtrList(args_);
-        return UsageInfoCreator<formatType>{name, outputSettings, params, flags, args, argList_.get()}.create();
+        return UsageInfoCreator<formatType>{name, outputSettings, params, paramLists, flags, args, argList_.get()}.create();
     }
 
     std::string usageInfoDetailed(const std::string& name, UsageInfoFormat outputSettings = {})
     {
         auto params = getPtrList(params_);
+        auto paramLists = getPtrList(paramLists_);
         auto flags = getPtrList(flags_);
         auto args = getPtrList(args_);
-        return UsageInfoCreator<formatType>{name, outputSettings, params, flags, args, argList_.get()}.createDetailed();
+        return UsageInfoCreator<formatType>{name, outputSettings, params, paramLists, flags, args, argList_.get()}.createDetailed();
     }
 
 private:

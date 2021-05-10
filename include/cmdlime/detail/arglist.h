@@ -70,7 +70,8 @@ private:
     {
         if (!defaultValue_.has_value())
             return {};
-        auto stream = std::stringstream{"{"};
+        auto stream = std::stringstream{};
+        stream << "{";
         auto firstVal = true;
         for (auto& val : defaultValue_.value()){
             if (firstVal)
@@ -108,7 +109,7 @@ public:
                    std::function<std::vector<T>&()> argListGetter)
         : argList_(std::make_unique<ArgList<T>>(NameProvider::name(varName),
                                                 NameProvider::shortName(varName),
-                                                type, argListGetter))
+                                                NameProvider::valueName(type), argListGetter))
         , cfg_(cfg)
     {}
 
@@ -128,6 +129,12 @@ public:
     {
         static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
         argList_->resetShortName(customName.value());
+        return *this;
+    }
+
+    ArgListCreator<T, TConfig>& operator<<(const ValueName& valueName)
+    {
+        argList_->resetValueName(valueName.value());
         return *this;
     }
 

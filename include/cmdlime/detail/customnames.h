@@ -3,9 +3,9 @@
 
 namespace cmdlime{
 
-class Name{
+class CustomName{
 public:
-    Name(const std::string& name = {})
+    CustomName(const std::string& name = {})
         : value_(name)
     {}
 
@@ -18,19 +18,16 @@ private:
     std::string value_;
 };
 
-class ShortName{
-public:
-    ShortName(const std::string& name = {})
-        : value_(name)
-    {}
+class Name : public CustomName{
+    using CustomName::CustomName;
+};
 
-    const std::string& value() const
-    {
-        return value_;
-    }
+class ShortName : public CustomName{
+    using CustomName::CustomName;
+};
 
-private:
-    std::string value_;
+class ValueName : public CustomName{
+    using CustomName::CustomName;
 };
 
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "iparam.h"
+#include "iparamlist.h"
 #include "iflag.h"
 #include "iarg.h"
 #include "iarglist.h"
@@ -49,12 +50,12 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
         line = str::trimmedFront(line);
     return adjustedToLineBreak(line, text);
 }
-
-inline std::vector<IParam*> filterParams(const std::vector<IParam*>& params, bool isOptional)
+template <typename T>
+inline std::vector<T*> getParamsByOptionality(const std::vector<T*>& params, bool isOptional)
 {
-    auto result = std::vector<IParam*>{};
+    auto result = std::vector<T*>{};
     std::copy_if(params.begin(), params.end(), std::back_inserter(result),
-                 [isOptional](IParam* param){return param->isOptional() == isOptional;});
+                 [isOptional](T* param){return param->isOptional() == isOptional;});
     return result;
 }
 
@@ -82,12 +83,15 @@ public:
     UsageInfoCreator(const std::string& programName,
                      UsageInfoFormat outputSettings,
                      std::vector<IParam*> params,
+                     std::vector<IParamList*> paramLists,
                      std::vector<IFlag*> flags,
                      std::vector<IArg*> args,
                      IArgList* argList)
     : programName_(programName)
-    , params_(filterParams(params, false))
-    , optionalParams_(filterParams(params, true))
+    , params_(getParamsByOptionality(params, false))
+    , optionalParams_(getParamsByOptionality(params, true))
+    , paramLists_(getParamsByOptionality(paramLists, false))
+    , optionalParamLists_(getParamsByOptionality(paramLists, true))
     , flags_(flags)
     , args_(args)
     , argList_(argList)
@@ -100,8 +104,10 @@ public:
     {
         return minimizedUsageInfo() +
                argsInfo() +
-               paramsInfo() +
+               paramsInfo() +               
+               paramListsInfo() +
                optionsInfo() +
+               optionalParamListsInfo() +
                flagsInfo();
     }
 
@@ -121,11 +127,15 @@ private:
 
         for (auto param : params_)
             result += OutputFormatter::paramUsageName(*param) + " ";
+        for (auto paramList : paramLists_)
+            result += OutputFormatter::paramListUsageName(*paramList) + " ";
         for (auto param : optionalParams_)
-           result += "[" + OutputFormatter::paramUsageName(*param) + "] ";
+           result += OutputFormatter::paramUsageName(*param) + " ";
+        for (auto paramList : optionalParamLists_)
+           result += OutputFormatter::paramListUsageName(*paramList) + " ";
 
         for (auto flag : flags_)
-            result += "[" + OutputFormatter::flagUsageName(*flag) + "] ";
+            result += OutputFormatter::flagUsageName(*flag) + " ";
 
         if (argList_)
             result += OutputFormatter::argListUsageName(*argList_) + "\n";
@@ -142,7 +152,10 @@ private:
         for (auto param : params_)
             result += OutputFormatter::paramUsageName(*param) + " ";
 
-        if (!optionalParams_.empty())
+        for (auto paramList : paramLists_)
+            result += OutputFormatter::paramListUsageName(*paramList) + " ";
+
+        if (!optionalParams_.empty() || !optionalParamLists_.empty())
             result += "[params] ";
 
         if (!flags_.empty())
@@ -159,8 +172,26 @@ private:
         auto result = std::string{"Parameters:\n"};
         if (params_.empty())
             return result;
-        for (const auto& param : params_)
-            result += makeConfigFieldInfo(OutputFormatter::paramDescriptionName(*param, outputSettings_.nameIndentation) + "\n", getDescription(param));
+        for (const auto& param : params_){
+            const auto name = OutputFormatter::paramDescriptionName(*param, outputSettings_.nameIndentation) + "\n";
+            result += makeConfigFieldInfo(name, getDescription(param));
+        }
+        return result;
+    }
+
+    std::string paramListsInfo()
+    {
+        auto result = std::string{};
+        if (paramLists_.empty())
+            return result;
+        for (const auto& paramList : paramLists_){
+            const auto name = OutputFormatter::paramListDescriptionName(*paramList, outputSettings_.nameIndentation) + "\n";
+            auto description = getDescription(paramList);
+            if (!description.empty())
+                description += "\n";
+            description += "List (can be used multiple times).";
+            result += makeConfigFieldInfo(name, description);
+        }
         return result;
     }
 
@@ -172,8 +203,34 @@ private:
         for (const auto& option : optionalParams_){
             auto defaultValueInfo = std::string{};
             if (!option->defaultValue().empty())
-                defaultValueInfo = "\nDefault: " + option->defaultValue();
-            result += makeConfigFieldInfo(OutputFormatter::paramDescriptionName(*option, outputSettings_.nameIndentation) + "\n", getDescription(option) + defaultValueInfo);
+                defaultValueInfo = "Optional, default: " + option->defaultValue();
+            else
+                defaultValueInfo = "Optional.";
+            auto description = getDescription(option);
+            if (!description.empty())
+                description += "\n";
+            description += defaultValueInfo;
+            result += makeConfigFieldInfo(OutputFormatter::paramDescriptionName(*option, outputSettings_.nameIndentation) + "\n", description);
+        }
+        return result;
+    }
+
+    std::string optionalParamListsInfo()
+    {
+        if (optionalParamLists_.empty())
+            return {};
+        auto result = std::string{};
+        for (const auto& option : optionalParamLists_){
+            auto defaultValueInfo = std::string{};
+            if (!option->defaultValue().empty())
+                defaultValueInfo = "Optional, default: " + option->defaultValue();
+            else
+                defaultValueInfo = "Optional.";
+            auto description = getDescription(option);
+            if (!description.empty())
+                description += "\n";
+            description += "List (can be used multiple times).\n" + defaultValueInfo;
+            result += makeConfigFieldInfo(OutputFormatter::paramListDescriptionName(*option, outputSettings_.nameIndentation) + "\n", description);
         }
         return result;
     }
@@ -186,8 +243,20 @@ private:
         for (const auto& arg : args_)
             result += makeConfigFieldInfo(OutputFormatter::argDescriptionName(*arg, outputSettings_.nameIndentation) + "\n", getDescription(arg));
 
-        if (argList_)
-            result += makeConfigFieldInfo(OutputFormatter::argListDescriptionName(*argList_, outputSettings_.nameIndentation) + "\n", getDescription(argList_));
+        if (argList_){
+            auto defaultValueInfo = std::string{};
+            if (argList_->isOptional()){
+                if (!argList_->defaultValue().empty())
+                    defaultValueInfo = "Optional, default: " + argList_->defaultValue();
+                else
+                    defaultValueInfo = "Optional.";
+            }
+            auto description = getDescription(argList_);
+            if (!description.empty())
+                description += "\n";
+            description += "List (can be used multiple times).\n" + defaultValueInfo;
+            result += makeConfigFieldInfo(OutputFormatter::argListDescriptionName(*argList_, outputSettings_.nameIndentation) + "\n", description);
+        }
         return result;
     }
 
@@ -254,8 +323,10 @@ private:
 
 private:    
     std::string programName_;    
-    std::vector<IParam*> params_;
+    std::vector<IParam*> params_;    
     std::vector<IParam*> optionalParams_;
+    std::vector<IParamList*> paramLists_;
+    std::vector<IParamList*> optionalParamLists_;
     std::vector<IFlag*> flags_;
     std::vector<IArg*> args_;
     IArgList* argList_;    
