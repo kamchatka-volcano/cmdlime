@@ -11,8 +11,11 @@ namespace cmdlime::detail{
 
 class Flag : public IFlag, public ConfigVar{
 public:
-    Flag(const std::string& name, const std::string& shortName, std::function<bool&()> flagGetter)
-        : ConfigVar(name, shortName, {})
+    Flag(const std::string& originalName,
+         const std::string& name,
+         const std::string& shortName,
+         std::function<bool&()> flagGetter)
+        : ConfigVar(originalName, name, shortName, {})
         , flagGetter_(flagGetter)
     {
     }
@@ -45,7 +48,8 @@ public:
     FlagCreator(TConfig& cfg,
                 const std::string& varName,
                 std::function<bool&()> flagGetter)
-        : flag_(std::make_unique<Flag>(NameProvider::name(varName),
+        : flag_(std::make_unique<Flag>(varName,
+                                       NameProvider::name(varName),
                                        NameProvider::shortName(varName),
                                        flagGetter))
         , cfg_(cfg)

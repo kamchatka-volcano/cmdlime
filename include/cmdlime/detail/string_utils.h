@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <algorithm>
+#include <vector>
+#include <sstream>
 
 namespace str{
 
@@ -35,6 +37,18 @@ inline std::string trimmedFront(const std::string& str)
     return res;
 }
 
+inline std::string trimmed(const std::string& str)
+{
+    auto res = std::string(str);
+    res.erase(res.begin(), std::find_if(res.begin(), res.end(), [](int ch) {
+        return !std::isspace(ch);
+    }));
+    res.erase(std::find_if(res.rbegin(), res.rend(), [](int ch) {
+        return !std::isspace(ch);
+    }).base(), res.end());
+    return res;
+}
+
 
 inline std::string replace(const std::string &str, const std::string &subStr, const std::string &val)
 {
@@ -45,6 +59,20 @@ inline std::string replace(const std::string &str, const std::string &subStr, co
         pos = res.find(subStr, pos + val.size());
     }
     return res;
+}
+
+inline std::vector<std::string> split(const std::string& str, char delimiter, bool trim = true)
+{
+    auto result = std::vector<std::string>{};
+    auto stream = std::stringstream{str};
+    auto part = std::string{};
+    while(std::getline(stream, part, delimiter))
+        if (trim)
+            result.push_back(trimmed(part));
+        else
+            result.push_back(part);
+
+    return result;
 }
 
 };

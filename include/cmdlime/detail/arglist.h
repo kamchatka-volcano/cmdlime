@@ -15,8 +15,12 @@ namespace cmdlime::detail{
 template <typename T>
 class ArgList : public IArgList, public ConfigVar{
 public:
-    ArgList(const std::string& name, const std::string& shortName, const std::string& type, std::function<std::vector<T>&()> argListGetter)
-        : ConfigVar(name, shortName, type)
+    ArgList(const std::string& originalName,
+            const std::string& name,
+            const std::string& shortName,
+            const std::string& type,
+            std::function<std::vector<T>&()> argListGetter)
+        : ConfigVar(originalName, name, shortName, type)
         , argListGetter_(argListGetter)
     {
     }
@@ -92,7 +96,7 @@ private:
 };
 
 template <>
-void ArgList<std::string>::read(const std::string& data)
+inline void ArgList<std::string>::read(const std::string& data)
 {
     argListGetter_().push_back(data);
     hasValue_ = true;
@@ -107,7 +111,8 @@ public:
                    const std::string& varName,
                    const std::string& type,
                    std::function<std::vector<T>&()> argListGetter)
-        : argList_(std::make_unique<ArgList<T>>(NameProvider::name(varName),
+        : argList_(std::make_unique<ArgList<T>>(varName,
+                                                NameProvider::name(varName),
                                                 NameProvider::shortName(varName),
                                                 NameProvider::valueName(type), argListGetter))
         , cfg_(cfg)

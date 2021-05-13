@@ -35,9 +35,9 @@ class DefaultParser : public Parser<formatType>
             if (str::startsWith(part, "--")){
                 const auto flagName = str::after(part, "--");
                 if (flagName.empty())
-                    throw ParsingError{"Flag must have a name"};
+                    throw ConfigError{"Flag must have a name"};
                 if (!isNameCorrect(flagName))
-                    throw ParsingError{"Wrong flag name: '" + flagName + "'"};
+                    throw ConfigError{"Wrong flag name: '" + flagName + "'"};
 
                 this->readFlag(flagName);
             }
@@ -53,7 +53,7 @@ class DefaultParser : public Parser<formatType>
                 const auto paramName = str::before(str::after(part, "-"), "=");
                 const auto paramValue = str::after(part, "=");
                 if (!isNameCorrect(paramName))
-                    throw ParsingError{"Wrong param name: '" + paramName + "'"};
+                    throw ConfigError{"Wrong param name: '" + paramName + "'"};
 
                 this->readParam(paramName, paramValue);
             }
@@ -144,10 +144,15 @@ public:
         return "--";
     }
 
+    static std::string argName(const IArg& arg)
+    {
+        return arg.info().name();
+    }
+
     static std::string argUsageName(const IArg& arg)
     {
         auto stream = std::stringstream{};
-        stream << "<" << arg.info().name() << ">";
+        stream << "<" << argName(arg) << ">";
         return stream.str();
     }
 
@@ -156,17 +161,22 @@ public:
         auto stream = std::stringstream{};
         if (indent)
             stream << std::setw(indent) << " ";
-        stream << "<" << arg.info().name() << "> (" << arg.info().valueName() << ")";
+        stream << "<" << argName(arg) << "> (" << arg.info().valueName() << ")";
         return stream.str();
+    }
+
+    static std::string argListName(const IArgList& argList)
+    {
+        return argList.info().name();
     }
 
     static std::string argListUsageName(const IArgList& argList)
     {
         auto stream = std::stringstream{};
         if (argList.isOptional())
-            stream << "[" << argList.info().name() << "...]";
+            stream << "[" << argListName(argList) << "...]";
         else
-            stream << "<" << argList.info().name() << "...>";
+            stream << "<" << argListName(argList) << "...>";
         return stream.str();
     }
 
@@ -175,7 +185,7 @@ public:
         auto stream = std::stringstream{};
         if (indent)
             stream << std::setw(indent) << " ";
-        stream << "<" << argList.info().name() << "> (" << argList.info().valueName() << ")";
+        stream << "<" << argListName(argList) << "> (" << argList.info().valueName() << ")";
         return stream.str();
     }
 

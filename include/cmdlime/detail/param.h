@@ -32,8 +32,12 @@ std::stringstream& operator <<(std::stringstream& stream, const std::optional<T>
 template<typename T>
 class Param : public IParam, public ConfigVar{
 public:
-    Param(const std::string& name, const std::string& shortName, const std::string& type, std::function<T&()> paramGetter)
-        : ConfigVar(name, shortName, type)
+    Param(const std::string& originalName,
+          const std::string& name,
+          const std::string& shortName,
+          const std::string& type,
+          std::function<T&()> paramGetter)
+        : ConfigVar(originalName, name, shortName, type)
         , paramGetter_(paramGetter)        
     {       
     }
@@ -94,7 +98,7 @@ private:
 };
 
 template <>
-void Param<std::string>::read(const std::string& data)
+inline void Param<std::string>::read(const std::string& data)
 {    
     paramGetter_() = data;
     hasValue_ = true;
@@ -108,7 +112,8 @@ public:
                  const std::string& varName,
                  const std::string& type,
                  std::function<T&()> paramGetter)
-        : param_(std::make_unique<Param<T>>(NameProvider::name(varName),
+        : param_(std::make_unique<Param<T>>(varName,
+                                            NameProvider::name(varName),
                                             NameProvider::shortName(varName),
                                             NameProvider::valueName(type), paramGetter))
         , cfg_(cfg)

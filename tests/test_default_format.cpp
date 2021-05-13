@@ -20,7 +20,7 @@ TEST(DefaultConfig, AllSet)
 {
     auto cfg = FullConfig{};
     cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-paramList=zero", "-paramList=one",
-              "-optionalParamList=1", "-optionalParamList=2", "--flag", "4.2", "1.1", "2.2f", "3.3"});
+              "-optionalParamList=1,2", "--flag", "4.2", "1.1", "2.2f", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
     EXPECT_EQ(cfg.optionalIntParam, 9);
@@ -342,7 +342,7 @@ TEST(DefaultConfig, PascalNames)
         ARG(Arg, double);
         ARGLIST(ArgList, float);
     };
-    auto cfg = PascalConfig{};    
+    auto cfg = PascalConfig{};
     cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-paramList=zero", "-paramList=one",
               "-optionalParamList=1", "-optionalParamList=2", "--flag", "4.2", "1.1", "2.2f", "3.3"});
     EXPECT_EQ(cfg.RequiredParam, std::string{"FOO"});
@@ -456,7 +456,7 @@ TEST(DefaultConfig, CustomNamesMissingArgList)
         });
 }
 
-TEST(DefaultConfig, ConfigErrorRepeatingNames)
+TEST(DefaultConfig, ConfigErrorRepeatingParamNames)
 {
     struct TestConfig : public Config{
         PARAM(Param, double)();
@@ -467,6 +467,20 @@ TEST(DefaultConfig, ConfigErrorRepeatingNames)
         [&cfg]{cfg.read({});},
         [](const cmdlime::ConfigError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'param' is already used."});
+        });
+}
+
+TEST(DefaultConfig, ConfigErrorRepeatingFlagNames)
+{
+    struct TestConfig : public Config{
+        FLAG(Flag);
+        FLAG(flag);
+    };
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Flag's name 'flag' is already used."});
         });
 }
 
@@ -482,7 +496,7 @@ TEST(DefaultConfig, UsageInfo)
 
 TEST(DefaultConfig, DetailedUsageInfo)
 {
-    auto cfg = FullConfig{};    
+    auto cfg = FullConfig{};
     auto expectedDetailedInfo = std::string{
     "Usage: testproc <arg> -requiredParam=<string> -paramList=<string>... [params] [flags] <argList...>\n"
     "Arguments:\n"

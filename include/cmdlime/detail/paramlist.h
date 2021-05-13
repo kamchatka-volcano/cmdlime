@@ -5,6 +5,7 @@
 #include "format.h"
 #include "errors.h"
 #include "customnames.h"
+#include "string_utils.h"
 #include <vector>
 #include <sstream>
 #include <functional>
@@ -15,8 +16,12 @@ namespace cmdlime::detail{
 template <typename T>
 class ParamList : public IParamList, public ConfigVar{
 public:
-    ParamList(const std::string& name, const std::string& shortName, const std::string& type, std::function<std::vector<T>&()> paramListGetter)
-        : ConfigVar(name, shortName, type)
+    ParamList(const std::string& originalName,
+              const std::string& name,
+              const std::string& shortName,
+              const std::string& type,
+              std::function<std::vector<T>&()> paramListGetter)
+        : ConfigVar(originalName, name, shortName, type)
         , paramListGetter_(paramListGetter)
     {
     }
@@ -45,14 +50,17 @@ private:
             isDefaultValueOverwritten_ = true;
         }
 
-        auto stream = std::stringstream{data};
-        stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
-        paramListGetter_().emplace_back();
-        try{
-            stream >> paramListGetter_().back();
-        }
-        catch(const std::exception&){
-            throw ParsingError{"Couldn't set param '" + name() + "' value from '" + data + "'"};
+        const auto dataParts = str::split(data, ',');
+        for (const auto& part : dataParts){
+            auto stream = std::stringstream{part};
+            stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
+            paramListGetter_().emplace_back();
+            try{
+                stream >> paramListGetter_().back();
+            }
+            catch(const std::exception&){
+                throw ParsingError{"Couldn't set param '" + name() + "' value from '" + data + "'"};
+            }
         }
         hasValue_ = true;
     }
@@ -93,9 +101,12 @@ private:
 };
 
 template <>
-void ParamList<std::string>::read(const std::string& data)
+inline void ParamList<std::string>::read(const std::string& data)
 {
-    paramListGetter_().push_back(data);
+    const auto dataParts = str::split(data, ',');
+    for (const auto& part : dataParts){
+        paramListGetter_().push_back(part);
+    }
     hasValue_ = true;
 }
 
@@ -108,9 +119,10 @@ public:
                    const std::string& varName,
                    const std::string& type,
                    std::function<std::vector<T>&()> argListGetter)
-        : paramList_(std::make_unique<ParamList<T>>(NameProvider::name(varName),
-                                                  NameProvider::shortName(varName),
-                                                  NameProvider::valueName(type), argListGetter))
+        : paramList_(std::make_unique<ParamList<T>>(varName,
+                                                    NameProvider::name(varName),
+                                                    NameProvider::shortName(varName),
+                                                    NameProvider::valueName(type), argListGetter))
         , cfg_(cfg)
     {}
 
