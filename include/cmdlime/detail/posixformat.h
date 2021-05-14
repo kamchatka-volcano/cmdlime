@@ -4,6 +4,7 @@
 #include "string_utils.h"
 #include "nameutils.h"
 #include "errors.h"
+#include "utils.h"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -23,13 +24,21 @@ class PosixParser : public Parser<formatType>
         auto argumentEncountered = false;
         auto foundParam = std::string{};
         for (const auto& part : cmdLine){
-            if (isParamOrFlag(part)){
-                if (!foundParam.empty())
-                    throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
-                if (argumentEncountered)
-                    throw ParsingError{"Flags and parameters must preceed arguments"};
-                const auto command = str::after(part, "-");
-                readCommand(command, foundParam);
+            if (str::startsWith(part, "-")){
+                auto command = str::after(part, "-");
+                if (isParamOrFlag(command)){
+                    if (!foundParam.empty())
+                        throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
+                    if (argumentEncountered)
+                        throw ParsingError{"Flags and parameters must preceed arguments"};
+                    readCommand(command, foundParam);
+                }
+                else if (isNumber(part)){
+                    this->readArg(part);
+                    argumentEncountered = true;
+                }
+                else
+                    throw ParsingError{"Encountered unknown parameter or flag '" + part + "'"};
             }
             else if (!foundParam.empty()){
                 this->readParam(foundParam, part);
@@ -84,16 +93,15 @@ class PosixParser : public Parser<formatType>
             check(flag->info(), "Flag");
     }
 
-    bool isParamOrFlag(const std::string& command)
+    bool isParamOrFlag(const std::string& str)
     {
-        if (!str::startsWith(command, "-"))
+        if (str.empty())
             return false;
-        auto opt = command.substr(1,1);
+        auto opt = str.substr(0,1);
         return this->findFlag(opt) ||
                this->findParam(opt) ||
                this->findParamList(opt);
     }
-
 
 };
 

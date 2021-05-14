@@ -194,7 +194,7 @@ TEST(PosixConfig, UnexpectedParam)
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{cfg.read({"-r","FOO", "-t","TEST","-L","zero", "4.2", "1.1", "2.2f", "3.3"});},
         [](const cmdlime::ParsingError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set argument 'a' value from '-t'"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-t'"});
         });
 }
 
@@ -204,7 +204,7 @@ TEST(PosixConfig, UnexpectedFlag)
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{cfg.read({"-r", "FOO", "-t", "-L", "zero", "4.2", "1.1", "2.2f", "3.3"});},
         [](const cmdlime::ParsingError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set argument 'a' value from '-t'"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-t'"});
         });
 }
 
