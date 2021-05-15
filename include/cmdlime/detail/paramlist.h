@@ -16,12 +16,11 @@ namespace cmdlime::detail{
 template <typename T>
 class ParamList : public IParamList, public ConfigVar{
 public:
-    ParamList(const std::string& originalName,
-              const std::string& name,
+    ParamList(const std::string& name,
               const std::string& shortName,
               const std::string& type,
               std::function<std::vector<T>&()> paramListGetter)
-        : ConfigVar(originalName, name, shortName, type)
+        : ConfigVar(name, shortName, type)
         , paramListGetter_(paramListGetter)
     {
     }
@@ -117,8 +116,7 @@ public:
                    const std::string& varName,
                    const std::string& type,
                    std::function<std::vector<T>&()> argListGetter)
-        : paramList_(std::make_unique<ParamList<T>>(varName,
-                                                    NameProvider::name(varName),
+        : paramList_(std::make_unique<ParamList<T>>(NameProvider::name(varName),
                                                     NameProvider::shortName(varName),
                                                     NameProvider::valueName(type), argListGetter))
         , cfg_(cfg)

@@ -98,6 +98,11 @@ public:
         return {};
     }
 
+    static std::string argName(const std::string& configVarName)
+    {
+        return toLowerCase(configVarName);
+    }
+
     static std::string valueName(const std::string& typeName)
     {
         return toLowerCase(templateType(typeNameWithoutNamespace(typeName)));
@@ -167,15 +172,10 @@ public:
         return "-";
     }
 
-    static std::string argName(const IArg& arg)
-    {
-        return arg.info().name();
-    }
-
     static std::string argUsageName(const IArg& arg)
     {
         auto stream = std::stringstream{};
-        stream << "<" << argName(arg) << ">";
+        stream << "<" << arg.info().name() << ">";
         return stream.str();
     }
 
@@ -184,22 +184,17 @@ public:
         auto stream = std::stringstream{};
         if (indent)
             stream << std::setw(indent) << " ";
-        stream << "<" << argName(arg) << "> (" << arg.info().valueName() << ")";
+        stream << "<" << arg.info().name() << "> (" << arg.info().valueName() << ")";
         return stream.str();
-    }
-
-    static std::string argListName(const IArgList& argList)
-    {
-        return argList.info().name();
     }
 
     static std::string argListUsageName(const IArgList& argList)
     {
         auto stream = std::stringstream{};
         if (argList.isOptional())
-            stream << "[" << argListName(argList) << "...]";
+            stream << "[" << argList.info().name() << "...]";
         else
-            stream << "<" << argListName(argList) << "...>";
+            stream << "<" << argList.info().name() << "...>";
         return stream.str();
     }
 
@@ -208,7 +203,7 @@ public:
         auto stream = std::stringstream{};
         if (indent)
             stream << std::setw(indent) << " ";
-        stream << "<" << argListName(argList) << "> (" << argList.info().valueName() << ")";
+        stream << "<" << argList.info().name() << "> (" << argList.info().valueName() << ")";
         return stream.str();
     }
 

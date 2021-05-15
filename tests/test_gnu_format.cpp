@@ -14,8 +14,8 @@ struct FullConfig : public Config{
     PARAMLIST(paramList, std::string)                           << cmdlime::ShortName("L");
     PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::ShortName("O");
     FLAG(flag)                                                  << cmdlime::ShortName("f");
-    ARG(arg, double)                                            << cmdlime::ShortName("a");
-    ARGLIST(argList, float)                                     << cmdlime::ShortName("A");
+    ARG(arg, double);
+    ARGLIST(argList, float);
 };
 
 TEST(GNUConfig, AllSet)
@@ -85,7 +85,7 @@ TEST(GNUConfig, NumericParamsAndFlags)
         FLAG(flag)                                  << cmdlime::ShortName("1");
         PARAM(param, std::string)                   << cmdlime::ShortName("2");
         PARAM(paramSecond, std::string)("default")  << cmdlime::ShortName("p");
-        ARG(arg, int)                               << cmdlime::ShortName("a");
+        ARG(arg, int);
     };
     {
         auto cfg = Cfg{};
@@ -132,8 +132,8 @@ struct FullConfigWithOptionalArgList : public Config{
     PARAM(optionalParam, std::string)({"defaultValue"})  << cmdlime::ShortName("o");
     PARAM(optionalIntParam, std::optional<int>)()        << cmdlime::ShortName("i");
     FLAG(flag)                                           << cmdlime::ShortName("f");
-    ARG(arg, double)                                     << cmdlime::ShortName("a");
-    ARGLIST(argList, float)({1.f, 2.f})                  << cmdlime::ShortName("A");
+    ARG(arg, double);
+    ARGLIST(argList, float)({1.f, 2.f});
 };
 
 TEST(GNUConfig, MissingOptionalArgList)
@@ -296,7 +296,7 @@ TEST(GNUConfig, ParamListEmptyValue)
 TEST(GNUConfig, ArgEmptyValue)
 {
     struct Cfg : public Config{
-        ARG(arg, std::string) << cmdlime::ShortName("a");
+        ARG(arg, std::string);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -309,7 +309,7 @@ TEST(GNUConfig, ArgEmptyValue)
 TEST(GNUConfig, ArgListEmptyValue)
 {
     struct Cfg : public Config{
-        ARGLIST(args, std::string) << cmdlime::ShortName("a");
+        ARGLIST(args, std::string);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -325,8 +325,8 @@ TEST(GNUConfig, ValuesWithWhitespace)
     struct Cfg : public Config{
         PARAM(param, std::string)         << cmdlime::ShortName("p");
         PARAMLIST(paramList, std::string) << cmdlime::ShortName("L");
-        ARG(arg, std::string)             << cmdlime::ShortName("a");
-        ARGLIST(argList, std::string)     << cmdlime::ShortName("A");
+        ARG(arg, std::string);
+        ARGLIST(argList, std::string);
     };
     auto cfg = Cfg{};
     cfg.read({"-p", "Hello world", "-L", "foo bar", "foo bar", "forty two"});

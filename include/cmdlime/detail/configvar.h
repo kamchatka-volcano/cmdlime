@@ -6,9 +6,8 @@ namespace cmdlime::detail{
 
 class ConfigVar{
 public:
-    ConfigVar(const std::string& originalName,const std::string& name, const std::string& shortName, const std::string& valueName)
-        : originalName_(originalName)
-        , name_(name)
+    ConfigVar(const std::string& name, const std::string& shortName, const std::string& valueName)
+        : name_(name)
         , shortName_(shortName)
         , valueName_(valueName)
     {
@@ -34,11 +33,6 @@ public:
         shortName_ = shortName;
     }
 
-    const std::string& originalName() const
-    {
-        return originalName_;
-    }
-
     const std::string& name() const
     {
         return name_;
@@ -60,7 +54,6 @@ public:
     }
 
 private:
-    std::string originalName_;
     std::string name_;
     std::string shortName_;
     std::string valueName_;

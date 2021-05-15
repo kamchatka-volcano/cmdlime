@@ -15,7 +15,7 @@ struct FullConfig : public Config{
     PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::Name("O");
     FLAG(flag);
     ARG(arg, double);
-    ARGLIST(argList, float)                                     << cmdlime::Name("A");
+    ARGLIST(argList, float);
 };
 
 TEST(PosixConfig, AllSet)
@@ -500,14 +500,14 @@ TEST(PosixConfig, CustomNamesMissingParamList)
 TEST(PosixConfig, CustomNamesMissingArg)
 {
     struct TestConfig : public Config{
-        ARG(arg, double) << cmdlime::Name{"1"};
+        ARG(arg, double) << cmdlime::Name{"a"};
         ARGLIST(argList, float) << cmdlime::Name{"A"};
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{cfg.read({});},
         [](const cmdlime::ParsingError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Positional argument 'arg' is missing."});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Positional argument 'a' is missing."});
         });
 }
 
@@ -521,7 +521,7 @@ TEST(PosixConfig, CustomNamesMissingArgList)
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{cfg.read({"1.0"});},
         [](const cmdlime::ParsingError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'arg-list' is missing."});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'A' is missing."});
         });
 }
 

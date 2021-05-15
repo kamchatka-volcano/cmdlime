@@ -15,12 +15,10 @@ namespace cmdlime::detail{
 template <typename T>
 class ArgList : public IArgList, public ConfigVar{
 public:
-    ArgList(const std::string& originalName,
-            const std::string& name,
-            const std::string& shortName,
+    ArgList(const std::string& name,
             const std::string& type,
             std::function<std::vector<T>&()> argListGetter)
-        : ConfigVar(originalName, name, shortName, type)
+        : ConfigVar(name, {}, type)
         , argListGetter_(argListGetter)
     {
     }
@@ -109,9 +107,7 @@ public:
                    const std::string& varName,
                    const std::string& type,
                    std::function<std::vector<T>&()> argListGetter)
-        : argList_(std::make_unique<ArgList<T>>(varName,
-                                                NameProvider::name(varName),
-                                                NameProvider::shortName(varName),
+        : argList_(std::make_unique<ArgList<T>>(NameProvider::argName(varName),
                                                 NameProvider::valueName(type), argListGetter))
         , cfg_(cfg)
     {}
@@ -125,13 +121,6 @@ public:
     ArgListCreator<T, TConfig>& operator<<(const Name& customName)
     {
         argList_->resetName(customName.value());
-        return *this;
-    }
-
-    ArgListCreator<T, TConfig>& operator<<(const ShortName& customName)
-    {
-        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
-        argList_->resetShortName(customName.value());
         return *this;
     }
 

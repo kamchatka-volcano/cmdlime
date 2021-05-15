@@ -144,16 +144,16 @@ protected:
         if (!argsToRead_.empty()){
             auto arg = argsToRead_.front();
             if (value.empty())
-                throw ParsingError{"Arg '" + OutputFormatter::argName(*arg) + "' value can't be empty"};
+                throw ParsingError{"Arg '" + arg->info().name() + "' value can't be empty"};
             argsToRead_.pop_front();
             if (!arg->read(value))
-                throw ParsingError{"Couldn't set argument '" + OutputFormatter::argName(*arg) + "' value from '" + value + "'"};
+                throw ParsingError{"Couldn't set argument '" + arg->info().name() + "' value from '" + value + "'"};
         }
         else if (argList_){
             if (value.empty())
-                throw ParsingError{"Arg list '" + OutputFormatter::argListName(*argList_) + "' element value can't be empty"};
+                throw ParsingError{"Arg list '" + argList_->info().name() + "' element value can't be empty"};
             if (!argList_->read(value))
-                throw ParsingError{"Couldn't set argument list '" + OutputFormatter::argListName(*argList_) + "' element's value from '" + value + "'"};
+                throw ParsingError{"Couldn't set argument list '" + argList_->info().name() + "' element's value from '" + value + "'"};
         }
         else
             throw ParsingError("Encountered unknown positional argument '" + value + "'");
@@ -176,13 +176,13 @@ private:
     void checkUnreadArgs()
     {
         if(!argsToRead_.empty())
-            throw ParsingError{"Positional argument '" + OutputFormatter::argName(*argsToRead_.front()) + "' is missing."};
+            throw ParsingError{"Positional argument '" + argsToRead_.front()->info().name() + "' is missing."};
     }
 
     void checkUnreadArgList()
     {
         if (argList_ && !argList_->hasValue())
-            throw ParsingError{"Arguments list '" + OutputFormatter::argListName(*argList_) + "' is missing."};
+            throw ParsingError{"Arguments list '" + argList_->info().name() + "' is missing."};
     }
 
     void checkNames()
