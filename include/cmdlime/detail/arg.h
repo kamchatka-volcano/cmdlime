@@ -35,16 +35,11 @@ private:
         return *this;
     }
 
-    void read(const std::string& data) override
+    bool read(const std::string& data) override
     {
         auto stream = std::stringstream{data};
-        stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
-        try{
-            stream >> argGetter_();
-        }
-        catch(const std::exception&){
-            throw ParsingError{"Couldn't set argument '" + name() + "' value from '" + data + "'"};
-        }
+        stream >> argGetter_();
+        return !stream.bad() && !stream.fail() && stream.eof();
     }
 
 private:    
@@ -52,9 +47,10 @@ private:
 };
 
 template <>
-inline void Arg<std::string>::read(const std::string& data)
+inline bool Arg<std::string>::read(const std::string& data)
 {
     argGetter_() = data;
+    return true;
 }
 
 template<typename T, typename TConfig>

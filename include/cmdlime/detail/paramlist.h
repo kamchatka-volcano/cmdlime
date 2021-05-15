@@ -43,7 +43,7 @@ private:
         return *this;
     }
 
-    void read(const std::string& data) override
+    bool read(const std::string& data) override
     {
         if (!isDefaultValueOverwritten_){
             paramListGetter_().clear();
@@ -52,17 +52,14 @@ private:
 
         const auto dataParts = str::split(data, ',');
         for (const auto& part : dataParts){
-            auto stream = std::stringstream{part};
-            stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
+            auto stream = std::stringstream{part};            
             paramListGetter_().emplace_back();
-            try{
-                stream >> paramListGetter_().back();
-            }
-            catch(const std::exception&){
-                throw ParsingError{"Couldn't set param '" + name() + "' value from '" + data + "'"};
-            }
+            stream >> paramListGetter_().back();
+            if (stream.bad() || stream.fail() || !stream.eof())
+                return false;
         }
         hasValue_ = true;
+        return true;
     }
 
     bool hasValue() const override
@@ -101,13 +98,14 @@ private:
 };
 
 template <>
-inline void ParamList<std::string>::read(const std::string& data)
+inline bool ParamList<std::string>::read(const std::string& data)
 {
     const auto dataParts = str::split(data, ',');
     for (const auto& part : dataParts){
         paramListGetter_().push_back(part);
     }
     hasValue_ = true;
+    return true;
 }
 
 template<typename T, typename TConfig>

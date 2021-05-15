@@ -42,22 +42,19 @@ private:
         return *this;
     }
 
-    void read(const std::string& data) override
+    bool read(const std::string& data) override
     {
         if (!isDefaultValueOverwritten_){
             argListGetter_().clear();
             isDefaultValueOverwritten_ = true;
         }
-        auto stream = std::stringstream{data};
-        stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
+        auto stream = std::stringstream{data};        
         argListGetter_().emplace_back();
-        try{
-            stream >> argListGetter_().back();
-        }
-        catch(const std::exception&){
-            throw ParsingError{"Couldn't set argument list '" + name() + "' value from '" + data + "'"};
-        }
+        stream >> argListGetter_().back();
+        if (stream.bad() || stream.fail() || !stream.eof())
+            return false;
         hasValue_ = true;
+        return true;
     }
 
     bool hasValue() const override
@@ -96,10 +93,11 @@ private:
 };
 
 template <>
-inline void ArgList<std::string>::read(const std::string& data)
+inline bool ArgList<std::string>::read(const std::string& data)
 {
     argListGetter_().push_back(data);
     hasValue_ = true;
+    return true;
 }
 
 template<typename T, typename TConfig>

@@ -81,12 +81,14 @@ protected:
             throw ParsingError{"Parameter '" + OutputFormatter::paramPrefix() + name + "' value can't be empty"};
         auto param = findParam(name);
         if (param){
-            param->read(value);
+            if (!param->read(value))
+                throw ParsingError{"Couldn't set parameter '" + OutputFormatter::paramPrefix() + name + "' value from '" + value + "'"};
             return;
         }
         auto paramList = findParamList(name);
         if (paramList){
-            paramList->read(value);
+            if (!paramList->read(value))
+                throw ParsingError{"Couldn't set parameter '" + OutputFormatter::paramPrefix() + name + "' value from '" + value + "'"};;
             return;
         }
         throw ParsingError{"Encountered unknown parameter '" + OutputFormatter::paramPrefix() + name + "'"};
@@ -118,12 +120,14 @@ protected:
             if (value.empty())
                 throw ParsingError{"Arg '" + OutputFormatter::argName(*arg) + "' value can't be empty"};
             argsToRead_.pop_front();
-            arg->read(value);
+            if (!arg->read(value))
+                throw ParsingError{"Couldn't set argument '" + OutputFormatter::argName(*arg) + "' value from '" + value + "'"};
         }
         else if (argList_){
             if (value.empty())
                 throw ParsingError{"Arg list '" + OutputFormatter::argListName(*argList_) + "' element value can't be empty"};
-            argList_->read(value);
+            if (!argList_->read(value))
+                throw ParsingError{"Couldn't set argument list '" + OutputFormatter::argListName(*argList_) + "' element's value from '" + value + "'"};
         }
         else
             throw ParsingError("Encountered unknown positional argument '" + value + "'");

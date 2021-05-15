@@ -59,17 +59,14 @@ private:
         return *this;
     }
 
-    void read(const std::string& data) override
+    bool read(const std::string& data) override
     {
         auto stream = std::stringstream{data};
-        stream.exceptions(std::stringstream::failbit | std::stringstream::badbit);
-        try{
-            stream >> paramGetter_();
-        }
-        catch(const std::exception&){
-            throw ParsingError{"Couldn't set parameter '" + name() + "' value from '" + data + "'"};
-        }
+        stream >> paramGetter_();
+        if (stream.bad() || stream.fail() || !stream.eof())
+            return false;
         hasValue_ = true;
+        return true;
     }
 
     bool hasValue() const override
@@ -98,10 +95,11 @@ private:
 };
 
 template <>
-inline void Param<std::string>::read(const std::string& data)
+inline bool Param<std::string>::read(const std::string& data)
 {    
     paramGetter_() = data;
     hasValue_ = true;
+    return true;
 }
 
 template<typename T, typename TConfig>
