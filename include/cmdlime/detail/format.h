@@ -5,7 +5,8 @@ namespace cmdlime::detail{
 enum class FormatType{
     Default,
     POSIX,
-    X11
+    X11,
+    GNU
 };
 
 template<FormatType>
@@ -19,5 +20,8 @@ struct Format<FormatType::POSIX>;
 
 template<>
 struct Format<FormatType::X11>;
+
+template<>
+struct Format<FormatType::GNU>;
 
 }

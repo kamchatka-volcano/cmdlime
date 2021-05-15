@@ -53,22 +53,41 @@ public:
     }
 
 protected:
-    IParam* findParam(const std::string& name)
+    enum class FindMode{
+        Name,
+        ShortName,
+        All
+    };
+    IParam* findParam(const std::string& name, FindMode mode = FindMode::All)
     {
         auto paramIt = std::find_if(params_.begin(), params_.end(),
-            [&name](auto param){
-                return param->info().name() == name || param->info().shortName() == name;
+            [&](auto param){
+                switch(mode){
+                case FindMode::Name:
+                    return param->info().name() == name;
+                case FindMode::ShortName:
+                    return param->info().shortName() == name;
+                case FindMode::All:
+                    return param->info().name() == name || param->info().shortName() == name;
+                }
             });
         if (paramIt == params_.end())
             return nullptr;
         return *paramIt;
     }
 
-    IParamList* findParamList(const std::string& name)
+    IParamList* findParamList(const std::string& name, FindMode mode = FindMode::All)
     {
         auto paramListIt = std::find_if(paramLists_.begin(), paramLists_.end(),
-            [&name](auto paramList){
-                return paramList->info().name() == name || paramList->info().shortName() == name;
+            [&](auto paramList){
+                switch(mode){
+                case FindMode::Name:
+                    return paramList->info().name() == name;
+                case FindMode::ShortName:
+                    return paramList->info().shortName() == name;
+                case FindMode::All:
+                    return paramList->info().name() == name || paramList->info().shortName() == name;
+                }
             });
         if (paramListIt == paramLists_.end())
             return nullptr;
@@ -82,23 +101,30 @@ protected:
         auto param = findParam(name);
         if (param){
             if (!param->read(value))
-                throw ParsingError{"Couldn't set parameter '" + OutputFormatter::paramPrefix() + name + "' value from '" + value + "'"};
+                throw ParsingError{"Couldn't set parameter '" + OutputFormatter::paramPrefix() + param->info().name() + "' value from '" + value + "'"};
             return;
         }
         auto paramList = findParamList(name);
         if (paramList){
             if (!paramList->read(value))
-                throw ParsingError{"Couldn't set parameter '" + OutputFormatter::paramPrefix() + name + "' value from '" + value + "'"};;
+                throw ParsingError{"Couldn't set parameter '" + OutputFormatter::paramPrefix() + paramList->info().name() + "' value from '" + value + "'"};;
             return;
         }
         throw ParsingError{"Encountered unknown parameter '" + OutputFormatter::paramPrefix() + name + "'"};
     }
 
-    IFlag* findFlag(const std::string& name)
+    IFlag* findFlag(const std::string& name, FindMode mode = FindMode::All)
     {
         auto flagIt = std::find_if(flags_.begin(), flags_.end(),
-            [&name](auto flag){
-                return flag->info().name() == name || flag->info().shortName() == name;
+            [&](auto flag){
+            switch(mode){
+                case FindMode::Name:
+                    return flag->info().name() == name;
+                case FindMode::ShortName:
+                    return flag->info().shortName() == name;
+                case FindMode::All:
+                    return flag->info().name() == name || flag->info().shortName() == name;
+                }
             });
         if (flagIt == flags_.end())
             return nullptr;

@@ -48,7 +48,10 @@ inline std::string toCamelCase(const std::string& name)
 inline std::string toKebabCase(const std::string& name)
 {
     auto result = std::string{};
-    for (auto ch : util::formatName(str::replace(name, "_", "-"))){
+    auto formattedName = util::formatName(str::replace(name, "_", "-"));
+    if (!formattedName.empty())
+        formattedName[0] = static_cast<char>(std::tolower(formattedName[0]));
+    for (auto ch : formattedName){
         if (std::isupper(ch) && !result.empty()){
             result.push_back('-');
             result.push_back(static_cast<char>(std::tolower(ch)));

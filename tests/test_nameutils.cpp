@@ -31,6 +31,13 @@ TEST(NameUtils, CamelToKebab)
     EXPECT_EQ(toKebabCase("_helloWorld_"), "hello-world");
 }
 
+TEST(NameUtils, PascalToKebab)
+{
+    EXPECT_EQ(toKebabCase("HelloWorld"), "hello-world");
+    EXPECT_EQ(toKebabCase("Hello"), "hello");
+    EXPECT_EQ(toKebabCase("_HelloWorld_"), "hello-world");
+}
+
 TEST(NameUtils, SnakeToLower)
 {
     EXPECT_EQ(toLowerCase(""), "");
