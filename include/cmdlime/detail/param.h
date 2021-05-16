@@ -5,6 +5,7 @@
 #include "format.h"
 #include "errors.h"
 #include "customnames.h"
+#include "gsl/assert"
 #include <sstream>
 #include <optional>
 #include <memory>
@@ -109,11 +110,14 @@ public:
                  const std::string& varName,
                  const std::string& type,
                  std::function<T&()> paramGetter)
-        : param_(std::make_unique<Param<T>>(NameProvider::name(varName),
+        : cfg_(cfg)
+    {
+        Expects(!varName.empty());
+        Expects(!type.empty());
+        param_ = std::make_unique<Param<T>>(NameProvider::name(varName),
                                             NameProvider::shortName(varName),
-                                            NameProvider::valueName(type), paramGetter))
-        , cfg_(cfg)
-    {}
+                                            NameProvider::valueName(type), paramGetter);
+    }
 
     ParamCreator<T, TConfig>& operator<<(const std::string& info)
     {
@@ -134,9 +138,22 @@ public:
         return *this;
     }
 
+    ParamCreator<T, TConfig>& operator<<(const WithoutShortName&)
+    {
+        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
+        param_->resetShortName({});
+        return *this;
+    }
+
     ParamCreator<T, TConfig>& operator<<(const ValueName& valueName)
     {
         param_->resetValueName(valueName.value());
+        return *this;
+    }
+
+    ParamCreator<T, TConfig>& operator<<(const WithoutValueName&)
+    {
+        param_->resetValueName({});
         return *this;
     }
 

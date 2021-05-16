@@ -3,6 +3,7 @@
 #include "usageinfocreator.h"
 #include "configaccess.h"
 #include "usageinfoformat.h"
+#include "gsl/pointers"
 #include <vector>
 #include <string>
 #include <map>
@@ -11,6 +12,8 @@
 #include <algorithm>
 
 namespace cmdlime::detail{
+using namespace gsl;
+
 class IParam;
 class IParamList;
 class IFlag;
@@ -18,9 +21,9 @@ class IArg;
 class IArgList;
 
 template <typename T>
-std::vector<T*> getPtrList(const std::vector<std::unique_ptr<T>>& ownerList)
+inline std::vector<not_null<T*>> getPtrList(const std::vector<std::unique_ptr<T>>& ownerList)
 {
-    auto result = std::vector<T*>{};
+    auto result = std::vector<not_null<T*>>{};
     std::transform(ownerList.begin(), ownerList.end(), std::back_inserter(result),
                    [](auto& owner){return owner.get();});
     return result;

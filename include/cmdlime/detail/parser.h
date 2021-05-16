@@ -6,22 +6,24 @@
 #include "iarglist.h"
 #include "format.h"
 #include "errors.h"
+#include "gsl/pointers"
 #include <vector>
 #include <deque>
 #include <unordered_set>
 #include <algorithm>
 
 namespace cmdlime::detail{
+using namespace gsl;
 
 template <FormatType formatType>
 class Parser{
     using OutputFormatter = typename Format<formatType>::outputFormatter;
 
 public:
-    Parser(const std::vector<IParam*>& params,
-           const std::vector<IParamList*>& paramLists,
-           const std::vector<IFlag*>& flags,
-           const std::vector<IArg*>& args,
+    Parser(const std::vector<not_null<IParam*>>& params,
+           const std::vector<not_null<IParamList*>>& paramLists,
+           const std::vector<not_null<IFlag*>>& flags,
+           const std::vector<not_null<IArg*>>& args,
            IArgList* argList)
         : params_(params)
         , paramLists_(paramLists)
@@ -187,18 +189,17 @@ private:
 
     void checkNames()
     {
-        std::unordered_set<std::string> names;
-        auto processName = [&names](const std::string& varType, const ConfigVar& var){
-            if (var.name().empty())
-                throw ConfigError{varType + " name '" + var.name() + "' can't be empty."};
-            if (names.count(var.name()))
+        auto encounteredNames = std::unordered_set<std::string>{};
+
+        auto processName = [&encounteredNames](const std::string& varType, const ConfigVar& var){
+            if (encounteredNames.count(var.name()))
                 throw ConfigError{varType + " name '" + var.name() + "' is already used."};
-            names.insert(var.name());
+            encounteredNames.insert(var.name());
             if (var.shortName().empty())
                 return;
-            if (names.count(var.shortName()))
+            if (encounteredNames.count(var.shortName()))
                 throw ConfigError{varType + " short name '" + var.shortName() + "' is already used."};
-            names.insert(var.shortName());
+            encounteredNames.insert(var.shortName());
         };
         for (auto param : params_)
             processName("Parameter's", param->info());
@@ -209,11 +210,11 @@ private:
     }
 
 protected:
-    std::vector<IParam*> params_;
-    std::vector<IParamList*> paramLists_;
-    std::vector<IFlag*> flags_;
-    std::vector<IArg*> args_;
-    std::deque<IArg*> argsToRead_;
+    std::vector<not_null<IParam*>> params_;
+    std::vector<not_null<IParamList*>> paramLists_;
+    std::vector<not_null<IFlag*>> flags_;
+    std::vector<not_null<IArg*>> args_;
+    std::deque<not_null<IArg*>> argsToRead_;
     IArgList* argList_;
 };
 

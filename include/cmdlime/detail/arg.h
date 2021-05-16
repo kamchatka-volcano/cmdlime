@@ -5,6 +5,7 @@
 #include "format.h"
 #include "errors.h"
 #include "customnames.h"
+#include "gsl/assert"
 #include <sstream>
 #include <functional>
 #include <memory>
@@ -58,11 +59,14 @@ public:
     ArgCreator(TConfig& cfg,
                const std::string& varName,
                const std::string& type,
-               std::function<T&()> argGetter)
-        : arg_(std::make_unique<Arg<T>>(NameProvider::argName(varName),
-                                        NameProvider::valueName(type), argGetter))
-        , cfg_(cfg)
-    {}
+               std::function<T&()> argGetter)        
+        : cfg_(cfg)
+    {
+        Expects(!varName.empty());
+        Expects(!type.empty());
+        arg_ = std::make_unique<Arg<T>>(NameProvider::argName(varName),
+                                        NameProvider::valueName(type), argGetter);
+    }
 
     ArgCreator<T, TConfig>& operator<<(const std::string& info)
     {

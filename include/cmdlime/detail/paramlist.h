@@ -6,6 +6,7 @@
 #include "errors.h"
 #include "customnames.h"
 #include "string_utils.h"
+#include "gsl/assert"
 #include <vector>
 #include <sstream>
 #include <functional>
@@ -116,11 +117,14 @@ public:
                    const std::string& varName,
                    const std::string& type,
                    std::function<std::vector<T>&()> argListGetter)
-        : paramList_(std::make_unique<ParamList<T>>(NameProvider::name(varName),
+        : cfg_(cfg)
+    {
+        Expects(!varName.empty());
+        Expects(!type.empty());
+        paramList_ = std::make_unique<ParamList<T>>(NameProvider::name(varName),
                                                     NameProvider::shortName(varName),
-                                                    NameProvider::valueName(type), argListGetter))
-        , cfg_(cfg)
-    {}
+                                                    NameProvider::valueName(type), argListGetter);
+    }
 
     ParamListCreator<T, TConfig>& operator<<(const std::string& info)
     {
@@ -141,9 +145,22 @@ public:
         return *this;
     }
 
+    ParamListCreator<T, TConfig>& operator<<(const WithoutShortName&)
+    {
+        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
+        paramList_->resetShortName({});
+        return *this;
+    }
+
     ParamListCreator<T, TConfig>& operator<<(const ValueName& valueName)
     {
         paramList_->resetValueName(valueName.value());
+        return *this;
+    }
+
+    ParamListCreator<T, TConfig>& operator<<(const WithoutValueName&)
+    {
+        paramList_->resetValueName({});
         return *this;
     }
 

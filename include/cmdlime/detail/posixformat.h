@@ -5,6 +5,7 @@
 #include "nameutils.h"
 #include "errors.h"
 #include "utils.h"
+#include "gsl/assert"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -18,62 +19,68 @@ class PosixParser : public Parser<formatType>
 {
     using Parser<formatType>::Parser;
 
-    void process(const std::vector<std::string>& cmdLine) override
+    void processCommand(std::string command)
     {
+        auto possibleNumberArg = command;
+        command = str::after(command, "-");
+        if (isParamOrFlag(command)){
+            if (!foundParam_.empty())
+                throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
+            if (argumentEncountered_)
+                throw ParsingError{"Flags and parameters must preceed arguments"};
+            parseCommand(command);
+        }
+        else if (isNumber(possibleNumberArg)){
+            this->readArg(possibleNumberArg);
+            argumentEncountered_ = true;
+        }
+        else
+            throw ParsingError{"Encountered unknown parameter or flag '-" + command + "'"};
+    }
+
+    void process(const std::vector<std::string>& cmdLine) override
+    {       
         checkNames();
-        auto argumentEncountered = false;
-        auto foundParam = std::string{};
+        argumentEncountered_ = false;
+        foundParam_.clear();
+
         for (const auto& part : cmdLine){
-            if (str::startsWith(part, "-")){
-                auto command = str::after(part, "-");
-                if (isParamOrFlag(command)){
-                    if (!foundParam.empty())
-                        throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
-                    if (argumentEncountered)
-                        throw ParsingError{"Flags and parameters must preceed arguments"};
-                    readCommand(command, foundParam);
-                }
-                else if (isNumber(part)){
-                    this->readArg(part);
-                    argumentEncountered = true;
-                }
-                else
-                    throw ParsingError{"Encountered unknown parameter or flag '" + part + "'"};
-            }
-            else if (!foundParam.empty()){
-                this->readParam(foundParam, part);
-                foundParam.clear();
+            if (str::startsWith(part, "-") && part.size() > 1)
+               processCommand(part);
+            else if (!foundParam_.empty()){
+                this->readParam(foundParam_, part);
+                foundParam_.clear();
             }
             else{
                 this->readArg(part);
-                argumentEncountered = true;
+                argumentEncountered_ = true;
             }
         }
-        if (!foundParam.empty())
-            throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
+        if (!foundParam_.empty())
+            throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
     }
 
-    void readCommand(const std::string& command, std::string& foundParam)
+    void parseCommand(const std::string& command)
     {
         if (command.empty())
             throw ParsingError{"Flags and parameters must have a name"};
         auto paramValue = std::string{};
         for(auto ch : command){
             auto opt = std::string{ch};
-            if (!foundParam.empty())
+            if (!foundParam_.empty())
                 paramValue += opt;
             else if (this->findFlag(opt))
                 this->readFlag(opt);
             else if (this->findParam(opt))
-                foundParam = opt;
+                foundParam_ = opt;
             else if (this->findParamList(opt))
-                foundParam = opt;
+                foundParam_ = opt;
             else
                 throw ParsingError{"Unknown option '" + opt + "' in command '-" + command + "'"};
         }
-        if (!foundParam.empty() && !paramValue.empty()){
-            this->readParam(foundParam, paramValue);
-            foundParam.clear();
+        if (!foundParam_.empty() && !paramValue.empty()){
+            this->readParam(foundParam_, paramValue);
+            foundParam_.clear();
         }
     }
 
@@ -81,9 +88,9 @@ class PosixParser : public Parser<formatType>
     {
         auto check = [](ConfigVar& var, const std::string& varType){
             if (var.name().size() != 1)
-                throw ConfigError{varType + "'s name can't have more than one symbol"};
+                throw ConfigError{varType + "'s name '" + var.name() + "' can't have more than one symbol"};
             if (!std::isalnum(var.name().front()))
-                throw ConfigError{"Parameter's name must be an alphanumeric character"};
+                throw ConfigError{varType + "'s name '" + var.name() + "' must be an alphanumeric character"};
         };
         for (auto param : this->params_)
             check(param->info(), "Parameter");
@@ -103,28 +110,34 @@ class PosixParser : public Parser<formatType>
                this->findParamList(opt);
     }
 
+private:
+    bool argumentEncountered_;
+    std::string foundParam_;
 };
 
 class PosixNameProvider{
 public:
     static std::string name(const std::string& configVarName)
     {
-        assert(!configVarName.empty());
+        Expects(!configVarName.empty());
         return std::string{static_cast<char>(std::tolower(configVarName.front()))};
     }
 
-    static std::string shortName(const std::string&)
+    static std::string shortName(const std::string& configVarName)
     {
+        Expects(!configVarName.empty());
         return {};
     }
 
     static std::string argName(const std::string& configVarName)
     {
+        Expects(!configVarName.empty());
         return toKebabCase(configVarName);
     }
 
     static std::string valueName(const std::string& typeName)
     {
+        Expects(!typeName.empty());
         return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

@@ -13,18 +13,6 @@
 
 namespace cmdlime::detail{
 
-inline bool isNameCorrect(const std::string& name)
-{
-    assert(!name.empty());
-    if (!std::isalpha(name.front()))
-        return false;
-    if (name.size() == 1)
-        return true;
-
-    auto nonAlphaNumCharIt = std::find_if(name.begin() + 1, name.end(), [](char ch){return !std::isalnum(ch);});
-    return nonAlphaNumCharIt == name.end();
-}
-
 template <FormatType formatType>
 class X11Parser : public Parser<formatType>
 {
@@ -35,7 +23,7 @@ class X11Parser : public Parser<formatType>
         auto foundParam = std::string{};
         for (const auto& part : cmdLine)
         {            
-            if (str::startsWith(part, "-")){
+            if (str::startsWith(part, "-") && part.size() > 1){
                 auto command = str::after(part, "-");
                 if (isParamOrFlag(command) && !foundParam.empty())
                     throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
@@ -74,8 +62,13 @@ class X11Parser : public Parser<formatType>
     void checkNames()
     {
         auto check = [](ConfigVar& var, const std::string& varType){
-            if (var.name().empty())
-                throw ConfigError{varType + "'s name can't be empty"};
+            if (!std::isalpha(var.name().front()))
+                throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
+            if (var.name().size() > 1){
+                auto nonSupportedCharIt = std::find_if(var.name().begin() + 1, var.name().end(), [](char ch){return !std::isalnum(ch) && ch != '-';});
+                if (nonSupportedCharIt != var.name().end())
+                    throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters and hyphens"};
+            }
         };
         for (auto param : this->params_)
             check(param->info(), "Parameter");
@@ -90,21 +83,25 @@ class X11NameProvider{
 public:
     static std::string name(const std::string& configVarName)
     {
+        Expects(!configVarName.empty());
         return toLowerCase(configVarName);
     }
 
-    static std::string shortName(const std::string&)
+    static std::string shortName(const std::string& configVarName)
     {
+        Expects(!configVarName.empty());
         return {};
     }
 
     static std::string argName(const std::string& configVarName)
     {
+        Expects(!configVarName.empty());
         return toLowerCase(configVarName);
     }
 
     static std::string valueName(const std::string& typeName)
     {
+        Expects(!typeName.empty());
         return toLowerCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

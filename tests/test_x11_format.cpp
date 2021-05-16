@@ -182,6 +182,32 @@ TEST(X11Config, WrongArgListElementType)
         });
 }
 
+TEST(X11Config, ParamWrongNameNonAlphaFirstChar)
+{
+    struct Cfg : public Config{
+        PARAM(param, std::string) << cmdlime::Name("!param");
+    };
+    auto cfg = Cfg{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({"-param", "name"});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name '!param' must start with an alphabet character"});
+        });
+}
+
+TEST(X11Config, ParamWrongNameNonAlphanum)
+{
+    struct Cfg : public Config{
+        PARAM(param, std::string) << cmdlime::Name("p$r$m");
+    };
+    auto cfg = Cfg{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({"-param", "name"});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'p$r$m' must consist of alphanumeric characters and hyphens"});
+        });
+}
+
 TEST(X11Config, ParamEmptyValue)
 {
     struct Cfg : public Config{

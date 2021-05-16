@@ -180,6 +180,32 @@ TEST(SimpleConfig, WrongArgListElementType)
         });
 }
 
+TEST(SimpleConfig, ParamWrongNameNonAlphaFirstChar)
+{
+    struct Cfg : public Config{
+        PARAM(param, std::string) << cmdlime::Name("!param");
+    };
+    auto cfg = Cfg{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({"-!param=Foo"});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name '!param' must start with an alphabet character"});
+        });
+}
+
+TEST(SimpleConfig, ParamWrongNameNonAlphanum)
+{
+    struct Cfg : public Config{
+        PARAM(param, std::string) << cmdlime::Name("p$r$m");
+    };
+    auto cfg = Cfg{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({"-pa-ram=Foo"});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'p$r$m' must consist of alphanumeric characters"});
+        });
+}
+
 TEST(SimpleConfig, ParamEmptyValue)
 {
     struct Cfg : public Config{

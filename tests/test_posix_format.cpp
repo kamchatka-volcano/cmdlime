@@ -360,7 +360,7 @@ TEST(PosixConfig, ParamWrongNameTooLong)
     assert_exception<cmdlime::ConfigError>(
         [&cfg]{cfg.read({"-pname"});},
         [](const cmdlime::ConfigError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name can't have more than one symbol"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'prm' can't have more than one symbol"});
         });
 }
 
@@ -373,7 +373,7 @@ TEST(PosixConfig, ParamWrongNameNonAlphanum)
     assert_exception<cmdlime::ConfigError>(
         [&cfg]{cfg.read({"-pname"});},
         [](const cmdlime::ConfigError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name must be an alphanumeric character"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name '$' must be an alphanumeric character"});
         });
 }
 

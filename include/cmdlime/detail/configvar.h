@@ -1,4 +1,5 @@
 #pragma once
+#include "gsl/assert"
 #include <string>
 #include <sstream>
 
@@ -11,6 +12,7 @@ public:
         , shortName_(shortName)
         , valueName_(valueName)
     {
+        Expects(!name_.empty());
     }
 
     void addDescription(const std::string& info)
@@ -20,7 +22,8 @@ public:
 
     void resetName(const std::string& name)
     {
-        name_ = name;
+        Expects(!name.empty());
+        name_ = name;        
     }
 
     void resetValueName(const std::string& name)

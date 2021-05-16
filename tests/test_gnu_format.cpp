@@ -8,12 +8,13 @@ namespace test_gnu_format{
 using Config = cmdlime::GNUConfig;
 
 struct FullConfig : public Config{
-    PARAM(requiredParam, std::string)                           << cmdlime::ShortName("r");
-    PARAM(optionalParam, std::string)("defaultValue")           << cmdlime::ShortName("o");
+    PARAM(requiredParam, std::string);
+    PARAM(optionalParam, std::string)("defaultValue");
     PARAM(optionalIntParam, std::optional<int>)()               << cmdlime::ShortName("i");
     PARAMLIST(paramList, std::string)                           << cmdlime::ShortName("L");
     PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::ShortName("O");
-    FLAG(flag)                                                  << cmdlime::ShortName("f");
+    FLAG(flag);
+    FLAG(secondFlag)                                            << cmdlime::WithoutShortName();
     ARG(arg, double);
     ARGLIST(argList, float);
 };
@@ -409,7 +410,33 @@ TEST(GNUConfig, ValuesWithWhitespace)
     }
 }
 
-TEST(GNUConfig, ParamWrongNameTooLong)
+TEST(GNUConfig, ParamWrongNameNonAlphaFirstChar)
+{
+    struct Cfg : public Config{
+        PARAM(param, std::string) << cmdlime::Name("!param");
+    };
+    auto cfg = Cfg{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({"-pname"});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name '!param' must start with an alphabet character"});
+        });
+}
+
+TEST(GNUConfig, ParamWrongNameNonAlphanum)
+{
+    struct Cfg : public Config{
+        PARAM(param, std::string) << cmdlime::Name("p$r$m");
+    };
+    auto cfg = Cfg{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({"-pname"});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'p$r$m' must consist of alphanumeric characters and hyphens"});
+        });
+}
+
+TEST(GNUConfig, ParamWrongShortNameTooLong)
 {
     struct Cfg : public Config{
         PARAM(param, std::string) << cmdlime::ShortName("prm");
@@ -418,11 +445,11 @@ TEST(GNUConfig, ParamWrongNameTooLong)
     assert_exception<cmdlime::ConfigError>(
         [&cfg]{cfg.read({"-pname"});},
         [](const cmdlime::ConfigError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's short name can't have more than one symbol"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's short name 'prm' can't have more than one symbol"});
         });
 }
 
-TEST(GNUConfig, ParamWrongNameNonAlphanum)
+TEST(GNUConfig, ParamWrongShortNameNonAlphanum)
 {
     struct Cfg : public Config{
         PARAM(param, std::string) << cmdlime::ShortName("$");
@@ -431,7 +458,7 @@ TEST(GNUConfig, ParamWrongNameNonAlphanum)
     assert_exception<cmdlime::ConfigError>(
         [&cfg]{cfg.read({"-pname"});},
         [](const cmdlime::ConfigError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's short name must be an alphanumeric character"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's short name '$' must be an alphanumeric character"});
         });
 }
 
@@ -606,12 +633,27 @@ TEST(GNUConfig, ConfigErrorRepeatingParamNames)
         });
 }
 
+TEST(GNUConfig, ConfigErrorRepeatingParamShortNames)
+{
+    struct TestConfig : public Config{
+        PARAM(param, double)();
+        PARAMLIST(paramList, int)();
+    };
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's short name 'p' is already used."});
+        });
+}
+
+
 TEST(GNUConfig, UsageInfo)
 {
     auto cfg = FullConfig{};
     auto expectedInfo = std::string{
     "Usage: testproc <arg> --required-param <string> --param-list <string>... "
-    "[--optional-param <string>] [--optional-int-param <int>] [--optional-param-list <int>...] [--flag] <arg-list...>\n"
+    "[--optional-param <string>] [--optional-int-param <int>] [--optional-param-list <int>...] [--flag] [--second-flag] <arg-list...>\n"
     };
     EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
 }
@@ -632,7 +674,8 @@ TEST(GNUConfig, DetailedUsageInfo)
     "   -O, --optional-param-list <int>    List (can be used multiple times).\n"
     "                                        Optional, default: {99, 100}\n"
     "Flags:\n"
-    "   -f, --flag                         \n"};
+    "   -f, --flag                         \n"
+    "       --second-flag                  \n"};
     EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
 }
 

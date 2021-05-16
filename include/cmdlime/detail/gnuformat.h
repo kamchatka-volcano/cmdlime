@@ -5,12 +5,12 @@
 #include "nameutils.h"
 #include "errors.h"
 #include "utils.h"
+#include "gsl/assert"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <functional>
 #include <optional>
-#include <cassert>
 
 namespace cmdlime::detail{
 
@@ -19,47 +19,57 @@ class GNUParser : public Parser<formatType>
 {
     using Parser<formatType>::Parser;
     using FindMode = typename Parser<formatType>::FindMode;
+
+    void processCommand(std::string command, std::string& foundParam, std::string& foundParamPrefix)
+    {
+        command = str::after(command, "--");
+        auto paramValue = std::optional<std::string>{};
+        if (command.find('=') != std::string::npos){
+            paramValue = str::after(command, "=");
+            command = str::before(command, "=");
+        }
+        if (isParamOrFlag(command) && !foundParam.empty())
+            throw ParsingError{"Parameter '" + foundParamPrefix + foundParam + "' value can't be empty"};
+        if (this->findParam(command, FindMode::Name) || this->findParamList(command, FindMode::Name)){
+            if (paramValue.has_value())
+                this->readParam(command, paramValue.value());
+            else{
+                foundParam = command;
+                foundParamPrefix = "--";
+            }
+        }
+        else if (this->findFlag(command, FindMode::Name))
+            this->readFlag(command);
+        else
+            throw ParsingError{"Encountered unknown parameter or flag '--" + command + "'"};
+    }
+
+    void processShortCommand(std::string command, std::string& foundParam, std::string& foundParamPrefix)
+    {
+        auto possibleNumberArg = command;
+        command = str::after(command, "-");
+        if (isShortParamOrFlag(command)){
+            if (!foundParam.empty())
+                throw ParsingError{"Parameter '" + foundParamPrefix + foundParam + "' value can't be empty"};
+            parseShortCommand(command, foundParam, foundParamPrefix);
+        }
+        else if (isNumber(possibleNumberArg))
+            this->readArg(possibleNumberArg);
+        else
+            throw ParsingError{"Encountered unknown parameter or flag '-" + command + "'"};
+    }
+
     void process(const std::vector<std::string>& cmdLine) override
     {
         checkNames();
         auto foundParam = std::string{};
-        auto foundParamPrefix = std::string{};
+        auto foundParamPrefix = std::string{};       
 
         for (const auto& part : cmdLine){
-            if (str::startsWith(part, "--")){
-                auto command = str::after(part, "--");
-                auto paramValue = std::optional<std::string>{};
-                if (command.find('=') != std::string::npos){
-                    paramValue = str::after(command, "=");
-                    command = str::before(command, "=");
-                }
-                if (isParamOrFlag(command) && !foundParam.empty())
-                    throw ParsingError{"Parameter '" + foundParamPrefix + foundParam + "' value can't be empty"};
-                if (this->findParam(command, FindMode::Name) || this->findParamList(command, FindMode::Name)){
-                    if (paramValue.has_value())
-                        this->readParam(command, paramValue.value());
-                    else{
-                        foundParam = command;
-                        foundParamPrefix = "--";
-                    }
-                }
-                else if (this->findFlag(command, FindMode::Name))
-                    this->readFlag(command);
-                else
-                    throw ParsingError{"Encountered unknown parameter or flag '" + part + "'"};
-            }
-            else if (str::startsWith(part, "-")){
-                auto command = str::after(part, "-");
-                if (isShortParamOrFlag(command)){
-                    if (!foundParam.empty())
-                        throw ParsingError{"Parameter '" + foundParamPrefix + foundParam + "' value can't be empty"};
-                    readCommand(command, foundParam, foundParamPrefix);
-                }
-                else if (isNumber(part))
-                    this->readArg(part);
-                else
-                    throw ParsingError{"Encountered unknown parameter or flag '" + part + "'"};
-            }
+            if (str::startsWith(part, "--") && part.size() > 2)
+                processCommand(part, foundParam, foundParamPrefix);
+            else if (str::startsWith(part, "-") && part.size() > 1)
+                processShortCommand(part, foundParam, foundParamPrefix);
             else if (!foundParam.empty()){
                 this->readParam(foundParam, part);
                 foundParam.clear();
@@ -71,7 +81,7 @@ class GNUParser : public Parser<formatType>
             throw ParsingError{"Parameter '" + foundParamPrefix + foundParam + "' value can't be empty"};
     }
 
-    void readCommand(const std::string& command, std::string& foundParam, std::string& foundParamPrefix)
+    void parseShortCommand(const std::string& command, std::string& foundParam, std::string& foundParamPrefix)
     {
         if (command.empty())
             throw ParsingError{"Flags and parameters must have a name"};
@@ -99,15 +109,34 @@ class GNUParser : public Parser<formatType>
         }
     }
 
-    void checkNames()
+    void checkLongNames()
+    {
+        auto checkName = [](ConfigVar& var, const std::string& varType){
+            if (!std::isalpha(var.name().front()))
+                throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
+            if (var.name().size() > 1){
+                auto nonSupportedCharIt = std::find_if(var.name().begin() + 1, var.name().end(), [](char ch){return !std::isalnum(ch) && ch != '-';});
+                if (nonSupportedCharIt != var.name().end())
+                    throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters and hyphens"};
+            }
+        };
+        for (auto param : this->params_)
+            checkName(param->info(), "Parameter");
+        for (auto paramList : this->paramLists_)
+            checkName(paramList->info(), "Parameter");
+        for (auto flag : this->flags_)
+            checkName(flag->info(), "Flag");
+    }
+
+    void checkShortNames()
     {
         auto checkShortName = [](ConfigVar& var, const std::string& varType){
             if (var.shortName().empty())
                 return;
             if (var.shortName().size() != 1)
-                throw ConfigError{varType + "'s short name can't have more than one symbol"};
+                throw ConfigError{varType + "'s short name '" + var.shortName() + "' can't have more than one symbol"};
             if (!std::isalnum(var.shortName().front()))
-                throw ConfigError{"Parameter's short name must be an alphanumeric character"};
+                throw ConfigError{varType + "'s short name '" + var.shortName() + "' must be an alphanumeric character"};
         };
         for (auto param : this->params_)
             checkShortName(param->info(), "Parameter");
@@ -115,6 +144,12 @@ class GNUParser : public Parser<formatType>
             checkShortName(paramList->info(), "Parameter");
         for (auto flag : this->flags_)
             checkShortName(flag->info(), "Flag");
+    }
+
+    void checkNames()
+    {
+        checkLongNames();
+        checkShortNames();
     }
 
     bool isParamOrFlag(const std::string& str)
@@ -142,23 +177,25 @@ class GNUNameProvider{
 public:
     static std::string name(const std::string& configVarName)
     {
-        assert(!configVarName.empty());
+        Expects(!configVarName.empty());
         return toKebabCase(configVarName);
     }
 
-    static std::string shortName(const std::string&)
+    static std::string shortName(const std::string& configVarName)
     {
-        return {};
+        Expects(!configVarName.empty());
+        return toLowerCase(configVarName.substr(0,1));
     }
 
     static std::string argName(const std::string& configVarName)
     {
-        assert(!configVarName.empty());
+        Expects(!configVarName.empty());
         return toKebabCase(configVarName);
     }
 
     static std::string valueName(const std::string& typeName)
     {
+        Expects(!typeName.empty());
         return toKebabCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };
@@ -192,6 +229,8 @@ public:
         stream << std::setw(indent);
         if (!param.info().shortName().empty())
             stream << "-" << param.info().shortName() << ", ";
+        else
+            stream << " " << "   ";
         stream << "--" << param.info().name() << " <" << param.info().valueName() << ">";
         return stream.str();
     }
@@ -202,6 +241,8 @@ public:
         stream << std::setw(indent);
         if (!param.info().shortName().empty())
             stream << "-" << param.info().shortName() << ", ";
+        else
+            stream << " " << "   ";
         stream << "--" << param.info().name() << " <" << param.info().valueName() << ">";
         return stream.str();
     }
@@ -224,6 +265,8 @@ public:
         stream << std::setw(indent) ;
         if (!flag.info().shortName().empty())
             stream << "-" << flag.info().shortName() << ", ";
+        else
+            stream << " " << "   ";
         stream << "--" << flag.info().name();
         return stream.str();
     }

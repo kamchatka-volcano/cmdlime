@@ -5,6 +5,7 @@
 #include "format.h"
 #include "errors.h"
 #include "customnames.h"
+#include "gsl/assert"
 #include <vector>
 #include <sstream>
 #include <functional>
@@ -107,10 +108,13 @@ public:
                    const std::string& varName,
                    const std::string& type,
                    std::function<std::vector<T>&()> argListGetter)
-        : argList_(std::make_unique<ArgList<T>>(NameProvider::argName(varName),
-                                                NameProvider::valueName(type), argListGetter))
-        , cfg_(cfg)
-    {}
+        : cfg_(cfg)
+    {
+        Expects(!varName.empty());
+        Expects(!type.empty());
+        argList_ = std::make_unique<ArgList<T>>(NameProvider::argName(varName),
+                                                NameProvider::valueName(type), argListGetter);
+    }
 
     ArgListCreator<T, TConfig>& operator<<(const std::string& info)
     {

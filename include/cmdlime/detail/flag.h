@@ -4,6 +4,7 @@
 #include "configaccess.h"
 #include "format.h"
 #include "customnames.h"
+#include "gsl/assert"
 #include <memory>
 #include <functional>
 
@@ -46,12 +47,13 @@ class FlagCreator{
 public:
     FlagCreator(TConfig& cfg,
                 const std::string& varName,
-                std::function<bool&()> flagGetter)
-        : flag_(std::make_unique<Flag>(NameProvider::name(varName),
-                                       NameProvider::shortName(varName),
-                                       flagGetter))
-        , cfg_(cfg)
-    {}
+                std::function<bool&()> flagGetter)        
+        : cfg_(cfg)
+    {
+        Expects(!varName.empty());
+        flag_ = std::make_unique<Flag>(NameProvider::name(varName),
+                                       NameProvider::shortName(varName), flagGetter);
+    }
 
     FlagCreator& operator<<(const std::string& info)
     {
@@ -69,6 +71,13 @@ public:
     {
         static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
         flag_->resetShortName(customName.value());
+        return *this;
+    }
+
+    FlagCreator& operator<<(const WithoutShortName&)
+    {
+        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
+        flag_->resetShortName({});
         return *this;
     }
 

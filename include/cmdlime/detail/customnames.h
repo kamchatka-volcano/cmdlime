@@ -1,13 +1,17 @@
 #pragma once
+#include "errors.h"
 #include <string>
 
 namespace cmdlime{
 
 class CustomName{
 public:
-    CustomName(const std::string& name = {})
+    CustomName(const std::string& name)
         : value_(name)
-    {}
+    {
+        if(value_.empty())
+            throw ConfigError{"Name can't be empty."};
+    }
 
     const std::string& value() const
     {
@@ -29,5 +33,8 @@ class ShortName : public CustomName{
 class ValueName : public CustomName{
     using CustomName::CustomName;
 };
+
+class WithoutShortName{};
+class WithoutValueName{};
 
 }

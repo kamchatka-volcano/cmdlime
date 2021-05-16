@@ -3,46 +3,31 @@
 #include "format.h"
 #include "string_utils.h"
 #include "nameutils.h"
+#include "utils.h"
 #include "errors.h"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <functional>
-#include <cassert>
 
 namespace cmdlime::detail{
-
-inline bool isNameCorrect(const std::string& name)
-{
-    assert(!name.empty());
-    if (!std::isalpha(name.front()))
-        return false;
-    if (name.size() == 1)
-        return true;
-
-    auto nonAlphaNumCharIt = std::find_if(name.begin() + 1, name.end(), [](char ch){return !std::isalnum(ch);});
-    return nonAlphaNumCharIt == name.end();
-}
 
 template <FormatType formatType>
 class DefaultParser : public Parser<formatType>
 {
     using Parser<formatType>::Parser;
+
     void process(const std::vector<std::string>& cmdLine) override
-    {                
+    {
+        checkNames();
         for (const auto& part : cmdLine)
         {
-            if (str::startsWith(part, "--")){
-                const auto flagName = str::after(part, "--");
-                if (flagName.empty())
-                    throw ConfigError{"Flag must have a name"};
-                if (!isNameCorrect(flagName))
-                    throw ConfigError{"Wrong flag name: '" + flagName + "'"};
-
+            if (str::startsWith(part, "--") && part.size() > 2){
+                const auto flagName = str::after(part, "--");                
                 this->readFlag(flagName);
             }
-            else if (str::startsWith(part, "-")){
-                if (part.size() >= 2 && std::isdigit(part.at(1))){
+            else if (str::startsWith(part, "-") && part.size() > 1){
+                if (isNumber(part)){
                     this->readArg(part);
                     continue;
                 }
@@ -51,15 +36,31 @@ class DefaultParser : public Parser<formatType>
                     throw ParsingError{"Wrong parameter format: " + part + ". Parameter must have a form of -name=value"};
 
                 const auto paramName = str::before(str::after(part, "-"), "=");
-                const auto paramValue = str::after(part, "=");
-                if (!isNameCorrect(paramName))
-                    throw ConfigError{"Wrong param name: '" + paramName + "'"};
-
+                const auto paramValue = str::after(part, "=");                
                 this->readParam(paramName, paramValue);
             }
             else
                 this->readArg(part);
         }
+    }
+
+    void checkNames()
+    {
+        auto check = [](ConfigVar& var, const std::string& varType){
+            if (!std::isalpha(var.name().front()))
+                throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
+            if (var.name().size() > 1){
+                auto nonAlphaNumCharIt = std::find_if(var.name().begin() + 1, var.name().end(), [](char ch){return !std::isalnum(ch);});
+                if (nonAlphaNumCharIt != var.name().end())
+                    throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters"};
+            }
+        };
+        for (auto param : this->params_)
+            check(param->info(), "Parameter");
+        for (auto paramList : this->paramLists_)
+            check(paramList->info(), "Parameter");
+        for (auto flag : this->flags_)
+            check(flag->info(), "Flag");
     }
 };
 
@@ -67,23 +68,28 @@ class DefaultNameProvider{
 public:
     static std::string name(const std::string& configVarName)
     {
+        Expects(!configVarName.empty());
         return toCamelCase(configVarName);
     }
 
-    static std::string shortName(const std::string&)
+    static std::string shortName(const std::string& configVarName)
     {
+        Expects(!configVarName.empty());
         return {};
-    }
-
-    static std::string valueName(const std::string& typeName)
-    {
-        return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 
     static std::string argName(const std::string& configVarName)
     {
+        Expects(!configVarName.empty());
         return toCamelCase(configVarName);
     }
+
+    static std::string valueName(const std::string& typeName)
+    {
+        Expects(!typeName.empty());
+        return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
+    }
+
 };
 
 
