@@ -307,7 +307,7 @@ private:
         auto stream = std::stringstream{};
         auto firstLine = true;
         while (!name.empty()){
-            auto nameLine = popLine(name, maxNameWidth, firstLine);
+            auto nameLine = popLine(name, static_cast<std::size_t>(maxNameWidth), firstLine);
             const auto descriptionLine = popLine(description, descriptionWidth, firstLine);
             if (firstLine)
                 stream << std::setw(maxNameWidth) << std::left << nameLine << " " << descriptionLine << std::endl;

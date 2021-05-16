@@ -12,11 +12,18 @@ namespace cmdlime::detail{
 
 class Flag : public IFlag, public ConfigVar{
 public:
+    enum class Type{
+        Normal,
+        Exit
+    };
+
     Flag(const std::string& name,
          const std::string& shortName,
-         std::function<bool&()> flagGetter)
+         std::function<bool&()> flagGetter,
+         Type type)
         : ConfigVar(name, shortName, {})
         , flagGetter_(flagGetter)
+        , type_(type)
     {
     }
 
@@ -36,8 +43,19 @@ private:
         flagGetter_() = true;
     }
 
+    bool isSet() const override
+    {
+        return flagGetter_();
+    }
+
+    bool isExitFlag() const override
+    {
+        return type_ == Type::Exit;
+    }
+
 private:    
     std::function<bool&()> flagGetter_;
+    Type type_;
 };
 
 template <typename TConfig>
@@ -47,12 +65,14 @@ class FlagCreator{
 public:
     FlagCreator(TConfig& cfg,
                 const std::string& varName,
-                std::function<bool&()> flagGetter)        
+                std::function<bool&()> flagGetter,
+                Flag::Type flagType = Flag::Type::Normal)
         : cfg_(cfg)
     {
         Expects(!varName.empty());
         flag_ = std::make_unique<Flag>(NameProvider::name(varName),
-                                       NameProvider::shortName(varName), flagGetter);
+                                       NameProvider::shortName(varName),
+                                       flagGetter, flagType);
     }
 
     FlagCreator& operator<<(const std::string& info)

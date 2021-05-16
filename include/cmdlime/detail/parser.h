@@ -49,9 +49,11 @@ public:
                 readArg(arg);
         }
 
-        checkUnreadParams();
-        checkUnreadArgs();
-        checkUnreadArgList();
+        if (!isExitFlagSet()){
+            checkUnreadParams();
+            checkUnreadArgs();
+            checkUnreadArgList();
+        }
     }
 
 protected:
@@ -109,7 +111,7 @@ protected:
         auto paramList = findParamList(name);
         if (paramList){
             if (!paramList->read(value))
-                throw ParsingError{"Couldn't set parameter '" + OutputFormatter::paramPrefix() + paramList->info().name() + "' value from '" + value + "'"};;
+                throw ParsingError{"Couldn't set parameter '" + OutputFormatter::paramPrefix() + paramList->info().name() + "' value from '" + value + "'"};
             return;
         }
         throw ParsingError{"Encountered unknown parameter '" + OutputFormatter::paramPrefix() + name + "'"};
@@ -163,6 +165,14 @@ protected:
 
 private:
     virtual void process(const std::vector<std::string>& cmdLine) = 0;
+
+    bool isExitFlagSet()
+    {
+        for (const auto flag : flags_)
+            if (flag->isSet() && flag->isExitFlag())
+                return true;
+        return false;
+    }
 
     void checkUnreadParams()
     {
