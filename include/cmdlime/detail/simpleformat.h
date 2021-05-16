@@ -187,9 +187,9 @@ public:
 };
 
 template<>
-struct Format<FormatType::Default>
+struct Format<FormatType::Simple>
 {
-    using parser = DefaultParser<FormatType::Default>;
+    using parser = DefaultParser<FormatType::Simple>;
     using nameProvider = DefaultNameProvider;
     using outputFormatter = DefaultOutputFormatter;
     static constexpr bool shortNamesEnabled = false;

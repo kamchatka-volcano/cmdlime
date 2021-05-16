@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include <cmdlime/config.h>
+#include <cmdlime/simpleconfig.h>
 #include "assert_exception.h"
 #include <optional>
 
-using Config = cmdlime::Config;
+using Config = cmdlime::SimpleConfig;
 
 struct FullConfig : public Config{
     PARAM(requiredParam, std::string);
@@ -16,7 +16,7 @@ struct FullConfig : public Config{
     ARGLIST(argList, float);
 };
 
-TEST(DefaultConfig, AllSet)
+TEST(SimpleConfig, AllSet)
 {
     auto cfg = FullConfig{};
     cfg.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-paramList=zero", "-paramList=one",
@@ -31,7 +31,7 @@ TEST(DefaultConfig, AllSet)
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
 }
 
-TEST(DefaultConfig, MissingOptionals)
+TEST(SimpleConfig, MissingOptionals)
 {
     auto cfg = FullConfig{};
     cfg.read({"-requiredParam=FOO", "-paramList=zero", "4.2", "1.1", "2.2", "3.3"});
@@ -54,7 +54,7 @@ struct FullConfigWithOptionalArgList : public Config{
     ARGLIST(argList, float)({1.f, 2.f});
 };
 
-TEST(DefaultConfig, MissingOptionalArgList)
+TEST(SimpleConfig, MissingOptionalArgList)
 {
     auto cfg = FullConfigWithOptionalArgList{};
     cfg.read({"-requiredParam=FOO", "4.2"});
@@ -66,7 +66,7 @@ TEST(DefaultConfig, MissingOptionalArgList)
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.f, 2.f}));
 }
 
-TEST(DefaultConfig, MissingParam)
+TEST(SimpleConfig, MissingParam)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -76,7 +76,7 @@ TEST(DefaultConfig, MissingParam)
         });
 }
 
-TEST(DefaultConfig, MissingArg)
+TEST(SimpleConfig, MissingArg)
 {
     auto cfg = FullConfigWithOptionalArgList{};
     assert_exception<cmdlime::ParsingError>(
@@ -86,7 +86,7 @@ TEST(DefaultConfig, MissingArg)
         });
 }
 
-TEST(DefaultConfig, MissingArgList)
+TEST(SimpleConfig, MissingArgList)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -96,7 +96,7 @@ TEST(DefaultConfig, MissingArgList)
         });
 }
 
-TEST(DefaultConfig, MissingParamList)
+TEST(SimpleConfig, MissingParamList)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -106,7 +106,7 @@ TEST(DefaultConfig, MissingParamList)
         });
 }
 
-TEST(DefaultConfig, UnexpectedParam)
+TEST(SimpleConfig, UnexpectedParam)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -116,7 +116,7 @@ TEST(DefaultConfig, UnexpectedParam)
         });
 }
 
-TEST(DefaultConfig, UnexpectedFlag)
+TEST(SimpleConfig, UnexpectedFlag)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -126,7 +126,7 @@ TEST(DefaultConfig, UnexpectedFlag)
         });
 }
 
-TEST(DefaultConfig, UnexpectedArg)
+TEST(SimpleConfig, UnexpectedArg)
 {
     struct Cfg : public Config{
         PARAM(param, std::string);
@@ -140,7 +140,7 @@ TEST(DefaultConfig, UnexpectedArg)
 
 }
 
-TEST(DefaultConfig, WrongParamType)
+TEST(SimpleConfig, WrongParamType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -150,7 +150,7 @@ TEST(DefaultConfig, WrongParamType)
         });
 }
 
-TEST(DefaultConfig, WrongParamListElementType)
+TEST(SimpleConfig, WrongParamListElementType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -160,7 +160,7 @@ TEST(DefaultConfig, WrongParamListElementType)
         });
 }
 
-TEST(DefaultConfig, WrongArgType)
+TEST(SimpleConfig, WrongArgType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -170,7 +170,7 @@ TEST(DefaultConfig, WrongArgType)
         });
 }
 
-TEST(DefaultConfig, WrongArgListElementType)
+TEST(SimpleConfig, WrongArgListElementType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -180,7 +180,7 @@ TEST(DefaultConfig, WrongArgListElementType)
         });
 }
 
-TEST(DefaultConfig, ParamEmptyValue)
+TEST(SimpleConfig, ParamEmptyValue)
 {
     struct Cfg : public Config{
         PARAM(param, std::string);
@@ -193,7 +193,7 @@ TEST(DefaultConfig, ParamEmptyValue)
         });
 }
 
-TEST(DefaultConfig, ParamListEmptyValue)
+TEST(SimpleConfig, ParamListEmptyValue)
 {
     struct Cfg : public Config{
         PARAMLIST(params, std::string);
@@ -206,7 +206,7 @@ TEST(DefaultConfig, ParamListEmptyValue)
         });
 }
 
-TEST(DefaultConfig, ArgEmptyValue)
+TEST(SimpleConfig, ArgEmptyValue)
 {
     struct Cfg : public Config{
         ARG(arg, std::string);
@@ -219,7 +219,7 @@ TEST(DefaultConfig, ArgEmptyValue)
         });
 }
 
-TEST(DefaultConfig, ArgListEmptyValue)
+TEST(SimpleConfig, ArgListEmptyValue)
 {
     struct Cfg : public Config{
         ARGLIST(args, std::string);
@@ -233,7 +233,7 @@ TEST(DefaultConfig, ArgListEmptyValue)
 }
 
 
-TEST(DefaultConfig, ValuesWithWhitespace)
+TEST(SimpleConfig, ValuesWithWhitespace)
 {
     struct Cfg : public Config{
         PARAM(param, std::string);
@@ -249,7 +249,7 @@ TEST(DefaultConfig, ValuesWithWhitespace)
     EXPECT_EQ(cfg.argList, (std::vector<std::string>{"forty two"}));
 }
 
-TEST(DefaultConfig, ParamWrongFormat)
+TEST(SimpleConfig, ParamWrongFormat)
 {
     struct Cfg : public Config{
         PARAM(param, std::string);
@@ -262,7 +262,7 @@ TEST(DefaultConfig, ParamWrongFormat)
         });
 }
 
-TEST(DefaultConfig, NegativeNumberToArg)
+TEST(SimpleConfig, NegativeNumberToArg)
 {
     struct Cfg : public Config{
         ARG(arg, int);
@@ -276,7 +276,7 @@ TEST(DefaultConfig, NegativeNumberToArg)
     EXPECT_EQ(cfg.argList, (std::vector<double>{4.5, -6.7}));
 }
 
-TEST(DefaultConfig, NegativeNumberWithoutArg)
+TEST(SimpleConfig, NegativeNumberWithoutArg)
 {
     struct Cfg : public Config{
         PARAM(param, int);
@@ -289,7 +289,7 @@ TEST(DefaultConfig, NegativeNumberWithoutArg)
         });
 }
 
-TEST(DefaultConfig, ArgsDelimiter)
+TEST(SimpleConfig, ArgsDelimiter)
 {
     struct Cfg : public Config{
         PARAM(param, int);
@@ -304,7 +304,7 @@ TEST(DefaultConfig, ArgsDelimiter)
     EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "-optionalParam", "2"}));
 }
 
-TEST(DefaultConfig, ArgsDelimiterFront)
+TEST(SimpleConfig, ArgsDelimiterFront)
 {
     struct Cfg : public Config{
         PARAM(optionalParam, int)(0);
@@ -317,7 +317,7 @@ TEST(DefaultConfig, ArgsDelimiterFront)
     EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "-optionalParam=1", "2"}));
 }
 
-TEST(DefaultConfig, ArgsDelimiterBack)
+TEST(SimpleConfig, ArgsDelimiterBack)
 {
     struct Cfg : public Config{
         PARAM(optionalParam, int)(0);
@@ -330,7 +330,7 @@ TEST(DefaultConfig, ArgsDelimiterBack)
     EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "2"}));
 }
 
-TEST(DefaultConfig, PascalNames)
+TEST(SimpleConfig, PascalNames)
 {
     struct PascalConfig : public Config{
         PARAM(RequiredParam, std::string);
@@ -355,7 +355,7 @@ TEST(DefaultConfig, PascalNames)
     EXPECT_EQ(cfg.ArgList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
 }
 
-TEST(DefaultConfig, SnakeNames)
+TEST(SimpleConfig, SnakeNames)
 {
     struct PascalConfig : public Config{
         PARAM(required_param, std::string);
@@ -380,7 +380,7 @@ TEST(DefaultConfig, SnakeNames)
     EXPECT_EQ(cfg.arg_list_, (std::vector<float>{1.1f, 2.2f, 3.3f}));
 }
 
-TEST(DefaultConfig, CustomNames)
+TEST(SimpleConfig, CustomNames)
 {
     struct TestConfig : public Config{
         PARAM(requiredParam, std::string) << cmdlime::Name{"customRequiredParam"};
@@ -400,7 +400,7 @@ TEST(DefaultConfig, CustomNames)
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
 }
 
-TEST(DefaultConfig, CustomNamesMissingParam)
+TEST(SimpleConfig, CustomNamesMissingParam)
 {
     struct TestConfig : public Config{
         PARAM(param, double) << cmdlime::Name{"customParam"};
@@ -414,7 +414,7 @@ TEST(DefaultConfig, CustomNamesMissingParam)
         });
 }
 
-TEST(DefaultConfig, CustomNamesMissingParamList)
+TEST(SimpleConfig, CustomNamesMissingParamList)
 {
     struct TestConfig : public Config{
         PARAM(param, double) << cmdlime::Name{"customParam"};
@@ -428,7 +428,7 @@ TEST(DefaultConfig, CustomNamesMissingParamList)
         });
 }
 
-TEST(DefaultConfig, CustomNamesMissingArg)
+TEST(SimpleConfig, CustomNamesMissingArg)
 {
     struct TestConfig : public Config{
         ARG(arg, double) << cmdlime::Name{"customArg"};
@@ -442,7 +442,7 @@ TEST(DefaultConfig, CustomNamesMissingArg)
         });
 }
 
-TEST(DefaultConfig, CustomNamesMissingArgList)
+TEST(SimpleConfig, CustomNamesMissingArgList)
 {
     struct TestConfig : public Config{
         ARG(arg, double) << cmdlime::Name{"customArg"};
@@ -456,7 +456,7 @@ TEST(DefaultConfig, CustomNamesMissingArgList)
         });
 }
 
-TEST(DefaultConfig, ConfigErrorRepeatingParamNames)
+TEST(SimpleConfig, ConfigErrorRepeatingParamNames)
 {
     struct TestConfig : public Config{
         PARAM(Param, double)();
@@ -470,7 +470,7 @@ TEST(DefaultConfig, ConfigErrorRepeatingParamNames)
         });
 }
 
-TEST(DefaultConfig, ConfigErrorRepeatingFlagNames)
+TEST(SimpleConfig, ConfigErrorRepeatingFlagNames)
 {
     struct TestConfig : public Config{
         FLAG(Flag);
@@ -484,7 +484,7 @@ TEST(DefaultConfig, ConfigErrorRepeatingFlagNames)
         });
 }
 
-TEST(DefaultConfig, UsageInfo)
+TEST(SimpleConfig, UsageInfo)
 {
     auto cfg = FullConfig{};
     auto expectedInfo = std::string{
@@ -494,7 +494,7 @@ TEST(DefaultConfig, UsageInfo)
     EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
 }
 
-TEST(DefaultConfig, DetailedUsageInfo)
+TEST(SimpleConfig, DetailedUsageInfo)
 {
     auto cfg = FullConfig{};
     auto expectedDetailedInfo = std::string{
@@ -514,7 +514,7 @@ TEST(DefaultConfig, DetailedUsageInfo)
     EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
 }
 
-TEST(DefaultConfig, DetailedUsageInfoFormat)
+TEST(SimpleConfig, DetailedUsageInfoFormat)
 {
     auto cfg = FullConfig{};
     auto format = cmdlime::UsageInfoFormat{};
@@ -545,7 +545,7 @@ TEST(DefaultConfig, DetailedUsageInfoFormat)
 }
 
 
-TEST(DefaultConfig, CustomValueNames)
+TEST(SimpleConfig, CustomValueNames)
 {
     struct TestConfig : public Config{
         PARAM(param, std::string) << cmdlime::ValueName{"STRING"};

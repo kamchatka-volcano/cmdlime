@@ -3,7 +3,7 @@
 namespace cmdlime::detail{
 
 enum class FormatType{
-    Default,
+    Simple,
     POSIX,
     X11,
     GNU
@@ -13,7 +13,7 @@ template<FormatType>
 struct Format;
 
 template<>
-struct Format<FormatType::Default>;
+struct Format<FormatType::Simple>;
 
 template<>
 struct Format<FormatType::POSIX>;
