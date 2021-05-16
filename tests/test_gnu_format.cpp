@@ -190,22 +190,42 @@ TEST(GNUConfig, MissingParamList)
 
 TEST(GNUConfig, UnexpectedParam)
 {
+    {
+    auto cfg = FullConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-r","FOO", "--test","TEST","-L","zero", "4.2", "1.1", "2.2", "3.3"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '--test'"});
+        });
+    }
+    {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{cfg.read({"-r","FOO", "-t","TEST","-L","zero", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-t'"});
         });
+    }
 }
 
 TEST(GNUConfig, UnexpectedFlag)
 {
+    {
+    auto cfg = FullConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-r", "FOO", "--test", "-L", "zero", "4.2", "1.1", "2.2", "3.3"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '--test'"});
+        });
+    }
+    {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{cfg.read({"-r", "FOO", "-t", "-L", "zero", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-t'"});
         });
+    }
 }
 
 TEST(GNUConfig, UnexpectedArg)
@@ -223,22 +243,42 @@ TEST(GNUConfig, UnexpectedArg)
 
 TEST(GNUConfig, WrongParamType)
 {
+    {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{cfg.read({"-r", "FOO", "-o","BAR", "-i","nine", "-L","zero", "-f", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set parameter '--optional-int-param' value from 'nine'"});
         });
+    }
+    {
+    auto cfg = FullConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-r", "FOO", "-o","BAR", "--optional-int-param","nine", "-L","zero", "-f", "4.2", "1.1", "2.2", "3.3"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set parameter '--optional-int-param' value from 'nine'"});
+        });
+    }
 }
 
 TEST(GNUConfig, WrongParamListElementType)
 {
-    auto cfg = FullConfig{};
-    assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r","FOO", "-o", "BAR", "-L", "zero", "-O", "not-int", "-f", "4.2", "1.1", "2.2", "3.3"});},
+    {
+        auto cfg = FullConfig{};
+        assert_exception<cmdlime::ParsingError>(
+                    [&cfg]{cfg.read({"-r","FOO", "-o", "BAR", "-L", "zero", "-O", "not-int", "-f", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set parameter '--optional-param-list' value from 'not-int'"});
         });
+    }
+    {
+        auto cfg = FullConfig{};
+        assert_exception<cmdlime::ParsingError>(
+                    [&cfg]{cfg.read({"-r","FOO", "-o", "BAR", "-L", "zero", "--optional-param-list=not-int", "-f", "4.2", "1.1", "2.2", "3.3"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set parameter '--optional-param-list' value from 'not-int'"});
+        });
+    }
 }
 
 TEST(GNUConfig, WrongArgType)
@@ -267,17 +307,30 @@ TEST(GNUConfig, ParamEmptyValue)
         PARAM(param, std::string) << cmdlime::ShortName("p");
         FLAG(flag)                << cmdlime::ShortName("f");
     };
+    {
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{cfg.read({"-p"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-p' value can't be empty"});
         });
+    }
+    {
+    auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-p", "-f"});},
+        [&cfg]{cfg.read({"--param"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '--param' value can't be empty"});
+        });
+    }
+    {
+        auto cfg = Cfg{};
+        assert_exception<cmdlime::ParsingError>(
+                    [&cfg]{cfg.read({"-p", "-f"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-p' value can't be empty"});
         });
+    }
 }
 
 TEST(GNUConfig, ParamListEmptyValue)
@@ -285,12 +338,22 @@ TEST(GNUConfig, ParamListEmptyValue)
     struct Cfg : public Config{
         PARAMLIST(params, std::string) << cmdlime::ShortName("p");
     };
-    auto cfg = Cfg{};
-    assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-p"});},
+    {
+        auto cfg = Cfg{};
+        assert_exception<cmdlime::ParsingError>(
+                    [&cfg]{cfg.read({"-p"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-p' value can't be empty"});
         });
+    }
+    {
+        auto cfg = Cfg{};
+        assert_exception<cmdlime::ParsingError>(
+            [&cfg]{cfg.read({"--params"});},
+            [](const cmdlime::ParsingError& error){
+                EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '--params' value can't be empty"});
+            });
+    }
 }
 
 TEST(GNUConfig, ArgEmptyValue)
@@ -328,12 +391,22 @@ TEST(GNUConfig, ValuesWithWhitespace)
         ARG(arg, std::string);
         ARGLIST(argList, std::string);
     };
-    auto cfg = Cfg{};
-    cfg.read({"-p", "Hello world", "-L", "foo bar", "foo bar", "forty two"});
-    EXPECT_EQ(cfg.param, "Hello world");
-    EXPECT_EQ(cfg.paramList, (std::vector<std::string>{"foo bar"}));
-    EXPECT_EQ(cfg.arg, "foo bar");
-    EXPECT_EQ(cfg.argList, (std::vector<std::string>{"forty two"}));
+    {
+        auto cfg = Cfg{};
+        cfg.read({"-p", "Hello world", "-L", "foo bar", "foo bar", "forty two"});
+        EXPECT_EQ(cfg.param, "Hello world");
+        EXPECT_EQ(cfg.paramList, (std::vector<std::string>{"foo bar"}));
+        EXPECT_EQ(cfg.arg, "foo bar");
+        EXPECT_EQ(cfg.argList, (std::vector<std::string>{"forty two"}));
+    }
+    {
+        auto cfg = Cfg{};
+        cfg.read({"--param=Hello world", "--param-list", "foo bar", "foo bar", "forty two"});
+        EXPECT_EQ(cfg.param, "Hello world");
+        EXPECT_EQ(cfg.paramList, (std::vector<std::string>{"foo bar"}));
+        EXPECT_EQ(cfg.arg, "foo bar");
+        EXPECT_EQ(cfg.argList, (std::vector<std::string>{"forty two"}));
+    }
 }
 
 TEST(GNUConfig, ParamWrongNameTooLong)
@@ -345,7 +418,7 @@ TEST(GNUConfig, ParamWrongNameTooLong)
     assert_exception<cmdlime::ConfigError>(
         [&cfg]{cfg.read({"-pname"});},
         [](const cmdlime::ConfigError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name can't have more than one symbol"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's short name can't have more than one symbol"});
         });
 }
 
@@ -358,7 +431,7 @@ TEST(GNUConfig, ParamWrongNameNonAlphanum)
     assert_exception<cmdlime::ConfigError>(
         [&cfg]{cfg.read({"-pname"});},
         [](const cmdlime::ConfigError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name must be an alphanumeric character"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's short name must be an alphanumeric character"});
         });
 }
 
@@ -397,11 +470,20 @@ TEST(GNUConfig, ArgsDelimiter)
         ARGLIST(argList, std::string);
     };
 
-    auto cfg = Cfg{};
-    cfg.read({"-p", "11", "0", "--", "1", "-o", "2"});
-    EXPECT_EQ(cfg.param, 11);
-    EXPECT_EQ(cfg.optionalParam, 0);
-    EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "-o", "2"}));
+    {
+        auto cfg = Cfg{};
+        cfg.read({"-p", "11", "0", "--", "1", "-o", "2"});
+        EXPECT_EQ(cfg.param, 11);
+        EXPECT_EQ(cfg.optionalParam, 0);
+        EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "-o", "2"}));
+    }
+    {
+        auto cfg = Cfg{};
+        cfg.read({"--param", "11", "0", "--", "1", "-o", "2"});
+        EXPECT_EQ(cfg.param, 11);
+        EXPECT_EQ(cfg.optionalParam, 0);
+        EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "-o", "2"}));
+    }
 }
 
 TEST(GNUConfig, ArgsDelimiterFront)

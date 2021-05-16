@@ -23,6 +23,7 @@ class GNUParser : public Parser<formatType>
     {
         checkNames();
         auto foundParam = std::string{};
+        auto foundParamPrefix = std::string{};
 
         for (const auto& part : cmdLine){
             if (str::startsWith(part, "--")){
@@ -33,12 +34,14 @@ class GNUParser : public Parser<formatType>
                     command = str::before(command, "=");
                 }
                 if (isParamOrFlag(command) && !foundParam.empty())
-                    throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
+                    throw ParsingError{"Parameter '" + foundParamPrefix + foundParam + "' value can't be empty"};
                 if (this->findParam(command, FindMode::Name) || this->findParamList(command, FindMode::Name)){
                     if (paramValue.has_value())
                         this->readParam(command, paramValue.value());
-                    else
+                    else{
                         foundParam = command;
+                        foundParamPrefix = "--";
+                    }
                 }
                 else if (this->findFlag(command, FindMode::Name))
                     this->readFlag(command);
@@ -49,8 +52,8 @@ class GNUParser : public Parser<formatType>
                 auto command = str::after(part, "-");
                 if (isShortParamOrFlag(command)){
                     if (!foundParam.empty())
-                        throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
-                    readCommand(command, foundParam);
+                        throw ParsingError{"Parameter '" + foundParamPrefix + foundParam + "' value can't be empty"};
+                    readCommand(command, foundParam, foundParamPrefix);
                 }
                 else if (isNumber(part))
                     this->readArg(part);
@@ -65,10 +68,10 @@ class GNUParser : public Parser<formatType>
                 this->readArg(part);
         }
         if (!foundParam.empty())
-            throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
+            throw ParsingError{"Parameter '" + foundParamPrefix + foundParam + "' value can't be empty"};
     }
 
-    void readCommand(const std::string& command, std::string& foundParam)
+    void readCommand(const std::string& command, std::string& foundParam, std::string& foundParamPrefix)
     {
         if (command.empty())
             throw ParsingError{"Flags and parameters must have a name"};
@@ -79,10 +82,14 @@ class GNUParser : public Parser<formatType>
                 paramValue += opt;
             else if (this->findFlag(opt, FindMode::ShortName))
                 this->readFlag(opt);
-            else if (this->findParam(opt, FindMode::ShortName))
+            else if (this->findParam(opt, FindMode::ShortName)){
                 foundParam = opt;
-            else if (this->findParamList(opt, FindMode::ShortName))
+                foundParamPrefix = "-";
+            }
+            else if (this->findParamList(opt, FindMode::ShortName)){
                 foundParam = opt;
+                foundParamPrefix = "-";
+            }
             else
                 throw ParsingError{"Unknown option '" + opt + "' in command '-" + command + "'"};
         }
@@ -98,9 +105,9 @@ class GNUParser : public Parser<formatType>
             if (var.shortName().empty())
                 return;
             if (var.shortName().size() != 1)
-                throw ConfigError{varType + "'s name can't have more than one symbol"};
+                throw ConfigError{varType + "'s short name can't have more than one symbol"};
             if (!std::isalnum(var.shortName().front()))
-                throw ConfigError{"Parameter's name must be an alphanumeric character"};
+                throw ConfigError{"Parameter's short name must be an alphanumeric character"};
         };
         for (auto param : this->params_)
             checkShortName(param->info(), "Parameter");
