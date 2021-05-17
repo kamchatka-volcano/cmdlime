@@ -151,12 +151,6 @@ public:
         return *this;
     }
 
-    ParamCreator<T, TConfig>& operator<<(const WithoutValueName&)
-    {
-        param_->resetValueName({});
-        return *this;
-    }
-
     ParamCreator<T, TConfig>& operator()(const T& defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);

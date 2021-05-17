@@ -10,7 +10,7 @@ public:
         : value_(name)
     {
         if(value_.empty())
-            throw ConfigError{"Name can't be empty."};
+            throw ConfigError{"Custom name can't be empty."};
     }
 
     const std::string& value() const
@@ -35,6 +35,5 @@ class ValueName : public CustomName{
 };
 
 class WithoutShortName{};
-class WithoutValueName{};
 
 }

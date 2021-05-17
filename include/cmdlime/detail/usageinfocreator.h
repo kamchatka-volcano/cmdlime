@@ -12,7 +12,6 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include <cassert>
 #include <iomanip>
 
 namespace cmdlime::detail{
@@ -34,11 +33,12 @@ inline std::string adjustedToLineBreak(std::string line, std::string& text)
 
 inline std::string popLine(std::string& text, std::size_t width, bool firstLine = false)
 {
-    assert(width >= 0);
     auto newLinePos = text.find('\n');
     if (newLinePos != std::string::npos && newLinePos <= width){
         auto line = text.substr(0, newLinePos);
         text.erase(text.begin(), text.begin() + static_cast<int>(newLinePos + 1));
+        if (!firstLine)
+            line = str::trimmedFront(line);
         return line;
     }
 
@@ -51,6 +51,7 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
         line = str::trimmedFront(line);
     return adjustedToLineBreak(line, text);
 }
+
 template <typename T>
 inline std::vector<not_null<T*>> getParamsByOptionality(const std::vector<not_null<T*>>& params, bool isOptional)
 {
@@ -139,8 +140,9 @@ private:
             result += OutputFormatter::flagUsageName(*flag) + " ";
 
         if (argList_)
-            result += OutputFormatter::argListUsageName(*argList_) + "\n";
+            result += OutputFormatter::argListUsageName(*argList_);
 
+        result += "\n";
         return result;
     }
 
@@ -163,8 +165,9 @@ private:
             result += "[flags] ";
 
         if (argList_)
-            result += OutputFormatter::argListUsageName(*argList_) + "\n";
+            result += OutputFormatter::argListUsageName(*argList_);
 
+        result += "\n";
         return result;
     }
 
@@ -189,8 +192,9 @@ private:
             const auto name = OutputFormatter::paramListDescriptionName(*paramList, outputSettings_.nameIndentation) + "\n";
             auto description = getDescription(*paramList);
             if (!description.empty())
-                description += "\n";
-            description += "List (can be used multiple times).";
+                description += "\n(multi-value)";
+            else
+                description += "multi-value";
             result += makeConfigFieldInfo(name, description);
         }
         return result;
@@ -202,15 +206,19 @@ private:
             return {};
         auto result = std::string{};
         for (const auto option : optionalParams_){
-            auto defaultValueInfo = std::string{};
-            if (!option->defaultValue().empty())
-                defaultValueInfo = "Optional, default: " + option->defaultValue();
-            else
-                defaultValueInfo = "Optional.";
             auto description = getDescription(*option);
-            if (!description.empty())
-                description += "\n";
-            description += defaultValueInfo;
+            if (!description.empty()){
+                if (!option->defaultValue().empty())
+                    description += "\n(optional, default: " + option->defaultValue() + ")";
+                else
+                    description += "\n(optional)";
+            }
+            else{
+                if (!option->defaultValue().empty())
+                    description += "optional, default: " + option->defaultValue();
+                else
+                    description += "optional";
+            }
             result += makeConfigFieldInfo(OutputFormatter::paramDescriptionName(*option, outputSettings_.nameIndentation) + "\n", description);
         }
         return result;
@@ -222,15 +230,21 @@ private:
             return {};
         auto result = std::string{};
         for (const auto option : optionalParamLists_){
-            auto defaultValueInfo = std::string{};
-            if (!option->defaultValue().empty())
-                defaultValueInfo = "Optional, default: " + option->defaultValue();
-            else
-                defaultValueInfo = "Optional.";
             auto description = getDescription(*option);
-            if (!description.empty())
-                description += "\n";
-            description += "List (can be used multiple times).\n" + defaultValueInfo;
+            if (!description.empty()){
+                description += "\n(multi-value, ";
+                if (!option->defaultValue().empty())
+                    description += "optional, default: " + option->defaultValue() + ")";
+                else
+                    description += "optional)";
+            }
+            else{
+                description += "multi-value, ";
+                if (!option->defaultValue().empty())
+                    description += "optional, default: " + option->defaultValue();
+                else
+                    description += "optional";
+            }
             result += makeConfigFieldInfo(OutputFormatter::paramListDescriptionName(*option, outputSettings_.nameIndentation) + "\n", description);
         }
         return result;
@@ -244,18 +258,28 @@ private:
         for (const auto arg : args_)
             result += makeConfigFieldInfo(OutputFormatter::argDescriptionName(*arg, outputSettings_.nameIndentation) + "\n", getDescription(*arg));
 
-        if (argList_){
-            auto defaultValueInfo = std::string{};
-            if (argList_->isOptional()){
-                if (!argList_->defaultValue().empty())
-                    defaultValueInfo = "Optional, default: " + argList_->defaultValue();
-                else
-                    defaultValueInfo = "Optional.";
-            }
+        if (argList_){            
             auto description = getDescription(*argList_);
-            if (!description.empty())
-                description += "\n";
-            description += "List (can be used multiple times).\n" + defaultValueInfo;
+            if (!description.empty()){
+                description += "\n(multi-value";
+                if (argList_->isOptional()){
+                    if (!argList_->defaultValue().empty())
+                        description += ", optional, default: " + argList_->defaultValue() + ")";
+                    else
+                        description +=  ", optional)";
+                }
+                else
+                    description += ")";
+            }
+            else{
+                description += "multi-value";
+                if (argList_->isOptional()){
+                    if (!argList_->defaultValue().empty())
+                        description += ", optional, default: " + argList_->defaultValue();
+                    else
+                        description +=  ", optional";
+                }
+            }
             result += makeConfigFieldInfo(OutputFormatter::argListDescriptionName(*argList_, outputSettings_.nameIndentation) + "\n", description);
         }
         return result;

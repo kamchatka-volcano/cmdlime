@@ -516,14 +516,13 @@ TEST(X11Config, DetailedUsageInfo)
     "Usage: testproc <arg> -requiredparam <string> -paramlist <string>... [params] [flags] <arglist...>\n"
     "Arguments:\n"
     "    <arg> (double)             \n"
-    "    <arglist> (float)          List (can be used multiple times).\n"
+    "    <arglist> (float)          multi-value\n"
     "Parameters:\n"
     "   -requiredparam <string>     \n"
-    "   -paramlist <string>         List (can be used multiple times).\n"
-    "   -optionalparam <string>     Optional, default: defaultValue\n"
-    "   -optionalintparam <int>     Optional.\n"
-    "   -optionalparamlist <int>    List (can be used multiple times).\n"
-    "                                 Optional, default: {99, 100}\n"
+    "   -paramlist <string>         multi-value\n"
+    "   -optionalparam <string>     optional, default: defaultValue\n"
+    "   -optionalintparam <int>     optional\n"
+    "   -optionalparamlist <int>    multi-value, optional, default: {99, 100}\n"
     "Flags:\n"
     "   -flag                       \n"};
     EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
@@ -543,11 +542,10 @@ TEST(X11Config, CustomValueNames)
     "Usage: testproc <arg> -param <STRING> [params] <arglist...>\n"
     "Arguments:\n"
     "    <arg> (DOUBLE)         \n"
-    "    <arglist> (FLOATS)     List (can be used multiple times).\n"
+    "    <arglist> (FLOATS)     multi-value\n"
     "Parameters:\n"
     "   -param <STRING>         \n"
-    "   -paramlist <INTS>       List (can be used multiple times).\n"
-    "                             Optional, default: {}\n"
+    "   -paramlist <INTS>       multi-value, optional, default: {}\n"
     };
     EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedInfo);
 }

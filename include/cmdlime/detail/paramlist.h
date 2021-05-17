@@ -158,12 +158,6 @@ public:
         return *this;
     }
 
-    ParamListCreator<T, TConfig>& operator<<(const WithoutValueName&)
-    {
-        paramList_->resetValueName({});
-        return *this;
-    }
-
     ParamListCreator<T, TConfig>& operator()(const std::vector<T>& defaultValue = {})
     {
         defaultValue_ = defaultValue;
