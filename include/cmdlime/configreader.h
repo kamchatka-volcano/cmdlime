@@ -29,6 +29,7 @@ public:
                                                        std::string{},
                                                        [this]()->bool&{return help_;},
                                                        detail::Flag::Type::Exit);
+        helpFlag->addDescription("show usage info and exit");
         detail::ConfigAccess<TConfig>{cfg_}.addFlag(std::move(helpFlag));
 
         if (!cfg_.versionInfo().empty()){
@@ -36,6 +37,7 @@ public:
                                                            std::string{},
                                                            [this]()->bool&{return version_;},
                                                            detail::Flag::Type::Exit);
+            versionFlag->addDescription("show version info and exit");
             detail::ConfigAccess<TConfig>{cfg_}.addFlag(std::move(versionFlag));
 
         }
@@ -64,7 +66,7 @@ public:
     bool readCommandLine(int argc, char** argv)
     {
         auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
-        read(cmdLine);
+        return read(cmdLine);
     }
 
 private:
