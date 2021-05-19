@@ -34,7 +34,7 @@ kamchatka-volcano@home:~$ ./person-finder 684007 --name John --verbose
 Looking for person John in the region with zip code: 684007
 ```
 
-Please note, that in this example, `--name` is a parameter, `--verbose` is a flag, and `110` is an argument, this naming is used in this document and within the **cmdlime** interface.
+Please note, that in this example, `--name` is a parameter, `--verbose` is a flag, and `684007` is an argument, this naming is used in this document and within the **cmdlime** interface.
 
 
 ## Table of Contents
