@@ -5,8 +5,8 @@
 #include "iarg.h"
 #include "iarglist.h"
 #include "format.h"
-#include "errors.h"
 #include "gsl/pointers"
+#include <cmdlime/errors.h>
 #include <vector>
 #include <deque>
 #include <unordered_set>

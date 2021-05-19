@@ -3,9 +3,9 @@
 #include "configaccess.h"
 #include "configvar.h"
 #include "format.h"
-#include "errors.h"
-#include "customnames.h"
 #include "gsl/assert"
+#include <cmdlime/errors.h>
+#include <cmdlime/customnames.h>
 #include <sstream>
 #include <optional>
 #include <memory>
@@ -104,7 +104,7 @@ inline bool Param<std::string>::read(const std::string& data)
 
 template<typename T, typename TConfig>
 class ParamCreator{
-    using NameProvider = typename Format<TConfig::format>::nameProvider;
+    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
 public:
     ParamCreator(TConfig& cfg,
                  const std::string& varName,
@@ -133,7 +133,7 @@ public:
 
     ParamCreator<T, TConfig>& operator<<(const ShortName& customName)
     {
-        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
+        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled, "Current command line format doesn't support short names");
         param_->resetShortName(customName.value());
         return *this;
     }

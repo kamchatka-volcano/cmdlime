@@ -3,9 +3,9 @@
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
-#include "errors.h"
-#include "customnames.h"
 #include "gsl/assert"
+#include <cmdlime/errors.h>
+#include <cmdlime/customnames.h>
 #include <vector>
 #include <sstream>
 #include <functional>
@@ -101,7 +101,7 @@ inline bool ArgList<std::string>::read(const std::string& data)
 
 template<typename T, typename TConfig>
 class ArgListCreator{
-    using NameProvider = typename Format<TConfig::format>::nameProvider;
+    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
 
 public:
     ArgListCreator(TConfig& cfg,

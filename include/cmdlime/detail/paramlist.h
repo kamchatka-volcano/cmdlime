@@ -3,10 +3,10 @@
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
-#include "errors.h"
-#include "customnames.h"
 #include "string_utils.h"
 #include "gsl/assert"
+#include <cmdlime/errors.h>
+#include <cmdlime/customnames.h>
 #include <vector>
 #include <sstream>
 #include <functional>
@@ -110,7 +110,7 @@ inline bool ParamList<std::string>::read(const std::string& data)
 
 template<typename T, typename TConfig>
 class ParamListCreator{
-    using NameProvider = typename Format<TConfig::format>::nameProvider;
+    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
 
 public:
     ParamListCreator(TConfig& cfg,
@@ -140,14 +140,14 @@ public:
 
     ParamListCreator<T, TConfig>& operator<<(const ShortName& customName)
     {
-        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
+        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled, "Current command line format doesn't support short names");
         paramList_->resetShortName(customName.value());
         return *this;
     }
 
     ParamListCreator<T, TConfig>& operator<<(const WithoutShortName&)
     {
-        static_assert(Format<TConfig::format>::shortNamesEnabled, "Current command line format doesn't support short names");
+        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled, "Current command line format doesn't support short names");
         paramList_->resetShortName({});
         return *this;
     }

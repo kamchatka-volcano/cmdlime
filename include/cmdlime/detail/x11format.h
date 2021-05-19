@@ -3,8 +3,8 @@
 #include "format.h"
 #include "string_utils.h"
 #include "nameutils.h"
-#include "errors.h"
 #include "utils.h"
+#include <cmdlime/errors.h>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>

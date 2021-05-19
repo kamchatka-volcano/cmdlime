@@ -4,6 +4,7 @@
 #include "configaccess.h"
 #include "usageinfoformat.h"
 #include "gsl/pointers"
+#include <cmdlime/errors.h>
 #include <vector>
 #include <string>
 #include <map>
@@ -40,6 +41,8 @@ public:
 
     void read(const std::vector<std::string>& cmdLine)
     {
+        if (!configError_.empty())
+            throw ConfigError{configError_};
         auto params = getPtrList(params_);
         auto paramLists = getPtrList(paramLists_);
         auto flags = getPtrList(flags_);
@@ -49,8 +52,16 @@ public:
         parser.parse(cmdLine);
     }
 
-    std::string usageInfo(const std::string& name, UsageInfoFormat outputSettings = {})
+    const std::string& versionInfo() const
     {
+        return versionInfo_;
+    }
+
+    std::string usageInfo(const std::string& name, UsageInfoFormat outputSettings = {}) const
+    {
+        if (!customUsageInfo_.empty())
+            return customUsageInfo_;
+
         auto params = getPtrList(params_);
         auto paramLists = getPtrList(paramLists_);
         auto flags = getPtrList(flags_);
@@ -58,13 +69,31 @@ public:
         return UsageInfoCreator<formatType>{name, outputSettings, params, paramLists, flags, args, argList_.get()}.create();
     }
 
-    std::string usageInfoDetailed(const std::string& name, UsageInfoFormat outputSettings = {})
+    std::string usageInfoDetailed(const std::string& name, UsageInfoFormat outputSettings = {}) const
     {
+        if (!customUsageInfoDetailed_.empty())
+            return customUsageInfoDetailed_;
+
         auto params = getPtrList(params_);
         auto paramLists = getPtrList(paramLists_);
         auto flags = getPtrList(flags_);
         auto args = getPtrList(args_);
         return UsageInfoCreator<formatType>{name, outputSettings, params, paramLists, flags, args, argList_.get()}.createDetailed();
+    }
+
+    void setVersionInfo(const std::string& info)
+    {
+        versionInfo_ = info;
+    }
+
+    void setUsageInfo(const std::string& info)
+    {
+        customUsageInfo_ = info;
+    }
+
+    void setUsageInfoDetailed(const std::string& info)
+    {
+        customUsageInfoDetailed_ = info;
     }
 
 private:
@@ -90,9 +119,10 @@ private:
 
     void setArgList(std::unique_ptr<IArgList> argList)
     {
+        if (argList_)
+            configError_ = "Config can have only one arguments list";
         argList_ = std::move(argList);
     }
-
 
 private:
     std::vector<std::unique_ptr<IParam>> params_;
@@ -100,20 +130,14 @@ private:
     std::vector<std::unique_ptr<IFlag>> flags_;
     std::vector<std::unique_ptr<IArg>> args_;
     std::unique_ptr<detail::IArgList> argList_;
+    std::string versionInfo_;
+    std::string customUsageInfo_;
+    std::string customUsageInfoDetailed_;
+    std::string configError_;
 
 private:
     template<typename TConfig>
     friend class ConfigAccess;
-    template<typename T, typename TConfig>
-    friend class ParamCreator;
-    template<typename T, typename TConfig>
-    friend class ParamListCreator;
-    template<typename TConfig>
-    friend class FlagCreator;
-    template<typename T, typename TConfig>
-    friend class ArgCreator;
-    template<typename T, typename TConfig>
-    friend class ArgListCreator;
 
     constexpr static FormatType format = formatType;
 };

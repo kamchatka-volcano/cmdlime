@@ -1,4 +1,5 @@
 #pragma once
+#include "format.h"
 #include <memory>
 
 namespace cmdlime::detail{
@@ -14,6 +15,11 @@ public:
     ConfigAccess(TConfig& config)
         : config_(config)
     {}
+
+    static constexpr FormatType format()
+    {
+        return TConfig::format;
+    }
 
     void addParam(std::unique_ptr<IParam> param)
     {

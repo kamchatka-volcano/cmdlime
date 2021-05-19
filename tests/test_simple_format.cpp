@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <cmdlime/simpleconfig.h>
+#include <cmdlime/configreader.h>
 #include "assert_exception.h"
 #include <optional>
 
@@ -203,6 +204,21 @@ TEST(SimpleConfig, ParamWrongNameNonAlphanum)
         [&cfg]{cfg.read({"-pa-ram=Foo"});},
         [](const cmdlime::ConfigError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'p$r$m' must consist of alphanumeric characters"});
+        });
+}
+
+TEST(SimpleConfig, MultipleArgLists)
+{
+    struct Cfg : public Config{
+        PARAM(param, std::string);
+        ARGLIST(arglist, std::string);
+        ARGLIST(arglist2, std::string);
+    };
+    auto cfg = Cfg{};
+    assert_exception<cmdlime::ConfigError>(
+        [&cfg]{cfg.read({"-param=Foo"});},
+        [](const cmdlime::ConfigError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Config can have only one arguments list"});
         });
 }
 
@@ -587,4 +603,40 @@ TEST(SimpleConfig, CustomValueNames)
     };
     EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedInfo);
 }
+
+TEST(SimpleConfig, ConfigReaderMissingVersionInfo)
+{
+    auto cfg = FullConfig{};
+    auto reader = cmdlime::ConfigReader{cfg, "testproc"};
+    EXPECT_EQ(reader.read({"--version"}), false);
+    EXPECT_EQ(reader.exitCode(), -1);
+}
+
+TEST(SimpleConfig, ConfigReaderVersion)
+{
+    auto cfg = FullConfig{};
+    cfg.setVersionInfo("testproc 1.0");
+    auto reader = cmdlime::ConfigReader{cfg, "testproc"};
+    EXPECT_EQ(reader.read({"--version"}), false);
+    EXPECT_EQ(reader.exitCode(), 0);
+}
+
+TEST(SimpleConfig, ConfigReaderHelp)
+{
+    auto cfg = FullConfig{};
+    auto reader = cmdlime::ConfigReader{cfg, "testproc"};
+    EXPECT_EQ(reader.read({"--help"}), false);
+    EXPECT_EQ(reader.exitCode(), 0);
+}
+
+TEST(SimpleConfig, ConfigReader)
+{
+    auto cfg = FullConfig{};
+    auto reader = cmdlime::ConfigReader{cfg, "testproc"};
+    EXPECT_EQ(reader.read({"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-paramList=zero", "-paramList=one",
+            "-optionalParamList=1,2", "--flag", "4.2", "1.1", "2.2", "3.3"}), true);
+    EXPECT_EQ(reader.exitCode(), 0);
+}
+
+
 

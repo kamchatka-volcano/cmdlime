@@ -4,7 +4,7 @@
 #include "string_utils.h"
 #include "nameutils.h"
 #include "utils.h"
-#include "errors.h"
+#include <cmdlime/errors.h>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
