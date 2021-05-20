@@ -5,7 +5,7 @@ int main(int argc, char** argv)
 {
     struct Cfg : public cmdlime::Config{
         ARG(zipCode, int)              << "zip code of the searched region";
-        PARAM(surname, std::string)    << "surname of the person to find"       << cmdlime::ValueName{"ALPHA_STR"};
+        PARAM(surname, std::string)    << "surname of the person to find"       << cmdlime::ValueName{"A-Z..."};
         PARAM(name, std::string)()     << "name of the person to find"          << cmdlime::Name{"first-name"};
         FLAG(verbose)                  << "adds more information to the output";
     } cfg;

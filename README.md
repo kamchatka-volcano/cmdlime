@@ -99,7 +99,8 @@ Looking for person Deer in region with zip code: 684007
 
 `ConfigReader` - is a helper class hiding the error handling boilerplate and adding`--help` and `--version` flags processing to your config.  
 `--help` flag show detailed help message, that otherwise can be accessed through `Config::usageInfoDetailed()`.  
-`--version` flag is enabled only if version info is set in the config with `Config::setVersionInfo` method. Let's modify `person-finder` and see how it works.
+`--version` flag is enabled only if version info is set in the config with `Config::setVersionInfo` method.  
+Let's modify `person-finder` and see how it works.
 
 ```C++
 ///examples/ex03.cpp
@@ -192,12 +193,12 @@ Here's the fixed config. Turning off the short name generation for flag `--versi
 
 
 You can use the following objects to customize names generation:  
-`cmdlime::Name{"customName"}` - overrides command line option name.  
-`cmdlime::ShortName{"customShortName"}` - overrides command line option short name.  
-`cmdlime::WithoutShortName{}` - removes command line option short name.
+`cmdlime::Name{"customName"}` - overrides command line option's name.  
+`cmdlime::ShortName{"customShortName"}` - overrides command line option's short name.  
+`cmdlime::WithoutShortName{}` - removes command line option's short name.  
 `cmdlime::ValueName{}` - overrides parameter's value name in the usage info. 
 
-And it's time for another `person-finder` rewrite:
+And it's time for another `person-finder`'s rewrite:
 ```C++
 ///examples/ex06.cpp
 ///
@@ -224,7 +225,7 @@ Flags:
 ```
 ### Auto-generated usage info
 
-**cmdlime** can generate help messages accessible with `Config::usageInfo()` and `Config::usageInfoDetailed()` methods. The former is the compact version that is supposed to be shown alongside error messages, the later is the detailed version that is printed out when `--help` flag is set.
+**cmdlime** can generate help messages accessible with `Config::usageInfo()` and `Config::usageInfoDetailed()` methods. The former is the compact version that is supposed to be shown alongside error messages, the latter is the detailed version that is printed out when `--help` flag is set.
 
 We can add more information to the detailed usage info by setting the parameters` descriptions:
 ```C++
@@ -232,7 +233,7 @@ We can add more information to the detailed usage info by setting the parameters
 ///
 struct Cfg : public cmdlime::Config{
     ARG(zipCode, int)              << "zip code of the searched region";
-    PARAM(surname, std::string)    << "surname of the person to find"       << cmdlime::ValueName{"ALPHA_STR"};
+    PARAM(surname, std::string)    << "surname of the person to find"       << cmdlime::ValueName{"A-Z..."};
     PARAM(name, std::string)()     << "name of the person to find"          << cmdlime::Name{"first-name"};
     FLAG(verbose)                  << "adds more information to the output";
 } cfg;
@@ -240,11 +241,11 @@ struct Cfg : public cmdlime::Config{
 ```
 ```console
 kamchatka-volcano@home:~$ ./person-finder --help
-Usage: person-finder <zip-code> --surname <ALPHA_STR> [params] [flags] 
+Usage: person-finder <zip-code> --surname <A-Z...> [params] [flags] 
 Arguments:
     <zip-code> (int)             zip code of the searched region
 Parameters:
-   -s, --surname <ALPHA_STR>     surname of the person to find
+   -s, --surname <A-Z...>     surname of the person to find
    -n, --first-name <string>     name of the person to find
                                    (optional)
 Flags:
@@ -303,7 +304,7 @@ Flags:
 
 All names consist of single alphanumeric character.  
 Parameters and flags prefix: `-`  
-Short names aren't supported.  
+Short names aren't supported (the default names are already short enough).  
 Parameters usage: `-p value` or `-pvalue`  
 Flags usage: `-f`  
 Flags in short form can be "glued" together: `-abc` or with one parameter: `-fp value`
