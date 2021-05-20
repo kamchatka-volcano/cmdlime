@@ -3,6 +3,7 @@
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
+#include "streamreader.h"
 #include "gsl/assert"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
@@ -49,8 +50,7 @@ private:
         }
         auto stream = std::stringstream{data};        
         argListGetter_().emplace_back();
-        stream >> argListGetter_().back();
-        if (stream.bad() || stream.fail() || !stream.eof())
+        if (!readFromStream(stream, argListGetter_().back()))
             return false;
         hasValue_ = true;
         return true;

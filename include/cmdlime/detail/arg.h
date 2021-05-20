@@ -3,6 +3,7 @@
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
+#include "streamreader.h"
 #include "gsl/assert"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
@@ -37,8 +38,7 @@ private:
     bool read(const std::string& data) override
     {
         auto stream = std::stringstream{data};
-        stream >> argGetter_();
-        return !stream.bad() && !stream.fail() && stream.eof();
+        return readFromStream(stream, argGetter_());
     }
 
 private:    

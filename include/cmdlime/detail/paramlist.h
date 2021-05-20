@@ -4,6 +4,7 @@
 #include "configaccess.h"
 #include "format.h"
 #include "string_utils.h"
+#include "streamreader.h"
 #include "gsl/assert"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
@@ -54,8 +55,7 @@ private:
         for (const auto& part : dataParts){
             auto stream = std::stringstream{part};            
             paramListGetter_().emplace_back();
-            stream >> paramListGetter_().back();
-            if (stream.bad() || stream.fail() || !stream.eof())
+            if (!readFromStream(stream, paramListGetter_().back()))
                 return false;
         }
         hasValue_ = true;

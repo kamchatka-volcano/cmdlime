@@ -63,12 +63,12 @@ To do this subclass `cmdlime::Config` and declare fields with the following macr
 - **ARG(`name`, `type`)** - creates `type name;` config field and registers it in the parser.  
 Arguments are mapped to the config fields in the order of declaration. Arguments can't have default values and are always required to be specified in the command line.
 - **ARGLIST(`name`, `type`)** - creates `std::vector<type> name;` config field and registers it in the parser.  
- Config can have only one arguments list and elements are placed into it after all other config arguments are set, regardless of the order of declaration. The declaration form **ARGLIST(`name`, `type`)(`initializer list`)** sets the default value of an argument list, which makes it optional, so it can be omitted from the command line without raising an error.
+ Config can have only one arguments list and elements are placed into it after all other config arguments are set, regardless of the order of declaration. The declaration form **ARGLIST(`name`, `type`)(`list-initialization`)** sets the default value of an argument list, which makes it optional, so it can be omitted from the command line without raising an error.
 - **PARAM(`name`, `type`)** - creates `type name;` config field and registers it in the parser.  
 The declaration form **PARAM(`name`, `type`)(`default value`)** sets the default value of a parameter, which makes it optional, so it can be omitted from the command line without raising an error.
 - **PARAMLIST(`name`, `type`)** - creates `std::vector<type> name;` config field and registers it in the parser.   
 Parameter list can be filled by specifying it in the command line multiple times (`--param-list val1 --param-list val2`) or passing a comma separated value (`--param-list val1,val2`).  
-The declaration form **PARAMLIST(`name`, `type`)(`initializer list`)** sets the default value of a parameter list, which makes it optional, so it can be omitted from the command line without raising an error.
+The declaration form **PARAMLIST(`name`, `type`)(`list-initialization`)** sets the default value of a parameter list, which makes it optional, so it can be omitted from the command line without raising an error.
 - **FLAG(`name`)** - creates `bool name;` config field and registers it in the parser.  
 Flags are always optional and have default value `false`  
 - **EXITFLAG(`name`)** - creates `bool name;` config field and registers it in the parser. 
@@ -259,7 +259,7 @@ If you don't like auto-generated usage info message you can set your own with `C
 
 **cmdlime** supports several command line naming conventions and unlike many other parsers it strictly enforces them, so you can't mix usage of different formats together.
 
-All formats support argument delimiter `--`,  after it all command line options are treated as arguments, even if they start with hyphens.
+All formats support argument delimiter `--`,  after encountering it, all command line options are treated as arguments, even if they start with hyphens.
 
 #### GNU
 
@@ -301,9 +301,9 @@ Flags:
 
 #### POSIX
 
-All names consist of single alphanumeric character. 
+All names consist of single alphanumeric character.  
 Parameters and flags prefix: `-`  
-Short names aren't supported.
+Short names aren't supported.  
 Parameters usage: `-p value` or `-pvalue`  
 Flags usage: `-f`  
 Flags in short form can be "glued" together: `-abc` or with one parameter: `-fp value`
@@ -343,7 +343,7 @@ Flags:
 #### X11
 All names are in `lowercase`.  
 Parameters and flags prefix: `-`  
-Short names aren't supported.
+Short names aren't supported.  
 Parameters usage: `-parameter value`  
 Flags usage: `-flag`
 
@@ -378,10 +378,10 @@ Flags:
 This format is created for development purposes of **cmdlime** as it's the easiest one to parse, so **cmdlime** unit tests are probably the only software that use it.
 
 All names are in `camelCase`.  
-Parameters prefix: `-`
-Flags prefix: `--`
-Short names aren't supported.
-Parameters usage: `-parameter=value`  
+Parameters prefix: `-`  
+Flags prefix: `--`  
+Short names aren't supported.  
+Parameters usage: `-parameter=value`   
 Flags usage: `--flag`
 
 Subclass your config structure from `cmdlime::SimpleConfig` to use it.
@@ -437,14 +437,9 @@ std::stringstream& operator>>(std::stringstream& stream, Coord& coord)
     stream >> coordStr;
     auto delimPos = coordStr.find('-');
     if (delimPos == std::string::npos)
-        stream.setstate(std::ios::failbit);
-    try{
-        coord.lat = std::stod(coordStr.substr(0, delimPos));
-        coord.lon = std::stod(coordStr.substr(delimPos + 1, coordStr.size() - delimPos - 1));
-    }
-    catch(const std::exception&){
-        stream.setstate(std::ios::failbit);
-    }
+        throw cmdlime::Error{"Wrong coord format"};
+    coord.lat = std::stod(coordStr.substr(0, delimPos));
+    coord.lon = std::stod(coordStr.substr(delimPos + 1, coordStr.size() - delimPos - 1));
     return stream;
 }
 

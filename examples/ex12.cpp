@@ -17,14 +17,9 @@ std::stringstream& operator>>(std::stringstream& stream, Coord& coord)
     stream >> coordStr;
     auto delimPos = coordStr.find('-');
     if (delimPos == std::string::npos)
-        stream.setstate(std::ios::failbit);
-    try{
-        coord.lat = std::stod(coordStr.substr(0, delimPos));
-        coord.lon = std::stod(coordStr.substr(delimPos + 1, coordStr.size() - delimPos - 1));
-    }
-    catch(const std::exception&){
-        stream.setstate(std::ios::failbit);
-    }
+        throw cmdlime::Error{"Wrong coord format"};
+    coord.lat = std::stod(coordStr.substr(0, delimPos));
+    coord.lon = std::stod(coordStr.substr(delimPos + 1, coordStr.size() - delimPos - 1));
     return stream;
 }
 
