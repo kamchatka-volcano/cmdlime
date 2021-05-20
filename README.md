@@ -495,7 +495,7 @@ ctest
 ```
 
 ## License
-**cmdlime** is licensed under [MS-PL license](/LICENSE.md)  
-The bundled part of [GSL](https://github.com/microsoft/GSL) library is licensed under [MIT license](https://github.com/microsoft/GSL/blob/main/LICENSE)
+**cmdlime** is licensed under the [MS-PL license](/LICENSE.md)  
+The bundled part of the [GSL](https://github.com/microsoft/GSL) library is licensed under the [MIT license](https://github.com/microsoft/GSL/blob/main/LICENSE)
 
 
