@@ -484,7 +484,7 @@ cmake ..
 make install
 ```
 
-Or you can simply place **cmdlime** directory in your project and pass it to the `add_subdirectory()` command in your `CMakeLists.txt`
+Or you can simply place **cmdlime** directory in your project and add `cmdlime/include` to the include paths. 
 
 ## Running tests
 ```
