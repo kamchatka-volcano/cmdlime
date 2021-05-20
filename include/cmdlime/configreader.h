@@ -10,13 +10,22 @@
 
 namespace cmdlime{
 
+enum class ErrorOutputMode{
+    STDOUT,
+    STDERR
+};
+
 template<typename TConfig>
 class ConfigReader{
 public:
-    ConfigReader(TConfig& cfg, const std::string& programName, const UsageInfoFormat& usageInfoFormat = {})
+    ConfigReader(TConfig& cfg,
+                 const std::string& programName,
+                 const UsageInfoFormat& usageInfoFormat = {},
+                 ErrorOutputMode errorOutputMode = ErrorOutputMode::STDERR)
         : cfg_(cfg)
         , programName_(programName)
         , usageInfoFormat_(usageInfoFormat)
+        , errorOutputMode_(errorOutputMode)
     {}
 
     int exitCode() const
@@ -48,7 +57,10 @@ public:
             cfg_.read(cmdLine);
         }
         catch(const Error& e){
-            std::cerr << e.what() << std::endl;
+            if (errorOutputMode_ == ErrorOutputMode::STDERR)
+                std::cerr << e.what() << std::endl;
+            else if (errorOutputMode_ == ErrorOutputMode::STDOUT)
+                std::cout << e.what() << "\n";
             std::cout << cfg_.usageInfo(programName_) << std::endl;
             return exitOnError(-1);
         }
@@ -94,6 +106,7 @@ private:
     TConfig& cfg_;
     std::string programName_;
     UsageInfoFormat usageInfoFormat_;
+    ErrorOutputMode errorOutputMode_;
     int exitCode_ = 0;
     bool help_ = false;
     bool version_ = false;

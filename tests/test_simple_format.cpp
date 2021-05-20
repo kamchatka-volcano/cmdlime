@@ -607,7 +607,7 @@ TEST(SimpleConfig, CustomValueNames)
 TEST(SimpleConfig, ConfigReaderMissingVersionInfo)
 {
     auto cfg = FullConfig{};
-    auto reader = cmdlime::ConfigReader{cfg, "testproc"};
+    auto reader = cmdlime::ConfigReader{cfg, "testproc", {}, cmdlime::ErrorOutputMode::STDOUT};
     EXPECT_EQ(reader.read({"--version"}), false);
     EXPECT_EQ(reader.exitCode(), -1);
 }
