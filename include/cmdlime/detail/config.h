@@ -2,8 +2,8 @@
 #include "format.h"
 #include "usageinfocreator.h"
 #include "configaccess.h"
-#include "usageinfoformat.h"
 #include "gsl/pointers"
+#include <cmdlime/usageinfoformat.h>
 #include <cmdlime/errors.h>
 #include <vector>
 #include <string>
@@ -57,7 +57,7 @@ public:
         return versionInfo_;
     }
 
-    std::string usageInfo(const std::string& name, UsageInfoFormat outputSettings = {}) const
+    std::string usageInfo(const std::string& name) const
     {
         if (!customUsageInfo_.empty())
             return customUsageInfo_;
@@ -66,7 +66,7 @@ public:
         auto paramLists = getPtrList(paramLists_);
         auto flags = getPtrList(flags_);
         auto args = getPtrList(args_);
-        return UsageInfoCreator<formatType>{name, outputSettings, params, paramLists, flags, args, argList_.get()}.create();
+        return UsageInfoCreator<formatType>{name, UsageInfoFormat{}, params, paramLists, flags, args, argList_.get()}.create();
     }
 
     std::string usageInfoDetailed(const std::string& name, UsageInfoFormat outputSettings = {}) const

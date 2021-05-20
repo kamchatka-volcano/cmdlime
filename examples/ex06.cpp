@@ -5,7 +5,7 @@ int main(int argc, char** argv)
 {
     struct Cfg : public cmdlime::Config{
         ARG(zipCode, int);
-        PARAM(surname, std::string)  << cmdlime::ValueName{"ALPHA_STR"};
+        PARAM(surname, std::string)  << cmdlime::ValueName{"A-Z..."};
         PARAM(name, std::string)()   << cmdlime::Name{"first-name"};
         FLAG(verbose);
     } cfg;

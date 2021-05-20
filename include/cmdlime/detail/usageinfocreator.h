@@ -7,8 +7,8 @@
 #include "configvar.h"
 #include "format.h"
 #include "string_utils.h"
-#include "usageinfoformat.h"
 #include "gsl/pointers"
+#include <cmdlime/usageinfoformat.h>
 #include <vector>
 #include <memory>
 #include <algorithm>

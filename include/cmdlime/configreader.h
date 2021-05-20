@@ -1,5 +1,6 @@
 #pragma once
 #include "errors.h"
+#include "usageinfoformat.h"
 #include "detail/config.h"
 #include "detail/configmacro.h"
 #include "detail/configaccess.h"
@@ -12,9 +13,10 @@ namespace cmdlime{
 template<typename TConfig>
 class ConfigReader{
 public:
-    ConfigReader(TConfig& cfg, const std::string& programName)
+    ConfigReader(TConfig& cfg, const std::string& programName, const UsageInfoFormat& usageInfoFormat = {})
         : cfg_(cfg)
         , programName_(programName)
+        , usageInfoFormat_(usageInfoFormat)
     {}
 
     int exitCode() const
@@ -52,7 +54,7 @@ public:
         }
 
         if (help_){
-            std::cout << cfg_.usageInfoDetailed(programName_) << std::endl;
+            std::cout << cfg_.usageInfoDetailed(programName_, usageInfoFormat_) << std::endl;
             return exitOnFlag();
         }
         if (version_){
@@ -91,6 +93,7 @@ private:
 private:
     TConfig& cfg_;
     std::string programName_;
+    UsageInfoFormat usageInfoFormat_;
     int exitCode_ = 0;
     bool help_ = false;
     bool version_ = false;

@@ -203,18 +203,18 @@ And it's time for another `person-finder` rewrite:
 ///
 struct Cfg : public cmdlime::Config{
     ARG(zipCode, int);
-    PARAM(surname, std::string)  << cmdlime::ValueName{"ALPHA_STR"};
+    PARAM(surname, std::string)  << cmdlime::ValueName{"A-Z..."};
     PARAM(name, std::string)()   << cmdlime::Name{"first-name"};
     FLAG(verbose);
 } cfg;
 ```
 ```console
 kamchatka-volcano@home:~$ ./person-finder --help
-Usage: person-finder <zip-code> --surname <ALPHA_STR> [params] [flags] 
+Usage: person-finder <zip-code> --surname <A-Z...> [params] [flags] 
 Arguments:
     <zip-code> (int)             
 Parameters:
-   -s, --surname <ALPHA_STR>     
+   -s, --surname <A-Z...>     
    -n, --first-name <string>     optional
 Flags:
    -v, --verbose                 
