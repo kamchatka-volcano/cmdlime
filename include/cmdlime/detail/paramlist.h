@@ -116,14 +116,14 @@ public:
     ParamListCreator(TConfig& cfg,
                    const std::string& varName,
                    const std::string& type,
-                   std::function<std::vector<T>&()> argListGetter)
+                   std::function<std::vector<T>&()> paramListGetter)
         : cfg_(cfg)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
         paramList_ = std::make_unique<ParamList<T>>(NameProvider::name(varName),
                                                     NameProvider::shortName(varName),
-                                                    NameProvider::valueName(type), argListGetter);
+                                                    NameProvider::valueName(type), paramListGetter);
     }
 
     ParamListCreator<T, TConfig>& operator<<(const std::string& info)
@@ -177,5 +177,13 @@ private:
     TConfig& cfg_;
 };
 
+template <typename T, typename TConfig>
+ParamListCreator<T, TConfig> makeParamListCreator(TConfig& cfg,
+                                                  const std::string& varName,
+                                                  const std::string& type,
+                                                  std::function<std::vector<T>&()> paramListGetter)
+{
+    return ParamListCreator<T, TConfig>{cfg, varName, type, paramListGetter};
+}
 
 }

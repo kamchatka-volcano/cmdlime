@@ -97,4 +97,14 @@ private:
     TConfig& cfg_;
 };
 
+template <typename T, typename TConfig>
+ArgCreator<T, TConfig> makeArgCreator(TConfig& cfg,
+                                       const std::string& varName,
+                                       const std::string& type,
+                                       std::function<T&()> argGetter)
+{
+    return ArgCreator<T, TConfig>{cfg, varName, type, argGetter};
+}
+
+
 }
