@@ -73,6 +73,8 @@ protected:
                     return param->info().shortName() == name;
                 case FindMode::All:
                     return param->info().name() == name || param->info().shortName() == name;
+                default:
+                    return false;
                 }
             });
         if (paramIt == params_.end())
@@ -91,6 +93,8 @@ protected:
                     return paramList->info().shortName() == name;
                 case FindMode::All:
                     return paramList->info().name() == name || paramList->info().shortName() == name;
+                default:
+                    return false;
                 }
             });
         if (paramListIt == paramLists_.end())
@@ -128,6 +132,8 @@ protected:
                     return flag->info().shortName() == name;
                 case FindMode::All:
                     return flag->info().name() == name || flag->info().shortName() == name;
+                default:
+                    return false;
                 }
             });
         if (flagIt == flags_.end())

@@ -98,7 +98,7 @@ public:
     , args_(args)
     , argList_(argList)
     , outputSettings_(outputSettings)
-    , maxOptionNameSize_(maxOptionNameSize() + outputSettings.columnsSpacing)
+    , maxOptionNameSize_(maxOptionNameLength() + outputSettings.columnsSpacing)
     {
     }
 
@@ -295,30 +295,30 @@ private:
         return result;
     }
 
-    int maxOptionNameSize()
+    int maxOptionNameLength()
     {        
-        auto size = std::size_t{0};
-        auto updateSize = [&size](std::string name)
+        auto length = 0;
+        auto updateLength = [&length](std::string name)
         {
             auto firstLine = true;
             do {
                auto nameLine = popLine(name, 100, firstLine);
-               size = std::max(size, nameLine.size());
+               length = std::max(length, static_cast<int>(nameLine.size()));
                firstLine = false;
             } while(!name.empty());
         };
 
         for (auto param : params_)
-            updateSize(OutputFormatter::paramDescriptionName(*param, outputSettings_.nameIndentation));
+            updateLength(OutputFormatter::paramDescriptionName(*param, outputSettings_.nameIndentation));
         for (auto option : optionalParams_)
-            updateSize(OutputFormatter::paramDescriptionName(*option, outputSettings_.nameIndentation));
+            updateLength(OutputFormatter::paramDescriptionName(*option, outputSettings_.nameIndentation));
         for (auto flag : flags_)
-            updateSize(OutputFormatter::flagDescriptionName(*flag, outputSettings_.nameIndentation));
+            updateLength(OutputFormatter::flagDescriptionName(*flag, outputSettings_.nameIndentation));
         for (auto arg : args_)
-            updateSize(OutputFormatter::argDescriptionName(*arg, outputSettings_.nameIndentation));
+            updateLength(OutputFormatter::argDescriptionName(*arg, outputSettings_.nameIndentation));
         if (argList_)
-            updateSize(OutputFormatter::argListDescriptionName(*argList_, outputSettings_.nameIndentation));
-        return size;
+            updateLength(OutputFormatter::argListDescriptionName(*argList_, outputSettings_.nameIndentation));
+        return length;
     }
 
     std::string makeConfigFieldInfo(std::string name, std::string description)
