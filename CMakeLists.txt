@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
+if(DEFINED PROJECT_NAME)
+  set(CMDLIME_SUBPROJECT ON)
+endif()
+
 project(cmdlime VERSION 1.0.0 DESCRIPTION "C++17 command line parsing library")
 
 include(GNUInstallDirs)
@@ -18,4 +22,6 @@ if (${ENABLE_TESTS})
     add_subdirectory(tests)
 endif()
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/cmdlime DESTINATION include)
+if(NOT CMDLIME_SUBPROJECT)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/cmdlime DESTINATION include)
+endif()
