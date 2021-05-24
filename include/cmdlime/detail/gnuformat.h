@@ -59,26 +59,31 @@ class GNUParser : public Parser<formatType>
             throw ParsingError{"Encountered unknown parameter or flag '-" + command + "'"};
     }
 
-    void process(const std::vector<std::string>& cmdLine) override
+    void preProcess() override
     {
         checkNames();
-        auto foundParam = std::string{};
-        auto foundParamPrefix = std::string{};       
+        foundParam_.clear();
+        foundParamPrefix_.clear();
+    }
 
-        for (const auto& part : cmdLine){
-            if (str::startsWith(part, "--") && part.size() > 2)
-                processCommand(part, foundParam, foundParamPrefix);
-            else if (str::startsWith(part, "-") && part.size() > 1)
-                processShortCommand(part, foundParam, foundParamPrefix);
-            else if (!foundParam.empty()){
-                this->readParam(foundParam, part);
-                foundParam.clear();
-            }
-            else
-                this->readArg(part);
+    void process(const std::string& token) override
+    {        
+        if (str::startsWith(token, "--") && token.size() > 2)
+            processCommand(token, foundParam_, foundParamPrefix_);
+        else if (str::startsWith(token, "-") && token.size() > 1)
+            processShortCommand(token, foundParam_, foundParamPrefix_);
+        else if (!foundParam_.empty()){
+            this->readParam(foundParam_, token);
+            foundParam_.clear();
         }
-        if (!foundParam.empty())
-            throw ParsingError{"Parameter '" + foundParamPrefix + foundParam + "' value can't be empty"};
+        else
+            this->readArg(token);
+    }
+
+    void postProcess() override
+    {
+        if (!foundParam_.empty())
+            throw ParsingError{"Parameter '" + foundParamPrefix_ + foundParam_ + "' value can't be empty"};
     }
 
     void parseShortCommand(const std::string& command, std::string& foundParam, std::string& foundParamPrefix)
@@ -171,6 +176,9 @@ class GNUParser : public Parser<formatType>
                this->findParamList(opt, FindMode::ShortName);
     }
 
+private:
+    std::string foundParam_;
+    std::string foundParamPrefix_;
 };
 
 class GNUNameProvider{

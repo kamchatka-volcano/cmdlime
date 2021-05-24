@@ -38,24 +38,29 @@ class PosixParser : public Parser<formatType>
             throw ParsingError{"Encountered unknown parameter or flag '-" + command + "'"};
     }
 
-    void process(const std::vector<std::string>& cmdLine) override
-    {       
+    void preProcess() override
+    {
         checkNames();
         argumentEncountered_ = false;
         foundParam_.clear();
+    }
 
-        for (const auto& part : cmdLine){
-            if (str::startsWith(part, "-") && part.size() > 1)
-               processCommand(part);
-            else if (!foundParam_.empty()){
-                this->readParam(foundParam_, part);
-                foundParam_.clear();
-            }
-            else{
-                this->readArg(part);
-                argumentEncountered_ = true;
-            }
+    void process(const std::string& token) override
+    {       
+        if (str::startsWith(token, "-") && token.size() > 1)
+           processCommand(token);
+        else if (!foundParam_.empty()){
+            this->readParam(foundParam_, token);
+            foundParam_.clear();
         }
+        else{
+            this->readArg(token);
+            argumentEncountered_ = true;
+        }
+    }
+
+    void postProcess() override
+    {
         if (!foundParam_.empty())
             throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
     }
