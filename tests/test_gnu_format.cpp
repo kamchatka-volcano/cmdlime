@@ -564,6 +564,80 @@ TEST(GNUConfig, PascalNames)
     EXPECT_EQ(cfg.ArgList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
 }
 
+TEST(GNUConfig, CustomNamesWithoutShortName)
+{
+    struct TestConfig : public Config{
+        PARAM(requiredParam, std::string)                           << cmdlime::WithoutShortName{};
+        PARAM(optionalParam, std::string)("defaultValue")           << cmdlime::WithoutShortName{};
+        PARAM(optionalIntParam, std::optional<int>)()               << cmdlime::WithoutShortName{};
+        PARAMLIST(paramList, std::string)                           << cmdlime::WithoutShortName{};
+        PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::WithoutShortName{};
+        FLAG(flag)                                                  << cmdlime::WithoutShortName{};
+        FLAG(secondFlag);
+        ARG(arg, double);
+        ARGLIST(argList, float);
+    };
+
+    {
+    auto cfg = TestConfig{};
+    cfg.read({"--required-param","FOO", "--optional-param", "BAR", "--optional-int-param","9", "--param-list", "zero", "--param-list","one",
+              "--flag", "4.2", "1.1", "2.2", "3.3"});
+    EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
+    EXPECT_EQ(cfg.optionalIntParam, 9);
+    EXPECT_EQ(cfg.paramList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.optionalParamList, (std::vector<int>{99, 100}));
+    EXPECT_EQ(cfg.flag, true);
+    EXPECT_EQ(cfg.secondFlag, false);
+    EXPECT_EQ(cfg.arg, 4.2);
+    EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+    }
+
+    {
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-r"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-r'"});
+        });
+    }
+    {
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-o"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-o'"});
+        });
+    }
+    {
+    auto cfg = TestConfig{};
+    assert_exception<cmdlime::ParsingError>(
+        [&cfg]{cfg.read({"-f"});},
+        [](const cmdlime::ParsingError& error){
+            EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-f'"});
+        });
+    }
+    {
+    auto cfg = TestConfig{};
+    auto expectedDetailedInfo = std::string{
+    "Usage: testproc <arg> --required-param <string> --param-list <string>... [params] [flags] <arg-list...>\n"
+    "Arguments:\n"
+    "    <arg> (double)                    \n"
+    "    <arg-list> (float)                multi-value\n"
+    "Parameters:\n"
+    "       --required-param <string>      \n"
+    "       --param-list <string>          multi-value\n"
+    "       --optional-param <string>      optional, default: defaultValue\n"
+    "       --optional-int-param <int>     optional\n"
+    "       --optional-param-list <int>    multi-value, optional, default: {99, \n"
+    "                                        100}\n"
+    "Flags:\n"
+    "       --flag                         \n"
+    "   -s, --second-flag                  \n"};
+    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
+    }
+}
+
 TEST(GNUConfig, CustomNamesMissingParam)
 {
     struct TestConfig : public Config{
