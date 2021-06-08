@@ -112,7 +112,7 @@ public:
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        argList_ = std::make_unique<ArgList<T>>(NameProvider::argName(varName),
+        argList_ = std::make_unique<ArgList<T>>(NameProvider::fullName(varName),
                                                 NameProvider::valueName(type), argListGetter);
     }
 

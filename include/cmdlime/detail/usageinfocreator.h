@@ -4,6 +4,7 @@
 #include "iflag.h"
 #include "iarg.h"
 #include "iarglist.h"
+#include "icommand.h"
 #include "configvar.h"
 #include "format.h"
 #include "string_utils.h"
@@ -88,7 +89,8 @@ public:
                      std::vector<not_null<IParamList*>> paramLists,
                      std::vector<not_null<IFlag*>> flags,
                      std::vector<not_null<IArg*>> args,
-                     IArgList* argList)
+                     IArgList* argList,
+                     std::vector<not_null<ICommand*>> commands)
     : programName_(programName)
     , params_(getParamsByOptionality(params, false))
     , optionalParams_(getParamsByOptionality(params, true))
@@ -97,6 +99,7 @@ public:
     , flags_(flags)
     , args_(args)
     , argList_(argList)
+    , commands_(commands)
     , outputSettings_(outputSettings)
     , maxOptionNameSize_(maxOptionNameLength() + outputSettings.columnsSpacing)
     {
@@ -110,7 +113,8 @@ public:
                paramListsInfo() +
                optionsInfo() +
                optionalParamListsInfo() +
-               flagsInfo();
+               flagsInfo() +
+               commandsInfo();
     }
 
     std::string create()
@@ -124,6 +128,9 @@ private:
     std::string usageInfo()
     {
         auto result = "Usage: " + programName_ + " ";
+        if (!commands_.empty())
+            result += "[commands] ";
+
         for (auto arg : args_)
             result += OutputFormatter::argUsageName(*arg) + " ";
 
@@ -149,6 +156,10 @@ private:
     std::string minimizedUsageInfo()
     {
         auto result = "Usage: " + programName_ + " ";
+
+        if (!commands_.empty())
+            result += "[commands] ";
+
         for (auto arg : args_)
             result += OutputFormatter::argUsageName(*arg) + " ";
 
@@ -295,6 +306,22 @@ private:
         return result;
     }
 
+    std::string commandsInfo()
+    {
+        if (commands_.empty())
+            return {};
+        auto result = std::string{"Commands:\n"};
+        for (const auto command : commands_){
+            auto nameStream = std::stringstream{};
+            if (outputSettings_.nameIndentation)
+                nameStream << std::setw(outputSettings_.nameIndentation) << " ";
+            nameStream << getName(*command)
+                       << " [options]";
+            result += makeConfigFieldInfo(nameStream.str(), getDescription(*command));
+        }
+        return result;
+    }
+
     int maxOptionNameLength()
     {        
         auto length = 0;
@@ -354,7 +381,8 @@ private:
     std::vector<not_null<IParamList*>> optionalParamLists_;
     std::vector<not_null<IFlag*>> flags_;
     std::vector<not_null<IArg*>> args_;
-    IArgList* argList_;    
+    IArgList* argList_;
+    std::vector<not_null<ICommand*>> commands_;
     UsageInfoFormat outputSettings_;
     int maxOptionNameSize_;
 };

@@ -13,23 +13,27 @@
 #include <deque>
 #include <unordered_set>
 #include <algorithm>
+#include <functional>
 
 namespace cmdlime::detail{
 using namespace gsl;
 
 template <FormatType formatType>
 class Parser{
+protected:
+    enum class ReadMode{
+        All,
+        Args,
+        Commands,
+        ExitFlagsAndCommands,
+    };
+
+private:
     using OutputFormatter = typename Format<formatType>::outputFormatter;
     struct CommandLineContent{
         std::vector<std::string> opts;
         ICommand* command = nullptr;
         std::vector<std::string> commandOpts;
-    };
-    enum class ReadMode{
-        All,
-        Args,
-        Commands,
-        FlagsAndCommands,
     };
 
     class ReadModeScope{
@@ -71,35 +75,7 @@ public:
         argsToRead_.clear();
         std::copy(args_.begin(), args_.end(), std::back_inserter(argsToRead_));
 
-        {
-            auto modeGuard = setScopeReadMode(ReadMode::FlagsAndCommands);
-
-            preProcess();
-            for (auto i = 0u; i < cmdLine.size(); ++i){
-                const auto& token = cmdLine.at(i);
-                if (token == "--")
-                    break;
-
-                process(token);
-                if (foundCommand_){
-                    if (foundCommand_->isSubCommand())
-                        break;
-                    else{
-                        try{
-                            foundCommand_->read({cmdLine.begin() + i + 1, cmdLine.end()});
-                        }
-                        catch(const ConfigError& error){
-                            throw CommandConfigError(foundCommand_->info().name(), foundCommand_->usageInfo(), error);
-                        }
-                        catch(const ParsingError& error){
-                            throw CommandParsingError(foundCommand_->info().name(), foundCommand_->usageInfo(), error);
-                        }
-                        return;
-                    }
-                }
-            }
-        }
-        if (isExitFlagSet())
+        if (readCommandsAndExitFlags(cmdLine))
             return;
 
         preProcess();
@@ -113,15 +89,7 @@ public:
             if (!argsDelimiterEncountered){
                 process(token);
                 if (foundCommand_){
-                    try{
-                        foundCommand_->read({cmdLine.begin() + i + 1, cmdLine.end()});
-                    }
-                    catch(const ConfigError& error){
-                        throw CommandConfigError(foundCommand_->info().name(), foundCommand_->usageInfo(), error);
-                    }
-                    catch(const ParsingError& error){
-                        throw CommandParsingError(foundCommand_->info().name(), foundCommand_->usageInfo(), error);
-                    }
+                    readCommand(foundCommand_, {cmdLine.begin() + i + 1, cmdLine.end()});
                     break;
                 }
             }
@@ -227,7 +195,7 @@ protected:
 
     void readFlag(const std::string& name)
     {
-        if (readMode_ != ReadMode::FlagsAndCommands &&
+        if (readMode_ != ReadMode::ExitFlagsAndCommands &&
             readMode_ != ReadMode::All)
             return;
 
@@ -240,7 +208,7 @@ protected:
     void readArg(const std::string& value)
     {        
         if (readMode_ == ReadMode::All ||
-            readMode_ == ReadMode::FlagsAndCommands ||
+            readMode_ == ReadMode::ExitFlagsAndCommands ||
             readMode_ == ReadMode::Commands){
             foundCommand_ = findCommand(value);
             if (foundCommand_)
@@ -268,6 +236,30 @@ protected:
             throw ParsingError("Encountered unknown positional argument '" + value + "'");
     }
 
+
+    void forEachParamInfo(std::function<void(const ConfigVar&)> handler)
+    {
+        for (auto param : params_)
+            handler(param->info());
+    }
+
+    void forEachParamListInfo(std::function<void(const ConfigVar&)> handler)
+    {
+        for (auto paramList : paramLists_)
+            handler(paramList->info());
+    }
+
+    void forEachFlagInfo(std::function<void(const ConfigVar&)> handler)
+    {
+        for (auto flag : flags_)
+            handler(flag->info());
+    }
+
+private:
+    virtual void preProcess(){}
+    virtual void process(const std::string& cmdLineToken) = 0;
+    virtual void postProcess(){}
+
     ICommand* findCommand(const std::string& name)
     {
         auto commandIt = std::find_if(commands_.begin(), commands_.end(),
@@ -280,10 +272,47 @@ protected:
         return *commandIt;
     }
 
-private:
-    virtual void preProcess(){}
-    virtual void process(const std::string& cmdLineToken) = 0;
-    virtual void postProcess(){}
+    void readCommand(ICommand* command, const std::vector<std::string>& cmdLine)
+    {
+        try{
+            command->read(cmdLine);
+        }
+        catch(const ConfigError& error){
+            throw CommandConfigError(command->info().name(), command->usageInfo(), error);
+        }
+        catch(const ParsingError& error){
+            throw CommandParsingError(command->info().name(), command->usageInfo(), error);
+        }
+    }
+
+    bool readCommandsAndExitFlags(const std::vector<std::string>& cmdLine)
+    {
+        auto modeGuard = setScopeReadMode(ReadMode::ExitFlagsAndCommands);
+
+        preProcess();
+        for (auto i = 0u; i < cmdLine.size(); ++i){
+            const auto& token = cmdLine.at(i);
+            if (token == "--")
+                return false;
+
+            process(token);
+            if (foundCommand_){
+                if (foundCommand_->isSubCommand()){
+                    foundCommand_ = nullptr;
+                    return false;
+                }
+                else{
+                    readCommand(foundCommand_, {cmdLine.begin() + i + 1, cmdLine.end()});
+                    foundCommand_ = nullptr;
+                    return true;
+                }
+            }
+        }
+        if (isExitFlagSet())
+            return true;
+
+        return false;
+    }
 
     ReadModeScope setScopeReadMode(ReadMode value)
     {
@@ -344,16 +373,16 @@ private:
     }
 
 protected:
+    ReadMode readMode_ = ReadMode::All;
+
+private:
     std::vector<not_null<IParam*>> params_;
     std::vector<not_null<IParamList*>> paramLists_;
     std::vector<not_null<IFlag*>> flags_;
     std::vector<not_null<IArg*>> args_;    
     IArgList* argList_;
     std::vector<not_null<ICommand*>> commands_;
-
-private:
     std::deque<not_null<IArg*>> argsToRead_;
-    ReadMode readMode_ = ReadMode::All;
     ICommand* foundCommand_ = nullptr;
 };
 

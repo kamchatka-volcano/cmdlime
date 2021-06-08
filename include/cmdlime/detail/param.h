@@ -116,14 +116,16 @@ public:
 
     ParamCreator<T, TConfig>& operator<<(const ShortName& customName)
     {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled, "Current command line format doesn't support short names");
+        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
+                      "Current command line format doesn't support short names");
         param_->resetShortName(customName.value());
         return *this;
     }
 
     ParamCreator<T, TConfig>& operator<<(const WithoutShortName&)
     {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled, "Current command line format doesn't support short names");
+        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
+                      "Current command line format doesn't support short names");
         param_->resetShortName({});
         return *this;
     }

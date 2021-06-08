@@ -23,18 +23,20 @@ class PosixParser : public Parser<formatType>
     {
         auto possibleNumberArg = command;
         command = str::after(command, "-");
-        if (isParamOrFlag(command)){
-            if (!foundParam_.empty())
-                throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
-            if (argumentEncountered_)
-                throw ParsingError{"Flags and parameters must preceed arguments"};
+        if (isParamOrFlag(command)){            
+            if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands){
+                if (!foundParam_.empty())
+                    throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
+                if (argumentEncountered_)
+                    throw ParsingError{"Flags and parameters must preceed arguments"};
+            }
             parseCommand(command);
         }
         else if (isNumber(possibleNumberArg)){
             this->readArg(possibleNumberArg);
             argumentEncountered_ = true;
         }
-        else
+        else if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands)
             throw ParsingError{"Encountered unknown parameter or flag '-" + command + "'"};
     }
 
@@ -80,7 +82,7 @@ class PosixParser : public Parser<formatType>
                 foundParam_ = opt;
             else if (this->findParamList(opt))
                 foundParam_ = opt;
-            else
+            else if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands)
                 throw ParsingError{"Unknown option '" + opt + "' in command '-" + command + "'"};
         }
         if (!foundParam_.empty() && !paramValue.empty()){
@@ -91,18 +93,21 @@ class PosixParser : public Parser<formatType>
 
     void checkNames()
     {
-        auto check = [](ConfigVar& var, const std::string& varType){
+        auto check = [](const ConfigVar& var, const std::string& varType){
             if (var.name().size() != 1)
                 throw ConfigError{varType + "'s name '" + var.name() + "' can't have more than one symbol"};
             if (!std::isalnum(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must be an alphanumeric character"};
         };
-        for (auto param : this->params_)
-            check(param->info(), "Parameter");
-        for (auto paramList : this->paramLists_)
-            check(paramList->info(), "Parameter");
-        for (auto flag : this->flags_)
-            check(flag->info(), "Flag");
+        this->forEachParamInfo([check](const ConfigVar& var){
+            check(var, "Parameter");
+        });
+        this->forEachParamListInfo([check](const ConfigVar& var){
+            check(var, "Parameter");
+        });
+        this->forEachFlagInfo([check](const ConfigVar& var){
+            check(var, "Flag");
+        });
     }
 
     bool isParamOrFlag(const std::string& str)
@@ -134,7 +139,7 @@ public:
         return {};
     }
 
-    static std::string argName(const std::string& configVarName)
+    static std::string fullName(const std::string& configVarName)
     {
         Expects(!configVarName.empty());
         return toKebabCase(configVarName);

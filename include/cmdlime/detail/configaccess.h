@@ -60,9 +60,9 @@ public:
         return config_.commandList();
     }
 
-    void setCommandNames(const std::string& programName)
+    void addHelpFlagToCommands(const std::string& commandName)
     {
-        config_.setCommandNames(programName);
+        config_.addHelpFlagToCommands(commandName);
     }
 
 private:

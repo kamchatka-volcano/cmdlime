@@ -67,7 +67,15 @@ public:
         auto paramLists = getPtrList(paramLists_);
         auto flags = getPtrList(flags_);
         auto args = getPtrList(args_);
-        return UsageInfoCreator<formatType>{name, UsageInfoFormat{}, params, paramLists, flags, args, argList_.get()}.create();
+        auto commands = getPtrList(commands_);
+        return UsageInfoCreator<formatType>{name,
+                                            UsageInfoFormat{},
+                                            params,
+                                            paramLists,
+                                            flags,
+                                            args,
+                                            argList_.get(),
+                                            commands}.create();
     }
 
     std::string usageInfoDetailed(const std::string& name, UsageInfoFormat outputSettings = {}) const
@@ -79,7 +87,15 @@ public:
         auto paramLists = getPtrList(paramLists_);
         auto flags = getPtrList(flags_);
         auto args = getPtrList(args_);
-        return UsageInfoCreator<formatType>{name, outputSettings, params, paramLists, flags, args, argList_.get()}.createDetailed();
+        auto commands = getPtrList(commands_);
+        return UsageInfoCreator<formatType>{name,
+                                            outputSettings,
+                                            params,
+                                            paramLists,
+                                            flags,
+                                            args,
+                                            argList_.get(),
+                                            commands}.createDetailed();
     }
 
     void setVersionInfo(const std::string& info)
@@ -135,11 +151,12 @@ private:
         return getPtrList(commands_);
     }
 
-    void setCommandNames(const std::string& programName)
+    void addHelpFlagToCommands(const std::string& commandName)
     {
         for (auto& cmd : commands_)
-            cmd->setName(programName);
+            cmd->enableHelpFlag(commandName);
     }
+
 
 private:
     std::vector<std::unique_ptr<IParam>> params_;

@@ -67,7 +67,7 @@ class X11Parser : public Parser<formatType>
 
     void checkNames()
     {
-        auto check = [](ConfigVar& var, const std::string& varType){
+        auto check = [](const ConfigVar& var, const std::string& varType){
             if (!std::isalpha(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
             if (var.name().size() > 1){
@@ -76,12 +76,15 @@ class X11Parser : public Parser<formatType>
                     throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters and hyphens"};
             }
         };
-        for (auto param : this->params_)
-            check(param->info(), "Parameter");
-        for (auto paramList : this->paramLists_)
-            check(paramList->info(), "Parameter");
-        for (auto flag : this->flags_)
-            check(flag->info(), "Flag");
+        this->forEachParamInfo([check](const ConfigVar& var){
+            check(var, "Parameter");
+        });
+        this->forEachParamListInfo([check](const ConfigVar& var){
+            check(var, "Parameter");
+        });
+        this->forEachFlagInfo([check](const ConfigVar& var){
+            check(var, "Flag");
+        });
     }
 
 private:
@@ -102,7 +105,7 @@ public:
         return {};
     }
 
-    static std::string argName(const std::string& configVarName)
+    static std::string fullName(const std::string& configVarName)
     {
         Expects(!configVarName.empty());
         return toLowerCase(configVarName);
