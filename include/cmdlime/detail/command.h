@@ -2,6 +2,7 @@
 #include "icommand.h"
 #include "configvar.h"
 #include "configaccess.h"
+#include "config.h"
 #include "format.h"
 #include "streamreader.h"
 #include "gsl/assert"
@@ -119,6 +120,8 @@ public:
                    typename Command<T>::Type type = Command<T>::Type::Normal)
         : cfg_(cfg)
     {
+        static_assert (std::is_base_of_v<Config<ConfigAccess<TConfig>::format()>, T>,
+                       "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
         Expects(!varName.empty());        
         command_ = std::make_unique<Command<T>>(NameProvider::fullName(varName), commandGetter, type);
     }
