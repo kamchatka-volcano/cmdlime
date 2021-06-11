@@ -49,6 +49,7 @@ Please note, that in this example, `--name` is a parameter, `--verbose` is a fla
           *    [X11](#x11)
           *    [Simple format](#simple-format)
      *    [Using custom types](#using-custom-types)
+     *    [Using subcommands](#using-subcommands)
 *    [Installation](#installation)
 *    [Running tests](#running-tests)
 *    [License](#license)
@@ -73,6 +74,8 @@ The declaration form **PARAMLIST(`name`, `type`)(`list-initialization`)** sets t
 Flags are always optional and have default value `false`  
 - **EXITFLAG(`name`)** - creates `bool name;` config field and registers it in the parser. 
 If at least one exit flag is set,  no parsing errors are raised regardless of the command line's content and config fields other than exit flags are left in an unspecified state. It's usefull for flags like `--help` or `--version` when you're supposed to print some message and exit the program without checking the other fields.
+- **SUBCOMMAND(`name`, `type`)** - creates `std::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Subcommands are always optional and have default value `std::optional<type>{}`.
+- **COMMAND(`name`, `type`)** - creates `std::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Commands are always optional and have default value `std::optional<type>{}`. If command is encountered, no parsing errors for other config fields are raised and they are left in an unspecified state.
 
 *Note: Types used for config fields must be default constructible and copyable.*  
 
@@ -473,6 +476,107 @@ kamchatka-volcano@home:~$ ./person-finder 684007 --surname Deer --coord 53.0-157
 Looking for person  Deer in the region with zip code: 684007
 Possible location:53 157.25
 ```
+
+### Using subcommands
+
+With **cmdlime** it's possible to place a config structure inside other config's field by creating a subcommand. Subcommands are specified in command line by their full name and all following parameters are used to fill a subcommand's structure instead of the main one.  
+Let's enhance `person-finder` programm by adding a result recording mode.
+```C++
+///examples/ex13.cpp
+///
+#include <cmdlime/config.h>
+
+int main(int argc, char** argv)
+{
+    struct RecordCfg: public cmdlime::Config{
+        PARAM(file, std::string)() << "save result to file";
+        PARAM(db, std::string)()   << "save result to database";
+        FLAG(detailed)             << "adds more information to the result" << cmdlime::WithoutShortName{};
+    };
+    
+    struct Cfg : public cmdlime::Config{
+        ARG(zipCode, int)               << "zip code of the searched region";
+        PARAM(surname, std::string)     << "surname of the person to find";
+        PARAM(name, std::string)()      << "name of the person to find";
+        FLAG(verbose)                   << "adds more information to the output";
+        SUBCOMMAND(record, RecordCfg)   << "record search result";
+    } cfg;
+
+    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
+    if (!reader.readCommandLine(argc, argv))
+        return reader.exitCode();
+    std::cout << "Looking for person " << cfg.name << " " << cfg.surname << " in the region with zip code: " << cfg.zipCode << std::endl;
+    if (cfg.record.has_value())
+        std::cout << "Record settings: " << "file:" << cfg.record->file << " db:" << cfg.record->db << " detailed:" << cfg.record->detailed << std::endl;
+    return 0;
+}
+```
+Now, `person-finder` can be launched like this:
+
+```console
+kamchatka-volcano@home:~$ ./person-finder 684007 --surname Deer record --file res.txt --detailed
+Looking for person  Deer in the region with zip code: 684007
+Record settings: file:res.txt db: detailed:1
+```
+
+Note that all required config fields like `zipCode` positional argument and `surname` parameter must still be specified. Some subcommands don't need that, imagine that `person-finder` has a search history mode that doesn't require those parameters, and needs to be launched like this: `./person-finder history` without raising a parsing error.   
+It can be easily achieved by registering `history` as a command instead of the subcommand. The main difference is that while command is also stored in the main config's field, logically it's an alternative configuration, not a part of the original one. When command is present in the command line, other config fields aren't read at all and left in an unspecified state.
+
+
+Let's see how it works:
+
+```C++
+///examples/ex14.cpp
+///
+#include <cmdlime/config.h>
+
+int main(int argc, char** argv)
+{
+    struct RecordCfg: public cmdlime::Config{
+        PARAM(file, std::string)() << "save result to file";
+        PARAM(db, std::string)()   << "save result to database";
+        FLAG(detailed)             << "hide search results" << cmdlime::WithoutShortName{};
+    };
+
+    struct HistoryCfg: public cmdlime::Config{
+        PARAM(surname, std::string)() << "filter search queries by surname";
+        FLAG(noResults)               << "hide search results";
+    };
+
+    struct Cfg : public cmdlime::Config{
+        ARG(zipCode, int)             << "zip code of the searched region";
+        PARAM(surname, std::string)   << "surname of the person to find";
+        PARAM(name, std::string)()    << "name of the person to find";
+        FLAG(verbose)                 << "adds more information to the output";
+        SUBCOMMAND(record, RecordCfg) << "record search result";
+        COMMAND(history, HistoryCfg)  << "show search history";
+    } cfg;
+
+    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
+    if (!reader.readCommandLine(argc, argv))
+        return reader.exitCode();
+
+    if (cfg.history.has_value()){
+        std::cout << "Preparing search history with surname filter:" << cfg.history->surname << std::endl;
+        return 0;
+    }
+
+    std::cout << "Looking for person " << cfg.name << " " << cfg.surname << " in the region with zip code: " << cfg.zipCode << std::endl;
+    if (cfg.record.has_value())
+        std::cout << "Record settings: " << "file:" << cfg.record->file << " db:" << cfg.record->db << " detailed:" << cfg.record->detailed << std::endl;
+
+    return 0;
+}
+```
+
+```console
+kamchatka-volcano@home:~$ ./person-finder history --surname Doe
+Preparing search history with surname filter:Doe
+```
+
+As you can see a config structure can have multiple commands, but only one can be specified for each config.
+
+
 
 ## Installation
 
