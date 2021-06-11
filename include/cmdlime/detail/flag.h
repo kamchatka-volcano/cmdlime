@@ -89,14 +89,16 @@ public:
 
     FlagCreator& operator<<(const ShortName& customName)
     {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled, "Current command line format doesn't support short names");
+        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
+                      "Current command line format doesn't support short names");
         flag_->resetShortName(customName.value());
         return *this;
     }
 
     FlagCreator& operator<<(const WithoutShortName&)
     {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled, "Current command line format doesn't support short names");
+        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
+                      "Current command line format doesn't support short names");
         flag_->resetShortName({});
         return *this;
     }

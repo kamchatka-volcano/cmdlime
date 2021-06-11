@@ -17,37 +17,43 @@ template <FormatType formatType>
 class X11Parser : public Parser<formatType>
 {
     using Parser<formatType>::Parser;
-    void process(const std::vector<std::string>& cmdLine) override
+
+    void preProcess() override
     {
         checkNames();
-        auto foundParam = std::string{};
-        for (const auto& part : cmdLine)
-        {            
-            if (str::startsWith(part, "-") && part.size() > 1){
-                auto command = str::after(part, "-");
-                if (isParamOrFlag(command) && !foundParam.empty())
-                    throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
+        foundParam_.clear();
+    }
 
-                if (auto param = this->findParam(command))
-                    foundParam = param->info().name();
-                else if (auto paramList = this->findParamList(command))
-                    foundParam = paramList->info().name();
-                else if (this->findFlag(command))
-                    this->readFlag(command);
-                else if (isNumber(part))
-                    this->readArg(part);
-                else
-                    throw ParsingError{"Encountered unknown parameter or flag '" + part + "'"};
-            }
-            else if (!foundParam.empty()){
-                this->readParam(foundParam, part);
-                foundParam.clear();
-            }
+    void process(const std::string& token) override
+    {        
+        if (str::startsWith(token, "-") && token.size() > 1){
+            auto command = str::after(token, "-");
+            if (isParamOrFlag(command) && !foundParam_.empty())
+                throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
+
+            if (auto param = this->findParam(command))
+                foundParam_ = param->info().name();
+            else if (auto paramList = this->findParamList(command))
+                foundParam_ = paramList->info().name();
+            else if (this->findFlag(command))
+                this->readFlag(command);
+            else if (isNumber(token))
+                this->readArg(token);
             else
-                this->readArg(part);
+                throw ParsingError{"Encountered unknown parameter or flag '" + token + "'"};
         }
-        if (!foundParam.empty())
-            throw ParsingError{"Parameter '-" + foundParam + "' value can't be empty"};
+        else if (!foundParam_.empty()){
+            this->readParam(foundParam_, token);
+            foundParam_.clear();
+        }
+        else
+            this->readArg(token);
+    }
+
+    void postProcess() override
+    {
+        if (!foundParam_.empty())
+            throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
     }
 
     bool isParamOrFlag(const std::string& cmd)
@@ -61,7 +67,7 @@ class X11Parser : public Parser<formatType>
 
     void checkNames()
     {
-        auto check = [](ConfigVar& var, const std::string& varType){
+        auto check = [](const ConfigVar& var, const std::string& varType){
             if (!std::isalpha(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
             if (var.name().size() > 1){
@@ -70,13 +76,19 @@ class X11Parser : public Parser<formatType>
                     throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters and hyphens"};
             }
         };
-        for (auto param : this->params_)
-            check(param->info(), "Parameter");
-        for (auto paramList : this->paramLists_)
-            check(paramList->info(), "Parameter");
-        for (auto flag : this->flags_)
-            check(flag->info(), "Flag");
+        this->forEachParamInfo([check](const ConfigVar& var){
+            check(var, "Parameter");
+        });
+        this->forEachParamListInfo([check](const ConfigVar& var){
+            check(var, "Parameter");
+        });
+        this->forEachFlagInfo([check](const ConfigVar& var){
+            check(var, "Flag");
+        });
     }
+
+private:
+    std::string foundParam_;
 };
 
 class X11NameProvider{
@@ -93,7 +105,7 @@ public:
         return {};
     }
 
-    static std::string argName(const std::string& configVarName)
+    static std::string fullName(const std::string& configVarName)
     {
         Expects(!configVarName.empty());
         return toLowerCase(configVarName);

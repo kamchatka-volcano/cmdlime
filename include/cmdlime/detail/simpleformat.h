@@ -17,36 +17,37 @@ class DefaultParser : public Parser<formatType>
 {
     using Parser<formatType>::Parser;
 
-    void process(const std::vector<std::string>& cmdLine) override
+    void preProcess() override
     {
         checkNames();
-        for (const auto& part : cmdLine)
-        {
-            if (str::startsWith(part, "--") && part.size() > 2){
-                const auto flagName = str::after(part, "--");                
-                this->readFlag(flagName);
-            }
-            else if (str::startsWith(part, "-") && part.size() > 1){
-                if (isNumber(part)){
-                    this->readArg(part);
-                    continue;
-                }
+    }
 
-                if (part.find('=') == std::string::npos)
-                    throw ParsingError{"Wrong parameter format: " + part + ". Parameter must have a form of -name=value"};
-
-                const auto paramName = str::before(str::after(part, "-"), "=");
-                const auto paramValue = str::after(part, "=");                
-                this->readParam(paramName, paramValue);
-            }
-            else
-                this->readArg(part);
+    void process(const std::string& token) override
+    {        
+        if (str::startsWith(token, "--") && token.size() > 2){
+            const auto flagName = str::after(token, "--");
+            this->readFlag(flagName);
         }
+        else if (str::startsWith(token, "-") && token.size() > 1){
+            if (isNumber(token)){
+                this->readArg(token);
+                return;
+            }
+
+            if (token.find('=') == std::string::npos)
+                throw ParsingError{"Wrong parameter format: " + token + ". Parameter must have a form of -name=value"};
+
+            const auto paramName = str::before(str::after(token, "-"), "=");
+            const auto paramValue = str::after(token, "=");
+            this->readParam(paramName, paramValue);
+        }
+        else
+            this->readArg(token);
     }
 
     void checkNames()
     {
-        auto check = [](ConfigVar& var, const std::string& varType){
+        auto check = [](const ConfigVar& var, const std::string& varType){
             if (!std::isalpha(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
             if (var.name().size() > 1){
@@ -54,13 +55,16 @@ class DefaultParser : public Parser<formatType>
                 if (nonAlphaNumCharIt != var.name().end())
                     throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters"};
             }
-        };
-        for (auto param : this->params_)
-            check(param->info(), "Parameter");
-        for (auto paramList : this->paramLists_)
-            check(paramList->info(), "Parameter");
-        for (auto flag : this->flags_)
-            check(flag->info(), "Flag");
+        };        
+        this->forEachParamInfo([check](const ConfigVar& var){
+            check(var, "Parameter");
+        });
+        this->forEachParamListInfo([check](const ConfigVar& var){
+            check(var, "Parameter");
+        });
+        this->forEachFlagInfo([check](const ConfigVar& var){
+            check(var, "Flag");
+        });
     }
 };
 
@@ -78,7 +82,7 @@ public:
         return {};
     }
 
-    static std::string argName(const std::string& configVarName)
+    static std::string fullName(const std::string& configVarName)
     {
         Expects(!configVarName.empty());
         return toCamelCase(configVarName);

@@ -1,13 +1,17 @@
 #pragma once
 #include "format.h"
+#include "gsl/pointers"
 #include <memory>
+#include <vector>
 
 namespace cmdlime::detail{
+using namespace gsl;
 class IParam;
 class IParamList;
 class IFlag;
 class IArg;
 class IArgList;
+class ICommand;
 
 template<typename TConfig>
 class ConfigAccess{
@@ -44,6 +48,21 @@ public:
     void setArgList(std::unique_ptr<IArgList> argList)
     {
         config_.setArgList(std::move(argList));
+    }
+
+    void addCommand(std::unique_ptr<ICommand> command)
+    {
+        config_.addCommand(std::move(command));
+    }
+
+    std::vector<not_null<ICommand*>> commandList()
+    {
+        return config_.commandList();
+    }
+
+    void addHelpFlagToCommands(const std::string& commandName)
+    {
+        config_.addHelpFlagToCommands(commandName);
     }
 
 private:

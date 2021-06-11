@@ -5,8 +5,11 @@
 #include "detail/configmacro.h"
 #include "detail/configaccess.h"
 #include "detail/flag.h"
+#include "detail/gsl/pointers"
 #include <iostream>
+#include <ostream>
 #include <optional>
+#include <map>
 
 namespace cmdlime{
 
@@ -17,6 +20,11 @@ enum class ErrorOutputMode{
 
 template<typename TConfig>
 class ConfigReader{
+    struct CommandHelpFlag{
+        bool value = false;
+        std::string usageInfo;
+    };
+
 public:
     ConfigReader(TConfig& cfg,
                  const std::string& programName,
@@ -25,7 +33,7 @@ public:
         : cfg_(cfg)
         , programName_(programName)
         , usageInfoFormat_(usageInfoFormat)
-        , errorOutputMode_(errorOutputMode)
+        , errorOutput_(errorOutputMode == ErrorOutputMode::STDERR ? std::cerr : std::cout)
     {}
 
     int exitCode() const
@@ -34,6 +42,25 @@ public:
     }
 
     bool read(const std::vector<std::string>& cmdLine)
+    {
+        addExitFlags();
+        if(!processCommandLine(cmdLine))
+            return exitOnError(-1);
+
+        if (processFlagsAndExit())
+            return exitOnFlag();
+
+        return success();
+    }
+
+    bool readCommandLine(int argc, char** argv)
+    {
+        auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
+        return read(cmdLine);
+    }
+
+private:
+    void addExitFlags()
     {
         using NameProvider = typename detail::Format<detail::ConfigAccess<TConfig>::format()>::nameProvider;
         auto helpFlag = std::make_unique<detail::Flag>(NameProvider::name("help"),
@@ -50,40 +77,61 @@ public:
                                                            detail::Flag::Type::Exit);
             versionFlag->addDescription("show version info and exit");
             detail::ConfigAccess<TConfig>{cfg_}.addFlag(std::move(versionFlag));
-
         }
 
+        detail::ConfigAccess<TConfig>(cfg_).addHelpFlagToCommands(programName_);
+    }
+
+    bool processCommandLine(const std::vector<std::string>& cmdLine)
+    {
         try{
             cfg_.read(cmdLine);
         }
-        catch(const Error& e){
-            if (errorOutputMode_ == ErrorOutputMode::STDERR)
-                std::cerr << e.what() << std::endl;
-            else if (errorOutputMode_ == ErrorOutputMode::STDOUT)
-                std::cout << e.what() << "\n";
-            std::cout << cfg_.usageInfo(programName_) << std::endl;
-            return exitOnError(-1);
+        catch(const CommandError& e){
+            errorOutput_ << "Command '" + e.commandName() + "' error: " << e.what() << "\n";
+            std::cout << e.commandUsageInfo() << std::endl;
+            return false;
         }
+        catch(const Error& e){
+            errorOutput_ << e.what() << "\n";
+            std::cout << cfg_.usageInfo(programName_) << std::endl;
+            return false;
+        }
+        return true;
+    }
 
+    bool processFlagsAndExit()
+    {
         if (help_){
             std::cout << cfg_.usageInfoDetailed(programName_, usageInfoFormat_) << std::endl;
-            return exitOnFlag();
+            return true;
         }
         if (version_){
             std::cout << cfg_.versionInfo() << std::endl;
-            return exitOnFlag();
+            return true;
         }
 
-        return success();
+        for (auto command :  detail::ConfigAccess<TConfig>{cfg_}.commandList())
+            if (checkCommandHelpFlag(command))
+                return true;
+
+        return false;
     }
 
-    bool readCommandLine(int argc, char** argv)
+    bool checkCommandHelpFlag(gsl::not_null<detail::ICommand*> command)
     {
-        auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
-        return read(cmdLine);
+        if (command->isHelpFlagSet()){
+            std::cout << command->usageInfoDetailed() << std::endl;
+            return true;
+        }
+
+        for (auto childCommand : command->commandList())
+            if (checkCommandHelpFlag(childCommand))
+                return true;
+
+        return false;
     }
 
-private:
     bool exitOnFlag()
     {
         exitCode_ = 0;
@@ -106,7 +154,8 @@ private:
     TConfig& cfg_;
     std::string programName_;
     UsageInfoFormat usageInfoFormat_;
-    ErrorOutputMode errorOutputMode_;
+    std::map<int, CommandHelpFlag> commandHelpFlags_;
+    std::ostream& errorOutput_;
     int exitCode_ = 0;
     bool help_ = false;
     bool version_ = false;
