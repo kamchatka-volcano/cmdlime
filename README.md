@@ -101,8 +101,8 @@ Looking for person Deer in region with zip code: 684007
 ### Using ConfigReader
 
 `ConfigReader` - is a helper class hiding the error handling boilerplate and adding`--help` and `--version` flags processing to your config.  
-`--help` flag show detailed help message, that otherwise can be accessed through `Config::usageInfoDetailed()`.  
-`--version` flag is enabled only if version info is set in the config with `Config::setVersionInfo` method.  
+`--help` flag shows a detailed help message, that otherwise can be accessed through the `Config::usageInfoDetailed()` method.  
+`--version` flag is enabled only if version info is set in the config with the `Config::setVersionInfo` method.  
 Let's modify `person-finder` and see how it works.
 
 ```C++
