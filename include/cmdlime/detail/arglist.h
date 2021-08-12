@@ -17,11 +17,11 @@ namespace cmdlime::detail{
 template <typename T>
 class ArgList : public IArgList, public ConfigVar{
 public:
-    ArgList(const std::string& name,
-            const std::string& type,
+    ArgList(std::string name,
+            std::string type,
             std::function<std::vector<T>&()> argListGetter)
-        : ConfigVar(name, {}, type)
-        , argListGetter_(argListGetter)
+        : ConfigVar(std::move(name), {}, std::move(type))
+        , argListGetter_(std::move(argListGetter))
     {
     }
 
@@ -113,7 +113,8 @@ public:
         Expects(!varName.empty());
         Expects(!type.empty());
         argList_ = std::make_unique<ArgList<T>>(NameProvider::fullName(varName),
-                                                NameProvider::valueName(type), argListGetter);
+                                                NameProvider::valueName(type),
+                                                std::move(argListGetter));
     }
 
     ArgListCreator<T, TConfig>& operator<<(const std::string& info)
@@ -134,9 +135,9 @@ public:
         return *this;
     }
 
-    ArgListCreator<T, TConfig>& operator()(const std::vector<T>& defaultValue = {})
+    ArgListCreator<T, TConfig>& operator()(std::vector<T> defaultValue = {})
     {
-        defaultValue_ = defaultValue;
+        defaultValue_ = std::move(defaultValue);
         argList_->setDefaultValue(defaultValue_);
         return *this;
     }
@@ -159,7 +160,7 @@ ArgListCreator<T, TConfig> makeArgListCreator(TConfig& cfg,
                                               const std::string& type,
                                               std::function<std::vector<T>&()> argListGetter)
 {
-    return ArgListCreator<T, TConfig>{cfg, varName, type, argListGetter};
+    return ArgListCreator<T, TConfig>{cfg, varName, type, std::move(argListGetter)};
 }
 
 }

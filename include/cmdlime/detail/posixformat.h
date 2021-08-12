@@ -78,9 +78,7 @@ class PosixParser : public Parser<formatType>
                 paramValue += opt;
             else if (this->findFlag(opt))
                 this->readFlag(opt);
-            else if (this->findParam(opt))
-                foundParam_ = opt;
-            else if (this->findParamList(opt))
+            else if (this->findParam(opt) || this->findParamList(opt))
                 foundParam_ = opt;
             else if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands)
                 throw ParsingError{"Unknown option '" + opt + "' in command '-" + command + "'"};
@@ -121,7 +119,7 @@ class PosixParser : public Parser<formatType>
     }
 
 private:
-    bool argumentEncountered_;
+    bool argumentEncountered_ = false;
     std::string foundParam_;
 };
 

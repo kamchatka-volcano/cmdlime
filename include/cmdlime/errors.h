@@ -1,5 +1,6 @@
 #pragma once
 #include <stdexcept>
+#include <utility>
 
 namespace cmdlime{
 
@@ -21,12 +22,12 @@ class ConfigError : public Error
 class CommandError : public Error
 {
 public:
-    CommandError(const std::string& commandName,
-                 const std::string& commandUsageInfo,
+    CommandError(std::string commandName,
+                 std::string commandUsageInfo,
                  const std::string& errorMsg)
         : Error(errorMsg)
-        , commandName_(commandName)
-        , commandUsageInfo_(commandUsageInfo)
+        , commandName_(std::move(commandName))
+        , commandUsageInfo_(std::move(commandUsageInfo))
     {
     }
 
@@ -48,10 +49,10 @@ private:
 class CommandParsingError : public CommandError
 {
 public:
-    CommandParsingError(const std::string& commandName,
-                        const std::string& commandUsageInfo,
+    CommandParsingError(std::string commandName,
+                        std::string commandUsageInfo,
                         const ParsingError& error)
-        : CommandError(commandName, commandUsageInfo, error.what())
+        : CommandError(std::move(commandName), std::move(commandUsageInfo), error.what())
     {}
 };
 
@@ -59,10 +60,10 @@ public:
 class CommandConfigError : public CommandError
 {
 public:
-    CommandConfigError(const std::string& commandName,
-                       const std::string& commandUsageInfo,
+    CommandConfigError(std::string commandName,
+                       std::string commandUsageInfo,
                        const ConfigError& error)
-        : CommandError(commandName, commandUsageInfo, error.what())
+        : CommandError(std::move(commandName), std::move(commandUsageInfo), error.what())
     {}
 };
 

@@ -7,6 +7,7 @@
 #include <cmdlime/customnames.h>
 #include <memory>
 #include <functional>
+#include <utility>
 
 namespace cmdlime::detail{
 
@@ -17,12 +18,12 @@ public:
         Exit
     };
 
-    Flag(const std::string& name,
-         const std::string& shortName,
+    Flag(std::string name,
+         std::string shortName,
          std::function<bool&()> flagGetter,
          Type type)
-        : ConfigVar(name, shortName, {})
-        , flagGetter_(flagGetter)
+        : ConfigVar(std::move(name), std::move(shortName), {})
+        , flagGetter_(std::move(flagGetter))
         , type_(type)
     {
     }
@@ -72,7 +73,8 @@ public:
         Expects(!varName.empty());
         flag_ = std::make_unique<Flag>(NameProvider::name(varName),
                                        NameProvider::shortName(varName),
-                                       flagGetter, flagType);
+                                       std::move(flagGetter),
+                                       flagType);
     }
 
     FlagCreator& operator<<(const std::string& info)

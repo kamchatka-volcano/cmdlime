@@ -10,6 +10,7 @@
 #include <ostream>
 #include <optional>
 #include <map>
+#include <utility>
 
 namespace cmdlime{
 
@@ -27,11 +28,11 @@ class ConfigReader{
 
 public:
     ConfigReader(TConfig& cfg,
-                 const std::string& programName,
+                 std::string programName,
                  const UsageInfoFormat& usageInfoFormat = {},
                  ErrorOutputMode errorOutputMode = ErrorOutputMode::STDERR)
         : cfg_(cfg)
-        , programName_(programName)
+        , programName_(std::move(programName))
         , usageInfoFormat_(usageInfoFormat)
         , errorOutput_(errorOutputMode == ErrorOutputMode::STDERR ? std::cerr : std::cout)
     {}

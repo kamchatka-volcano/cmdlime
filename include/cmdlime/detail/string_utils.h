@@ -17,7 +17,7 @@ inline std::string after(const std::string &str, const std::string& val)
     auto res = str.find(val);
     if (res == std::string::npos)
         return {};
-    return std::string(str.begin() + static_cast<int>(res + val.size()), str.end());
+    return std::string{str.begin() + static_cast<int>(res + val.size()), str.end()};
 }
 
 inline std::string before(const std::string &str, const std::string& val)
@@ -25,7 +25,7 @@ inline std::string before(const std::string &str, const std::string& val)
     auto res = str.find(val);
     if (res == std::string::npos)
         return str;
-    return std::string(str.begin(), str.begin() + static_cast<int>(res));
+    return std::string{str.begin(), str.begin() + static_cast<int>(res)};
 }
 
 inline std::string trimmedFront(const std::string& str)

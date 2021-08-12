@@ -10,6 +10,7 @@
 #include "string_utils.h"
 #include "gsl/pointers"
 #include <cmdlime/usageinfoformat.h>
+#include <utility>
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -63,19 +64,19 @@ inline std::vector<not_null<T*>> getParamsByOptionality(const std::vector<not_nu
 }
 
 template <typename T>
-const std::string getName(T& configVar)
+const std::string& getName(T& configVar)
 {
     return configVar.info().name();
 }
 
 template <typename T>
-const std::string getType(T& configVar)
+const std::string& getType(T& configVar)
 {
     return configVar.info().type();
 }
 
 template <typename T>
-const std::string getDescription(T& configVar)
+const std::string& getDescription(T& configVar)
 {
     return configVar.info().description();
 }
@@ -83,23 +84,23 @@ const std::string getDescription(T& configVar)
 template <FormatType formatType>
 class UsageInfoCreator{
 public:
-    UsageInfoCreator(const std::string& programName,
+    UsageInfoCreator(std::string programName,
                      UsageInfoFormat outputSettings,
-                     std::vector<not_null<IParam*>> params,
-                     std::vector<not_null<IParamList*>> paramLists,
+                     const std::vector<not_null<IParam*>>& params,
+                     const std::vector<not_null<IParamList*>>& paramLists,
                      std::vector<not_null<IFlag*>> flags,
                      std::vector<not_null<IArg*>> args,
                      IArgList* argList,
                      std::vector<not_null<ICommand*>> commands)
-    : programName_(programName)
+    : programName_(std::move(programName))
     , params_(getParamsByOptionality(params, false))
     , optionalParams_(getParamsByOptionality(params, true))
     , paramLists_(getParamsByOptionality(paramLists, false))
     , optionalParamLists_(getParamsByOptionality(paramLists, true))
-    , flags_(flags)
-    , args_(args)
+    , flags_(std::move(flags))
+    , args_(std::move(args))
     , argList_(argList)
-    , commands_(commands)
+    , commands_(std::move(commands))
     , outputSettings_(outputSettings)
     , maxOptionNameSize_(maxOptionNameLength() + outputSettings.columnsSpacing)
     {

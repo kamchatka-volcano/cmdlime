@@ -16,7 +16,7 @@ class ICommand;
 template<typename TConfig>
 class ConfigAccess{
 public:
-    ConfigAccess(TConfig& config)
+    explicit ConfigAccess(TConfig& config)
         : config_(config)
     {}
 

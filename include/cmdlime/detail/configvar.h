@@ -2,15 +2,16 @@
 #include "gsl/assert"
 #include <string>
 #include <sstream>
+#include <utility>
 
 namespace cmdlime::detail{
 
 class ConfigVar{
 public:
-    ConfigVar(const std::string& name, const std::string& shortName, const std::string& valueName)
-        : name_(name)
-        , shortName_(shortName)
-        , valueName_(valueName)
+    ConfigVar(std::string name, std::string shortName, std::string valueName)
+        : name_(std::move(name))
+        , shortName_(std::move(shortName))
+        , valueName_(std::move(valueName))
     {
         Expects(!name_.empty());
     }

@@ -1,13 +1,14 @@
 #pragma once
 #include "errors.h"
 #include <string>
+#include <utility>
 
 namespace cmdlime{
 
 class CustomName{
 public:
-    CustomName(const std::string& name)
-        : value_(name)
+    CustomName(std::string name)
+        : value_(std::move(name))
     {
         if(value_.empty())
             throw ConfigError{"Custom name can't be empty."};
