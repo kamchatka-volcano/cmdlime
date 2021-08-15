@@ -15,7 +15,8 @@ target_include_directories(
 )
 
 option(ENABLE_TESTS "Enable tests" OFF)
-if (ENABLE_TESTS)
+option(ENABLE_LIB_TESTS "Enable tests when cmdlime is bundled within other project" OFF)
+if ((ENABLE_TESTS AND NOT CMDLIME_SUBPROJECT) OR (ENABLE_LIB_TESTS AND CMDLIME_SUBPROJECT))
     enable_testing()
     add_subdirectory(tests)
 endif()
