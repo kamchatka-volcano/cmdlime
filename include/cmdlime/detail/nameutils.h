@@ -77,7 +77,7 @@ inline std::string typeNameWithoutNamespace(const std::string& type)
     auto pos = type.rfind(':');
     if (pos == std::string::npos || pos == type.size() - 1)
         return type;
-    return std::string(type.begin() + static_cast<int>(pos + 1), type.end());
+    return std::string{type.begin() + static_cast<int>(pos + 1), type.end()};
 }
 
 inline std::string templateType(const std::string& type)

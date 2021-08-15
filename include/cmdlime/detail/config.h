@@ -43,13 +43,13 @@ public:
     {
         if (!configError_.empty())
             throw ConfigError{configError_};
-        auto params = getPtrList(params_);
-        auto paramLists = getPtrList(paramLists_);
-        auto flags = getPtrList(flags_);
-        auto args = getPtrList(args_);
-        auto commands = getPtrList(commands_);
         using ParserType = typename Format<formatType>::parser;
-        auto parser = ParserType{params, paramLists, flags, args, argList_.get(), commands};
+        auto parser = ParserType{getPtrList(params_),
+                                 getPtrList(paramLists_),
+                                 getPtrList(flags_),
+                                 getPtrList(args_),
+                                 argList_.get(),
+                                 getPtrList(commands_)};
         parser.parse(cmdLine);
     }
 
@@ -63,19 +63,14 @@ public:
         if (!customUsageInfo_.empty())
             return customUsageInfo_;
 
-        auto params = getPtrList(params_);
-        auto paramLists = getPtrList(paramLists_);
-        auto flags = getPtrList(flags_);
-        auto args = getPtrList(args_);
-        auto commands = getPtrList(commands_);
         return UsageInfoCreator<formatType>{name,
                                             UsageInfoFormat{},
-                                            params,
-                                            paramLists,
-                                            flags,
-                                            args,
+                                            getPtrList(params_),
+                                            getPtrList(paramLists_),
+                                            getPtrList(flags_),
+                                            getPtrList(args_),
                                             argList_.get(),
-                                            commands}.create();
+                                            getPtrList(commands_)}.create();
     }
 
     std::string usageInfoDetailed(const std::string& name, UsageInfoFormat outputSettings = {}) const
@@ -83,19 +78,14 @@ public:
         if (!customUsageInfoDetailed_.empty())
             return customUsageInfoDetailed_;
 
-        auto params = getPtrList(params_);
-        auto paramLists = getPtrList(paramLists_);
-        auto flags = getPtrList(flags_);
-        auto args = getPtrList(args_);
-        auto commands = getPtrList(commands_);
         return UsageInfoCreator<formatType>{name,
                                             outputSettings,
-                                            params,
-                                            paramLists,
-                                            flags,
-                                            args,
+                                            getPtrList(params_),
+                                            getPtrList(paramLists_),
+                                            getPtrList(flags_),
+                                            getPtrList(args_),
                                             argList_.get(),
-                                            commands}.createDetailed();
+                                            getPtrList(commands_)}.createDetailed();
     }
 
     void setVersionInfo(const std::string& info)

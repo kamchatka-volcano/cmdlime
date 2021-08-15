@@ -17,12 +17,12 @@ namespace cmdlime::detail{
 template<typename T>
 class Param : public IParam, public ConfigVar{
 public:
-    Param(const std::string& name,
-          const std::string& shortName,
-          const std::string& type,
+    Param(std::string name,
+          std::string shortName,
+          std::string type,
           std::function<T&()> paramGetter)
-        : ConfigVar(name, shortName, type)
-        , paramGetter_(paramGetter)        
+        : ConfigVar(std::move(name), std::move(shortName), std::move(type))
+        , paramGetter_(std::move(paramGetter))
     {       
     }
 
@@ -99,7 +99,8 @@ public:
         Expects(!type.empty());
         param_ = std::make_unique<Param<T>>(NameProvider::name(varName),
                                             NameProvider::shortName(varName),
-                                            NameProvider::valueName(type), paramGetter);
+                                            NameProvider::valueName(type),
+                                            std::move(paramGetter));
     }
 
     ParamCreator<T, TConfig>& operator<<(const std::string& info)
@@ -136,7 +137,7 @@ public:
         return *this;
     }
 
-    ParamCreator<T, TConfig>& operator()(const T& defaultValue = {})
+    ParamCreator<T, TConfig>& operator()(T defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
         param_->setDefaultValue(defaultValue_);
@@ -161,7 +162,7 @@ ParamCreator<T, TConfig> makeParamCreator(TConfig& cfg,
                                           const std::string& type,
                                           std::function<T&()> paramGetter)
 {
-    return ParamCreator<T, TConfig>{cfg, varName, type, paramGetter};
+    return ParamCreator<T, TConfig>{cfg, varName, type, std::move(paramGetter)};
 }
 
 }

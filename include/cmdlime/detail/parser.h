@@ -9,6 +9,7 @@
 #include "gsl/pointers"
 #include "string_utils.h"
 #include <cmdlime/errors.h>
+#include <utility>
 #include <vector>
 #include <deque>
 #include <unordered_set>
@@ -30,11 +31,6 @@ protected:
 
 private:
     using OutputFormatter = typename Format<formatType>::outputFormatter;
-    struct CommandLineContent{
-        std::vector<std::string> opts;
-        ICommand* command = nullptr;
-        std::vector<std::string> commandOpts;
-    };
 
     class ReadModeScope{
     public:
@@ -54,18 +50,18 @@ private:
     };
 
 public:
-    Parser(const std::vector<not_null<IParam*>>& params,
-           const std::vector<not_null<IParamList*>>& paramLists,
-           const std::vector<not_null<IFlag*>>& flags,
-           const std::vector<not_null<IArg*>>& args,
+    Parser(std::vector<not_null<IParam*>> params,
+           std::vector<not_null<IParamList*>> paramLists,
+           std::vector<not_null<IFlag*>> flags,
+           std::vector<not_null<IArg*>> args,
            IArgList* argList,
-           const std::vector<not_null<ICommand*>>& commands)
-        : params_(params)
-        , paramLists_(paramLists)
-        , flags_(flags)
-        , args_(args)
+           std::vector<not_null<ICommand*>> commands)
+        : params_(std::move(params))
+        , paramLists_(std::move(paramLists))
+        , flags_(std::move(flags))
+        , args_(std::move(args))
         , argList_(argList)
-        , commands_(commands)
+        , commands_(std::move(commands))
     {}
     virtual ~Parser() = default;
 
@@ -151,7 +147,7 @@ protected:
         return *paramListIt;
     }
 
-    void readParam(const std::string& name, std::string value)
+    void readParam(const std::string& name, const std::string& value)
     {
         if (readMode_ != ReadMode::All)
             return;
@@ -237,19 +233,19 @@ protected:
     }
 
 
-    void forEachParamInfo(std::function<void(const ConfigVar&)> handler)
+    void forEachParamInfo(const std::function<void(const ConfigVar&)>& handler)
     {
         for (auto param : params_)
             handler(param->info());
     }
 
-    void forEachParamListInfo(std::function<void(const ConfigVar&)> handler)
+    void forEachParamListInfo(const std::function<void(const ConfigVar&)>& handler)
     {
         for (auto paramList : paramLists_)
             handler(paramList->info());
     }
 
-    void forEachFlagInfo(std::function<void(const ConfigVar&)> handler)
+    void forEachFlagInfo(const std::function<void(const ConfigVar&)>& handler)
     {
         for (auto flag : flags_)
             handler(flag->info());
