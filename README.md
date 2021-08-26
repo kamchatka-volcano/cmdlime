@@ -605,7 +605,7 @@ cmake --install build
 cmake --install build --component gsl
 cmake --install build --component sfun
 ```
- You can skip the installation of `gsl` and `sfun` libraries if you already have them in your system's includes path.  
+ You can skip the installation of [GSL](https://github.com/microsoft/GSL) and [sfun](https://github.com/kamchatka-volcano/sfun) libraries if you already have them in your system's includes path.  
 
 ## Running tests
 ```
@@ -617,6 +617,3 @@ cd build/tests && ctest
 
 ## License
 **cmdlime** is licensed under the [MS-PL license](/LICENSE.md)  
-The bundled part of the [GSL](https://github.com/microsoft/GSL) library is licensed under the [MIT license](https://github.com/microsoft/GSL/blob/main/LICENSE)
-
-
