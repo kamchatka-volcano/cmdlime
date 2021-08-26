@@ -7,9 +7,9 @@
 #include "icommand.h"
 #include "configvar.h"
 #include "format.h"
-#include "string_utils.h"
-#include "gsl/pointers"
+#include <sfun/string_utils.h>
 #include <cmdlime/usageinfoformat.h>
+#include <gsl/gsl>
 #include <utility>
 #include <vector>
 #include <memory>
@@ -18,11 +18,12 @@
 
 namespace cmdlime::detail{
 using namespace gsl;
+namespace str = sfun::string_utils;
 
 inline std::string adjustedToLineBreak(std::string line, std::string& text)
 {
     if (!text.empty() && !isspace(text.front())){
-        auto trimmedLine = str::trimmedFront(line);
+        auto trimmedLine = str::trimFront(line);
         if (std::find_if(trimmedLine.begin(), trimmedLine.end(), [](auto ch){return std::isspace(ch);}) == trimmedLine.end())
             return line;
         while(!isspace(line.back())){
@@ -40,7 +41,7 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
         auto line = text.substr(0, newLinePos);
         text.erase(text.begin(), text.begin() + static_cast<int>(newLinePos + 1));
         if (!firstLine)
-            line = str::trimmedFront(line);
+            line = str::trimFront(line);
         return line;
     }
 
@@ -50,7 +51,7 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
     else
         text.erase(text.begin(), text.begin() + static_cast<int>(width));
     if (!firstLine)
-        line = str::trimmedFront(line);
+        line = str::trimFront(line);
     return adjustedToLineBreak(line, text);
 }
 

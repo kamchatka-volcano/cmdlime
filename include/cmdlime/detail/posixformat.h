@@ -1,11 +1,11 @@
 #pragma once
 #include "parser.h"
 #include "format.h"
-#include "string_utils.h"
 #include "nameutils.h"
 #include "utils.h"
-#include "gsl/assert"
+#include <sfun/string_utils.h>
 #include <cmdlime/errors.h>
+#include <gsl/gsl>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -13,6 +13,7 @@
 #include <cassert>
 
 namespace cmdlime::detail{
+namespace str = sfun::string_utils;
 
 template <FormatType formatType>
 class PosixParser : public Parser<formatType>
@@ -28,7 +29,7 @@ class PosixParser : public Parser<formatType>
                 if (!foundParam_.empty())
                     throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
                 if (argumentEncountered_)
-                    throw ParsingError{"Flags and parameters must preceed arguments"};
+                    throw ParsingError{"Flags and parameters must precede arguments"};
             }
             parseCommand(command);
         }

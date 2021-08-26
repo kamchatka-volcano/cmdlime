@@ -24,4 +24,4 @@ set_target_properties(test_cmdlime PROPERTIES CXX_EXTENSIONS OFF POSITION_INDEPE
 
 add_test(NAME test_cmdlime COMMAND test_cmdlime)
 target_include_directories(test_cmdlime PRIVATE ../include)
-target_link_libraries(test_cmdlime PRIVATE ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+target_link_libraries(test_cmdlime PRIVATE ${GTEST_BOTH_LIBRARIES} Threads::Threads GSL sfun)

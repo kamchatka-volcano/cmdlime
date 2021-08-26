@@ -579,23 +579,40 @@ As you can see a config structure can have multiple commands, but only one can b
 
 
 ## Installation
+Download and link the library from your project's CMakeLists.txt:
+```
+cmake_minimum_required(VERSION 3.14)
+
+include(FetchContent)
+
+FetchContent_Declare(sfun
+    GIT_REPOSITORY "https://github.com/kamchatka-volcano/cmdlime.git"
+    GIT_TAG "origin/master"
+)
+FetchContent_MakeAvailable(sfun)
+
+add_executable(my_app)
+target_link_libraries(myapp PRIVATE cmdlime)
+```
 
 For the system-wide installation use these commands:
 ```
 git clone https://github.com/kamchatka-volcano/cmdlime.git
-cd cmdlime && mkdir build && cd build
-cmake ..
-make install
+cd cmdlime
+cmake -S . -B build
+cmake --build build
+cmake --install build
+cmake --install build --component gsl
+cmake --install build --component sfun
 ```
-
-Or you can simply place **cmdlime** directory in your project and add `cmdlime/include` to the include paths. 
+ You can skip the installation of `gsl` and `sfun` libraries if you already have them in your system's includes path.  
 
 ## Running tests
 ```
-cd cmdlime/build
-cmake .. -DENABLE_TESTS=ON
-make
-ctest
+cd cmdlime
+cmake -S . -B build -DENABLE_TESTS=ON
+cmake --build build
+cd build/tests && ctest
 ```
 
 ## License

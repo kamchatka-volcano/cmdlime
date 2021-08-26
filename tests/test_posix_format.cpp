@@ -376,7 +376,7 @@ TEST(PosixConfig, WrongCommandsOrder)
     assert_exception<cmdlime::ParsingError>(
         [&cfg]{ cfg.read({"0", "1","-o","1", "2", "--"});},
         [](const cmdlime::ParsingError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Flags and parameters must preceed arguments"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Flags and parameters must precede arguments"});
         });
 }
 

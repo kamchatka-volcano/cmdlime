@@ -1,9 +1,9 @@
 #pragma once
 #include "parser.h"
 #include "format.h"
-#include "string_utils.h"
 #include "nameutils.h"
 #include "utils.h"
+#include <sfun/string_utils.h>
 #include <cmdlime/errors.h>
 #include <algorithm>
 #include <sstream>
@@ -11,6 +11,7 @@
 #include <functional>
 
 namespace cmdlime::detail{
+namespace str = sfun::string_utils;
 
 template <FormatType formatType>
 class DefaultParser : public Parser<formatType>

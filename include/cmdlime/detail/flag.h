@@ -3,7 +3,7 @@
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
-#include "gsl/assert"
+#include <gsl/gsl>
 #include <cmdlime/customnames.h>
 #include <memory>
 #include <functional>

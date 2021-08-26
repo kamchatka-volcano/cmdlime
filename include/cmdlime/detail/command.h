@@ -5,7 +5,7 @@
 #include "config.h"
 #include "format.h"
 #include "streamreader.h"
-#include "gsl/assert"
+#include <gsl/gsl>
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/detail/configaccess.h>

@@ -5,7 +5,7 @@
 #include "detail/configmacro.h"
 #include "detail/configaccess.h"
 #include "detail/flag.h"
-#include "detail/gsl/pointers"
+#include <gsl/gsl>
 #include <iostream>
 #include <ostream>
 #include <optional>

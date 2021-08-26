@@ -3,17 +3,18 @@
 #include "configvar.h"
 #include "configaccess.h"
 #include "format.h"
-#include "string_utils.h"
 #include "streamreader.h"
-#include "gsl/assert"
+#include <sfun/string_utils.h>
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
+#include <gsl/gsl>
 #include <vector>
 #include <sstream>
 #include <functional>
 #include <memory>
 
 namespace cmdlime::detail{
+namespace str = sfun::string_utils;
 
 template <typename T>
 class ParamList : public IParamList, public ConfigVar{
@@ -51,7 +52,7 @@ private:
             isDefaultValueOverwritten_ = true;
         }
 
-        const auto dataParts = str::split(data, ',');
+        const auto dataParts = str::split(data, ",");
         for (const auto& part : dataParts){
             auto stream = std::stringstream{part};            
             paramListGetter_().emplace_back();
@@ -100,7 +101,7 @@ private:
 template <>
 inline bool ParamList<std::string>::read(const std::string& data)
 {
-    const auto dataParts = str::split(data, ',');
+    const auto dataParts = str::split(data, ",");
     for (const auto& part : dataParts){
         paramListGetter_().push_back(part);
     }

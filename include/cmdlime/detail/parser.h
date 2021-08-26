@@ -6,9 +6,8 @@
 #include "iarglist.h"
 #include "icommand.h"
 #include "format.h"
-#include "gsl/pointers"
-#include "string_utils.h"
 #include <cmdlime/errors.h>
+#include <gsl/gsl>
 #include <utility>
 #include <vector>
 #include <deque>

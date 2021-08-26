@@ -1,11 +1,11 @@
 #pragma once
 #include "parser.h"
 #include "format.h"
-#include "string_utils.h"
 #include "nameutils.h"
 #include "utils.h"
-#include "gsl/assert"
+#include <sfun/string_utils.h>
 #include <cmdlime/errors.h>
+#include <gsl/gsl>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -13,6 +13,7 @@
 #include <optional>
 
 namespace cmdlime::detail{
+namespace str = sfun::string_utils;
 
 template <FormatType formatType>
 class GNUParser : public Parser<formatType>
