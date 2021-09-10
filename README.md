@@ -585,11 +585,11 @@ cmake_minimum_required(VERSION 3.14)
 
 include(FetchContent)
 
-FetchContent_Declare(sfun
+FetchContent_Declare(cmdlime
     GIT_REPOSITORY "https://github.com/kamchatka-volcano/cmdlime.git"
     GIT_TAG "origin/master"
 )
-FetchContent_MakeAvailable(sfun)
+FetchContent_MakeAvailable(cmdlime)
 
 add_executable(my_app)
 target_link_libraries(myapp PRIVATE cmdlime)
