@@ -8,44 +8,44 @@ namespace test_gnu_format{
 using Config = cmdlime::GNUConfig;
 
 struct NestedSubcommandConfig: public Config{
-    PARAM(param, std::string);
+    CMDLIME_PARAM(param, std::string);
 };
 
 struct SubcommandConfig: public Config{
-    PARAM(requiredParam, std::string);
-    PARAM(optionalParam, std::string)("defaultValue");
-    PARAM(optionalIntParam, std::optional<int>)()               << cmdlime::ShortName("i");
-    PARAMLIST(paramList, std::string)                           << cmdlime::ShortName("L");
-    PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::ShortName("O");
-    FLAG(flag);
-    ARG(arg, double);
-    ARGLIST(argList, float);
-    COMMAND(nested, NestedSubcommandConfig);
+    CMDLIME_PARAM(requiredParam, std::string);
+    CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+    CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::ShortName("i");
+    CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::ShortName("L");
+    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
+    CMDLIME_FLAG(flag);
+    CMDLIME_ARG(arg, double);
+    CMDLIME_ARGLIST(argList, float);
+    CMDLIME_COMMAND(nested, NestedSubcommandConfig);
 };
 
 struct FullConfig : public Config{
-    PARAM(requiredParam, std::string);
-    PARAM(optionalParam, std::string)("defaultValue");
-    PARAM(optionalIntParam, std::optional<int>)()               << cmdlime::ShortName("i");
-    PARAMLIST(paramList, std::string)                           << cmdlime::ShortName("L");
-    PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::ShortName("O");
-    FLAG(flag);
-    FLAG(secondFlag)                                            << cmdlime::WithoutShortName();
-    ARG(arg, double);
-    ARGLIST(argList, float);
-    SUBCOMMAND(subcommand, SubcommandConfig);
+    CMDLIME_PARAM(requiredParam, std::string);
+    CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+    CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::ShortName("i");
+    CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::ShortName("L");
+    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
+    CMDLIME_FLAG(flag);
+    CMDLIME_FLAG(secondFlag) << cmdlime::WithoutShortName();
+    CMDLIME_ARG(arg, double);
+    CMDLIME_ARGLIST(argList, float);
+    CMDLIME_SUBCOMMAND(subcommand, SubcommandConfig);
 };
 
 struct FullConfigWithCommand : public Config{
-    PARAM(requiredParam, std::string);
-    PARAM(optionalParam, std::string)("defaultValue");
-    PARAM(optionalIntParam, std::optional<int>)()               << cmdlime::ShortName("i");
-    PARAMLIST(paramList, std::string)                           << cmdlime::ShortName("L");
-    PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::ShortName("O");
-    FLAG(flag);
-    ARG(arg, double);
-    ARGLIST(argList, float);
-    COMMAND(subcommand, SubcommandConfig);
+    CMDLIME_PARAM(requiredParam, std::string);
+    CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+    CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::ShortName("i");
+    CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::ShortName("L");
+    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
+    CMDLIME_FLAG(flag);
+    CMDLIME_ARG(arg, double);
+    CMDLIME_ARGLIST(argList, float);
+    CMDLIME_COMMAND(subcommand, SubcommandConfig);
 };
 
 TEST(GNUConfig, AllSet)
@@ -92,10 +92,10 @@ TEST(GNUConfig, AllSetInSubCommand)
 TEST(GNUConfig, CombinedFlagsAndParams)
 {
     struct Cfg : public Config{
-        FLAG(firstFlag)             << cmdlime::ShortName("f");
-        FLAG(secondFlag)            << cmdlime::ShortName("s");
-        FLAG(thirdFlag)             << cmdlime::ShortName("t");
-        PARAM(param, std::string)() << cmdlime::ShortName("p");
+        CMDLIME_FLAG(firstFlag) << cmdlime::ShortName("f");
+        CMDLIME_FLAG(secondFlag) << cmdlime::ShortName("s");
+        CMDLIME_FLAG(thirdFlag) << cmdlime::ShortName("t");
+        CMDLIME_PARAM(param, std::string)() << cmdlime::ShortName("p");
     };
 
     {
@@ -138,10 +138,10 @@ TEST(GNUConfig, CombinedFlagsAndParams)
 TEST(GNUConfig, NumericParamsAndFlags)
 {
     struct Cfg : public Config{
-        FLAG(flag)                                  << cmdlime::ShortName("1");
-        PARAM(param, std::string)                   << cmdlime::ShortName("2");
-        PARAM(paramSecond, std::string)("default")  << cmdlime::ShortName("p");
-        ARG(arg, int);
+        CMDLIME_FLAG(flag) << cmdlime::ShortName("1");
+        CMDLIME_PARAM(param, std::string) << cmdlime::ShortName("2");
+        CMDLIME_PARAM(paramSecond, std::string)("default") << cmdlime::ShortName("p");
+        CMDLIME_ARG(arg, int);
     };
     {
         auto cfg = Cfg{};
@@ -270,12 +270,12 @@ TEST(GNUConfig, MissingParamAllSetInNestedCommand)
 }
 
 struct FullConfigWithOptionalArgList : public Config{
-    PARAM(requiredParam, std::string)                    << cmdlime::ShortName("r");
-    PARAM(optionalParam, std::string)({"defaultValue"})  << cmdlime::ShortName("o");
-    PARAM(optionalIntParam, std::optional<int>)()        << cmdlime::ShortName("i");
-    FLAG(flag)                                           << cmdlime::ShortName("f");
-    ARG(arg, double);
-    ARGLIST(argList, float)({1.f, 2.f});
+    CMDLIME_PARAM(requiredParam, std::string) << cmdlime::ShortName("r");
+    CMDLIME_PARAM(optionalParam, std::string)({"defaultValue"}) << cmdlime::ShortName("o");
+    CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::ShortName("i");
+    CMDLIME_FLAG(flag) << cmdlime::ShortName("f");
+    CMDLIME_ARG(arg, double);
+    CMDLIME_ARGLIST(argList, float)({1.f, 2.f});
 };
 
 TEST(GNUConfig, MissingOptionalArgList)
@@ -373,7 +373,7 @@ TEST(GNUConfig, UnexpectedFlag)
 TEST(GNUConfig, UnexpectedArg)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string) << cmdlime::ShortName("p");
+        CMDLIME_PARAM(param, std::string) << cmdlime::ShortName("p");
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -446,8 +446,8 @@ TEST(GNUConfig, WrongArgListElementType)
 TEST(GNUConfig, ParamEmptyValue)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string) << cmdlime::ShortName("p");
-        FLAG(flag)                << cmdlime::ShortName("f");
+        CMDLIME_PARAM(param, std::string) << cmdlime::ShortName("p");
+        CMDLIME_FLAG(flag) << cmdlime::ShortName("f");
     };
     {
     auto cfg = Cfg{};
@@ -478,7 +478,7 @@ TEST(GNUConfig, ParamEmptyValue)
 TEST(GNUConfig, ParamListEmptyValue)
 {
     struct Cfg : public Config{
-        PARAMLIST(params, std::string) << cmdlime::ShortName("p");
+        CMDLIME_PARAMLIST(params, std::string) << cmdlime::ShortName("p");
     };
     {
         auto cfg = Cfg{};
@@ -501,7 +501,7 @@ TEST(GNUConfig, ParamListEmptyValue)
 TEST(GNUConfig, ArgEmptyValue)
 {
     struct Cfg : public Config{
-        ARG(arg, std::string);
+        CMDLIME_ARG(arg, std::string);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -514,7 +514,7 @@ TEST(GNUConfig, ArgEmptyValue)
 TEST(GNUConfig, ArgListEmptyValue)
 {
     struct Cfg : public Config{
-        ARGLIST(args, std::string);
+        CMDLIME_ARGLIST(args, std::string);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -528,10 +528,10 @@ TEST(GNUConfig, ArgListEmptyValue)
 TEST(GNUConfig, ValuesWithWhitespace)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string)         << cmdlime::ShortName("p");
-        PARAMLIST(paramList, std::string) << cmdlime::ShortName("L");
-        ARG(arg, std::string);
-        ARGLIST(argList, std::string);
+        CMDLIME_PARAM(param, std::string) << cmdlime::ShortName("p");
+        CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::ShortName("L");
+        CMDLIME_ARG(arg, std::string);
+        CMDLIME_ARGLIST(argList, std::string);
     };
     {
         auto cfg = Cfg{};
@@ -554,7 +554,7 @@ TEST(GNUConfig, ValuesWithWhitespace)
 TEST(GNUConfig, ParamWrongNameNonAlphaFirstChar)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string) << cmdlime::Name("!param");
+        CMDLIME_PARAM(param, std::string) << cmdlime::Name("!param");
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ConfigError>(
@@ -567,7 +567,7 @@ TEST(GNUConfig, ParamWrongNameNonAlphaFirstChar)
 TEST(GNUConfig, ParamWrongNameNonAlphanum)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string) << cmdlime::Name("p$r$m");
+        CMDLIME_PARAM(param, std::string) << cmdlime::Name("p$r$m");
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ConfigError>(
@@ -580,7 +580,7 @@ TEST(GNUConfig, ParamWrongNameNonAlphanum)
 TEST(GNUConfig, ParamWrongShortNameTooLong)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string) << cmdlime::ShortName("prm");
+        CMDLIME_PARAM(param, std::string) << cmdlime::ShortName("prm");
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ConfigError>(
@@ -593,7 +593,7 @@ TEST(GNUConfig, ParamWrongShortNameTooLong)
 TEST(GNUConfig, ParamWrongShortNameNonAlphanum)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string) << cmdlime::ShortName("$");
+        CMDLIME_PARAM(param, std::string) << cmdlime::ShortName("$");
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ConfigError>(
@@ -606,9 +606,9 @@ TEST(GNUConfig, ParamWrongShortNameNonAlphanum)
 TEST(GNUConfig, NegativeNumberToArg)
 {
     struct Cfg : public Config{
-        ARG(arg, int);
-        ARG(argStr, std::string);
-        ARGLIST(argList, double);
+        CMDLIME_ARG(arg, int);
+        CMDLIME_ARG(argStr, std::string);
+        CMDLIME_ARGLIST(argList, double);
     };
     auto cfg = Cfg{};
     cfg.read({"-2", "-3", "4.5", "-6.7"});
@@ -620,7 +620,7 @@ TEST(GNUConfig, NegativeNumberToArg)
 TEST(GNUConfig, NegativeNumberWithoutArg)
 {
     struct Cfg : public Config{
-        PARAM(param, int) << cmdlime::ShortName("p");
+        CMDLIME_PARAM(param, int) << cmdlime::ShortName("p");
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -633,9 +633,9 @@ TEST(GNUConfig, NegativeNumberWithoutArg)
 TEST(GNUConfig, ArgsDelimiter)
 {
     struct Cfg : public Config{
-        PARAM(param, int)               << cmdlime::ShortName("p");
-        PARAM(optionalParam, int)(0)    << cmdlime::ShortName("o");
-        ARGLIST(argList, std::string);
+        CMDLIME_PARAM(param, int) << cmdlime::ShortName("p");
+        CMDLIME_PARAM(optionalParam, int)(0) << cmdlime::ShortName("o");
+        CMDLIME_ARGLIST(argList, std::string);
     };
 
     {
@@ -657,8 +657,8 @@ TEST(GNUConfig, ArgsDelimiter)
 TEST(GNUConfig, ArgsDelimiterFront)
 {
     struct Cfg : public Config{
-        PARAM(optionalParam, int)(0)   << cmdlime::ShortName("o");
-        ARGLIST(argList, std::string);
+        CMDLIME_PARAM(optionalParam, int)(0) << cmdlime::ShortName("o");
+        CMDLIME_ARGLIST(argList, std::string);
     };
 
     auto cfg = Cfg{};
@@ -670,8 +670,8 @@ TEST(GNUConfig, ArgsDelimiterFront)
 TEST(GNUConfig, ArgsDelimiterBack)
 {
     struct Cfg : public Config{
-        PARAM(optionalParam, int)(0) << cmdlime::ShortName("o");
-        ARGLIST(argList, std::string);
+        CMDLIME_PARAM(optionalParam, int)(0) << cmdlime::ShortName("o");
+        CMDLIME_ARGLIST(argList, std::string);
     };
 
     auto cfg = Cfg{};
@@ -683,14 +683,14 @@ TEST(GNUConfig, ArgsDelimiterBack)
 TEST(GNUConfig, PascalNames)
 {
     struct PascalConfig : public Config{
-        PARAM(RequiredParam, std::string);
-        PARAM(OptionalParam, std::string)("defaultValue");
-        PARAM(IntParamOptional, std::optional<int>)();
-        PARAMLIST(ListOfParam, std::string);
-        PARAMLIST(MyListOfParamOptional, int)(std::vector<int>{99,100});
-        FLAG(Flag);
-        ARG(Arg, double);
-        ARGLIST(ArgList, float);
+        CMDLIME_PARAM(RequiredParam, std::string);
+        CMDLIME_PARAM(OptionalParam, std::string)("defaultValue");
+        CMDLIME_PARAM(IntParamOptional, std::optional<int>)();
+        CMDLIME_PARAMLIST(ListOfParam, std::string);
+        CMDLIME_PARAMLIST(MyListOfParamOptional, int)(std::vector<int>{99, 100});
+        CMDLIME_FLAG(Flag);
+        CMDLIME_ARG(Arg, double);
+        CMDLIME_ARGLIST(ArgList, float);
     };
     auto cfg = PascalConfig{};
     cfg.read({"--required-param","FOO", "--optional-param", "BAR", "--int-param-optional","9", "--list-of-param", "zero", "--list-of-param","one",
@@ -708,15 +708,15 @@ TEST(GNUConfig, PascalNames)
 TEST(GNUConfig, CustomNamesWithoutShortName)
 {
     struct TestConfig : public Config{
-        PARAM(requiredParam, std::string)                           << cmdlime::WithoutShortName{};
-        PARAM(optionalParam, std::string)("defaultValue")           << cmdlime::WithoutShortName{};
-        PARAM(optionalIntParam, std::optional<int>)()               << cmdlime::WithoutShortName{};
-        PARAMLIST(paramList, std::string)                           << cmdlime::WithoutShortName{};
-        PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::WithoutShortName{};
-        FLAG(flag)                                                  << cmdlime::WithoutShortName{};
-        FLAG(secondFlag);
-        ARG(arg, double);
-        ARGLIST(argList, float);
+        CMDLIME_PARAM(requiredParam, std::string) << cmdlime::WithoutShortName{};
+        CMDLIME_PARAM(optionalParam, std::string)("defaultValue") << cmdlime::WithoutShortName{};
+        CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::WithoutShortName{};
+        CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::WithoutShortName{};
+        CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::WithoutShortName{};
+        CMDLIME_FLAG(flag) << cmdlime::WithoutShortName{};
+        CMDLIME_FLAG(secondFlag);
+        CMDLIME_ARG(arg, double);
+        CMDLIME_ARGLIST(argList, float);
     };
 
     {
@@ -782,7 +782,7 @@ TEST(GNUConfig, CustomNamesWithoutShortName)
 TEST(GNUConfig, CustomNamesMissingParam)
 {
     struct TestConfig : public Config{
-        PARAM(param, double) << cmdlime::Name{"P"};
+        CMDLIME_PARAM(param, double) << cmdlime::Name{"P"};
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -795,8 +795,8 @@ TEST(GNUConfig, CustomNamesMissingParam)
 TEST(GNUConfig, CustomNamesMissingParamList)
 {
     struct TestConfig : public Config{
-        PARAM(param, double) << cmdlime::ShortName{"P"};
-        PARAMLIST(paramList, float) << cmdlime::Name{"L"};
+        CMDLIME_PARAM(param, double) << cmdlime::ShortName{"P"};
+        CMDLIME_PARAMLIST(paramList, float) << cmdlime::Name{"L"};
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -809,8 +809,8 @@ TEST(GNUConfig, CustomNamesMissingParamList)
 TEST(GNUConfig, CustomNamesMissingArg)
 {
     struct TestConfig : public Config{
-        ARG(arg, double) << cmdlime::Name{"Argument"};
-        ARGLIST(argList, float) << cmdlime::Name{"ArgList"};
+        CMDLIME_ARG(arg, double) << cmdlime::Name{"Argument"};
+        CMDLIME_ARGLIST(argList, float) << cmdlime::Name{"ArgList"};
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -823,8 +823,8 @@ TEST(GNUConfig, CustomNamesMissingArg)
 TEST(GNUConfig, CustomNamesMissingArgList)
 {
     struct TestConfig : public Config{
-        ARG(arg, double) << cmdlime::Name{"Argument"};
-        ARGLIST(argList, float) << cmdlime::Name{"ArgList"};
+        CMDLIME_ARG(arg, double) << cmdlime::Name{"Argument"};
+        CMDLIME_ARGLIST(argList, float) << cmdlime::Name{"ArgList"};
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -837,8 +837,8 @@ TEST(GNUConfig, CustomNamesMissingArgList)
 TEST(GNUConfig, ConfigErrorRepeatingParamNames)
 {
     struct TestConfig : public Config{
-        PARAM(Param, double)();
-        PARAM(param, int)();
+        CMDLIME_PARAM(Param, double)();
+        CMDLIME_PARAM(param, int)();
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ConfigError>(
@@ -851,8 +851,8 @@ TEST(GNUConfig, ConfigErrorRepeatingParamNames)
 TEST(GNUConfig, ConfigErrorRepeatingParamShortNames)
 {
     struct TestConfig : public Config{
-        PARAM(param, double)();
-        PARAMLIST(paramList, int)();
+        CMDLIME_PARAM(param, double)();
+        CMDLIME_PARAMLIST(paramList, int)();
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ConfigError>(
@@ -898,12 +898,12 @@ TEST(GNUConfig, DetailedUsageInfo)
 
 TEST(GNUConfig, WrongParamsWithExitFlag){
     struct ConfigWithExitFlag : public Config{
-        PARAM(requiredParam, int);
-        PARAM(optionalParam, std::string)("defaultValue");
-        FLAG(flag);
-        EXITFLAG(exitFlag);
-        ARG(arg, double);
-        ARGLIST(argList, float);
+        CMDLIME_PARAM(requiredParam, int);
+        CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+        CMDLIME_FLAG(flag);
+        CMDLIME_EXITFLAG(exitFlag);
+        CMDLIME_ARG(arg, double);
+        CMDLIME_ARGLIST(argList, float);
     } cfg;
 
     cfg.read({"-asd", "asf", "--exit-flag"});
