@@ -1,6 +1,6 @@
 #pragma once
 #include "icommand.h"
-#include "configvar.h"
+#include "optioninfo.h"
 #include "configaccess.h"
 #include "config.h"
 #include "format.h"
@@ -17,7 +17,7 @@
 namespace cmdlime::detail{
 
 template <typename TConfig>
-class Command : public ICommand, public ConfigVar{
+class Command : public ICommand{
 public:
     enum class Type{
         Normal,
@@ -27,23 +27,23 @@ public:
     Command(const std::string& name,        
             std::function<std::optional<TConfig>&()> commandGetter,
             Type type)
-        : ConfigVar(name, {}, {})
+        : info_(name, {}, {})
         , commandGetter_(commandGetter)
         , type_(type)
     {
     }
 
+    OptionInfo& info() override
+    {
+        return info_;
+    }
+
+    const OptionInfo& info() const override
+    {
+        return info_;
+    }
+
 private:
-    ConfigVar& info() override
-    {
-        return *this;
-    }
-
-    const ConfigVar& info() const override
-    {
-        return *this;
-    }
-
     void read(const std::vector<std::string>& commandLine) override
     {
         auto& commandCfg = commandGetter_();
@@ -59,7 +59,7 @@ private:
 
     void enableHelpFlag(const std::string& programName) override
     {        
-        programName_ = programName + " " + name();
+        programName_ = programName + " " + info_.name();
         using NameProvider = typename detail::Format<detail::ConfigAccess<TConfig>::format()>::nameProvider;
         helpFlag_ = std::make_unique<detail::Flag>(NameProvider::name("help"),
                                                    std::string{},
@@ -103,6 +103,7 @@ private:
     }
 
 private:
+    OptionInfo info_;
     std::function<std::optional<TConfig>&()> commandGetter_;
     Type type_;
     std::string programName_;
@@ -128,13 +129,13 @@ public:
 
     CommandCreator<T, TConfig>& operator<<(const std::string& info)
     {
-        command_->addDescription(info);
+        command_->info().addDescription(info);
         return *this;
     }
 
     CommandCreator<T, TConfig>& operator<<(const Name& customName)
     {
-        command_->resetName(customName.value());
+        command_->info().resetName(customName.value());
         return *this;
     }
 

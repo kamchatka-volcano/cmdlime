@@ -1,6 +1,6 @@
 #pragma once
 #include "iflag.h"
-#include "configvar.h"
+#include "optioninfo.h"
 #include "configaccess.h"
 #include "format.h"
 #include <gsl/gsl>
@@ -11,7 +11,7 @@
 
 namespace cmdlime::detail{
 
-class Flag : public IFlag, public ConfigVar{
+class Flag : public IFlag{
 public:
     enum class Type{
         Normal,
@@ -22,23 +22,23 @@ public:
          std::string shortName,
          std::function<bool&()> flagGetter,
          Type type)
-        : ConfigVar(std::move(name), std::move(shortName), {})
+        : info_(std::move(name), std::move(shortName), {})
         , flagGetter_(std::move(flagGetter))
         , type_(type)
     {
     }
 
+    OptionInfo& info() override
+    {
+        return info_;
+    }
+
+    const OptionInfo& info() const override
+    {
+        return info_;
+    }
+
 private:
-    ConfigVar& info() override
-    {
-        return *this;
-    }
-
-    const ConfigVar& info() const override
-    {
-        return *this;
-    }
-
     void set() override
     {
         flagGetter_() = true;
@@ -54,7 +54,8 @@ private:
         return type_ == Type::Exit;
     }
 
-private:    
+private:
+    OptionInfo info_;
     std::function<bool&()> flagGetter_;
     Type type_;
 };
@@ -79,13 +80,13 @@ public:
 
     FlagCreator& operator<<(const std::string& info)
     {
-        flag_->addDescription(info);
+        flag_->info().addDescription(info);
         return *this;
     }
 
     FlagCreator& operator<<(const Name& customName)
     {
-        flag_->resetName(customName.value());
+        flag_->info().resetName(customName.value());
         return *this;
     }
 
@@ -93,7 +94,7 @@ public:
     {
         static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
                       "Current command line format doesn't support short names");
-        flag_->resetShortName(customName.value());
+        flag_->info().resetShortName(customName.value());
         return *this;
     }
 
@@ -101,7 +102,7 @@ public:
     {
         static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
                       "Current command line format doesn't support short names");
-        flag_->resetShortName({});
+        flag_->info().resetShortName({});
         return *this;
     }
 

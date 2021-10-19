@@ -1,6 +1,6 @@
 #pragma once
 #include "iarglist.h"
-#include "configvar.h"
+#include "optioninfo.h"
 #include "configaccess.h"
 #include "format.h"
 #include "streamreader.h"
@@ -15,12 +15,12 @@
 namespace cmdlime::detail{
 
 template <typename T>
-class ArgList : public IArgList, public ConfigVar{
+class ArgList : public IArgList{
 public:
     ArgList(std::string name,
             std::string type,
             std::function<std::vector<T>&()> argListGetter)
-        : ConfigVar(std::move(name), {}, std::move(type))
+        : info_(std::move(name), {}, std::move(type))
         , argListGetter_(std::move(argListGetter))
     {
     }
@@ -31,17 +31,17 @@ public:
         defaultValue_ = value;
     }
 
+    OptionInfo& info() override
+    {
+        return info_;
+    }
+
+    const OptionInfo& info() const override
+    {
+        return info_;
+    }
+
 private:
-    ConfigVar& info() override
-    {
-        return *this;
-    }
-
-    const ConfigVar& info() const override
-    {
-        return *this;
-    }
-
     bool read(const std::string& data) override
     {
         if (!isDefaultValueOverwritten_){
@@ -84,7 +84,8 @@ private:
         return stream.str();
     }
 
-private:        
+private:
+    OptionInfo info_;
     std::function<std::vector<T>&()> argListGetter_;
     bool hasValue_ = false;
     std::optional<std::vector<T>> defaultValue_;
@@ -119,19 +120,19 @@ public:
 
     ArgListCreator<T, TConfig>& operator<<(const std::string& info)
     {
-        argList_->addDescription(info);
+        argList_->info().addDescription(info);
         return *this;
     }
 
     ArgListCreator<T, TConfig>& operator<<(const Name& customName)
     {
-        argList_->resetName(customName.value());
+        argList_->info().resetName(customName.value());
         return *this;
     }
 
     ArgListCreator<T, TConfig>& operator<<(const ValueName& valueName)
     {
-        argList_->resetValueName(valueName.value());
+        argList_->info().resetValueName(valueName.value());
         return *this;
     }
 

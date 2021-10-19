@@ -8,43 +8,43 @@ namespace test_posix_format{
 using Config = cmdlime::POSIXConfig;
 
 struct NestedSubcommandConfig: public Config{
-    PARAM(param, std::string);
+    CMDLIME_PARAM(param, std::string);
 };
 
 struct SubcommandConfig: public Config{
-    PARAM(requiredParam, std::string);
-    PARAM(optionalParam, std::string)("defaultValue");
-    PARAM(optionalIntParam, std::optional<int>)()               << cmdlime::Name("i");
-    PARAMLIST(paramList, std::string)                           << cmdlime::Name("L");
-    PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::Name("O");
-    FLAG(flag);
-    ARG(arg, double);
-    ARGLIST(argList, float);
-    COMMAND(nested, NestedSubcommandConfig);
+    CMDLIME_PARAM(requiredParam, std::string);
+    CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+    CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::Name("i");
+    CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::Name("L");
+    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::Name("O");
+    CMDLIME_FLAG(flag);
+    CMDLIME_ARG(arg, double);
+    CMDLIME_ARGLIST(argList, float);
+    CMDLIME_COMMAND(nested, NestedSubcommandConfig);
 };
 
 struct FullConfig : public Config{
-    PARAM(requiredParam, std::string);
-    PARAM(optionalParam, std::string)("defaultValue");
-    PARAM(optionalIntParam, std::optional<int>)()               << cmdlime::Name("i");
-    PARAMLIST(paramList, std::string)                           << cmdlime::Name("L");
-    PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::Name("O");
-    FLAG(flag);
-    ARG(arg, double);
-    ARGLIST(argList, float);
-    SUBCOMMAND(subcommand, SubcommandConfig);
+    CMDLIME_PARAM(requiredParam, std::string);
+    CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+    CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::Name("i");
+    CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::Name("L");
+    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::Name("O");
+    CMDLIME_FLAG(flag);
+    CMDLIME_ARG(arg, double);
+    CMDLIME_ARGLIST(argList, float);
+    CMDLIME_SUBCOMMAND(subcommand, SubcommandConfig);
 };
 
 struct FullConfigWithCommand : public Config{
-    PARAM(requiredParam, std::string);
-    PARAM(optionalParam, std::string)("defaultValue");
-    PARAM(optionalIntParam, std::optional<int>)()               << cmdlime::Name("i");
-    PARAMLIST(paramList, std::string)                           << cmdlime::Name("L");
-    PARAMLIST(optionalParamList, int)(std::vector<int>{99,100}) << cmdlime::Name("O");
-    FLAG(flag);
-    ARG(arg, double);
-    ARGLIST(argList, float);
-    COMMAND(subcommand, SubcommandConfig);
+    CMDLIME_PARAM(requiredParam, std::string);
+    CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+    CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::Name("i");
+    CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::Name("L");
+    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::Name("O");
+    CMDLIME_FLAG(flag);
+    CMDLIME_ARG(arg, double);
+    CMDLIME_ARGLIST(argList, float);
+    CMDLIME_COMMAND(subcommand, SubcommandConfig);
 };
 
 
@@ -93,10 +93,10 @@ TEST(PosixConfig, AllSetInSubCommand)
 TEST(PosixConfig, CombinedFlagsAndParams)
 {
     struct Cfg : public Config{
-        FLAG(firstFlag);
-        FLAG(secondFlag);
-        FLAG(thirdFlag);
-        PARAM(param, std::string)();
+        CMDLIME_FLAG(firstFlag);
+        CMDLIME_FLAG(secondFlag);
+        CMDLIME_FLAG(thirdFlag);
+        CMDLIME_PARAM(param, std::string)();
     };
 
     {
@@ -139,10 +139,10 @@ TEST(PosixConfig, CombinedFlagsAndParams)
 TEST(PosixConfig, NumericParamsAndFlags)
 {
     struct Cfg : public Config{
-        FLAG(flag) << cmdlime::Name("1");
-        PARAM(param, std::string) << cmdlime::Name("2");
-        PARAM(paramSecond, std::string)("default");
-        ARG(arg, int);
+        CMDLIME_FLAG(flag) << cmdlime::Name("1");
+        CMDLIME_PARAM(param, std::string) << cmdlime::Name("2");
+        CMDLIME_PARAM(paramSecond, std::string)("default");
+        CMDLIME_ARG(arg, int);
     };
     {
         auto cfg = Cfg{};
@@ -272,12 +272,12 @@ TEST(PosixConfig, MissingParamAllSetInNestedCommand)
 
 
 struct FullConfigWithOptionalArgList : public Config{
-    PARAM(requiredParam, std::string);
-    PARAM(optionalParam, std::string)({"defaultValue"});
-    PARAM(optionalIntParam, std::optional<int>)() << cmdlime::Name("i");
-    FLAG(flag);
-    ARG(arg, double);
-    ARGLIST(argList, float)({1.f, 2.f}) << cmdlime::Name("A");
+    CMDLIME_PARAM(requiredParam, std::string);
+    CMDLIME_PARAM(optionalParam, std::string)({"defaultValue"});
+    CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::Name("i");
+    CMDLIME_FLAG(flag);
+    CMDLIME_ARG(arg, double);
+    CMDLIME_ARGLIST(argList, float)({1.f, 2.f}) << cmdlime::Name("A");
 };
 
 TEST(PosixConfig, MissingOptionalArgList)
@@ -355,7 +355,7 @@ TEST(PosixConfig, UnexpectedFlag)
 TEST(PosixConfig, UnexpectedArg)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string);
+        CMDLIME_PARAM(param, std::string);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -368,8 +368,8 @@ TEST(PosixConfig, UnexpectedArg)
 TEST(PosixConfig, WrongCommandsOrder)
 {
     struct Cfg : public Config{
-        PARAM(optionalParam, int)(0);
-        ARGLIST(argList, std::string);
+        CMDLIME_PARAM(optionalParam, int)(0);
+        CMDLIME_ARGLIST(argList, std::string);
     };
 
     auto cfg = Cfg{};
@@ -423,8 +423,8 @@ TEST(PosixConfig, WrongArgListElementType)
 TEST(PosixConfig, ParamEmptyValue)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string);
-        FLAG(flag);
+        CMDLIME_PARAM(param, std::string);
+        CMDLIME_FLAG(flag);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -442,7 +442,7 @@ TEST(PosixConfig, ParamEmptyValue)
 TEST(PosixConfig, ParamListEmptyValue)
 {
     struct Cfg : public Config{
-        PARAMLIST(params, std::string);
+        CMDLIME_PARAMLIST(params, std::string);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -455,7 +455,7 @@ TEST(PosixConfig, ParamListEmptyValue)
 TEST(PosixConfig, ArgEmptyValue)
 {
     struct Cfg : public Config{
-        ARG(arg, std::string);
+        CMDLIME_ARG(arg, std::string);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -468,7 +468,7 @@ TEST(PosixConfig, ArgEmptyValue)
 TEST(PosixConfig, ArgListEmptyValue)
 {
     struct Cfg : public Config{
-        ARGLIST(args, std::string);
+        CMDLIME_ARGLIST(args, std::string);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -482,10 +482,10 @@ TEST(PosixConfig, ArgListEmptyValue)
 TEST(PosixConfig, ValuesWithWhitespace)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string);
-        PARAMLIST(paramList, std::string) << cmdlime::Name("L");
-        ARG(arg, std::string);
-        ARGLIST(argList, std::string) << cmdlime::Name("A");
+        CMDLIME_PARAM(param, std::string);
+        CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::Name("L");
+        CMDLIME_ARG(arg, std::string);
+        CMDLIME_ARGLIST(argList, std::string) << cmdlime::Name("A");
     };
     auto cfg = Cfg{};
     cfg.read({"-p", "Hello world", "-L", "foo bar", "foo bar", "forty two"});
@@ -498,7 +498,7 @@ TEST(PosixConfig, ValuesWithWhitespace)
 TEST(PosixConfig, ParamWrongNameTooLong)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string) << cmdlime::Name("prm");
+        CMDLIME_PARAM(param, std::string) << cmdlime::Name("prm");
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ConfigError>(
@@ -511,7 +511,7 @@ TEST(PosixConfig, ParamWrongNameTooLong)
 TEST(PosixConfig, ParamWrongNameNonAlphanum)
 {
     struct Cfg : public Config{
-        PARAM(param, std::string) << cmdlime::Name("$");
+        CMDLIME_PARAM(param, std::string) << cmdlime::Name("$");
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ConfigError>(
@@ -524,9 +524,9 @@ TEST(PosixConfig, ParamWrongNameNonAlphanum)
 TEST(PosixConfig, NegativeNumberToArg)
 {
     struct Cfg : public Config{
-        ARG(arg, int);
-        ARG(argStr, std::string);
-        ARGLIST(argList, double);
+        CMDLIME_ARG(arg, int);
+        CMDLIME_ARG(argStr, std::string);
+        CMDLIME_ARGLIST(argList, double);
     };
     auto cfg = Cfg{};
     cfg.read({"-2", "-3", "4.5", "-6.7"});
@@ -538,7 +538,7 @@ TEST(PosixConfig, NegativeNumberToArg)
 TEST(PosixConfig, NegativeNumberWithoutArg)
 {
     struct Cfg : public Config{
-        PARAM(param, int);
+        CMDLIME_PARAM(param, int);
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
@@ -551,9 +551,9 @@ TEST(PosixConfig, NegativeNumberWithoutArg)
 TEST(PosixConfig, ArgsDelimiter)
 {
     struct Cfg : public Config{
-        PARAM(param, int);
-        PARAM(optionalParam, int)(0);
-        ARGLIST(argList, std::string);
+        CMDLIME_PARAM(param, int);
+        CMDLIME_PARAM(optionalParam, int)(0);
+        CMDLIME_ARGLIST(argList, std::string);
     };
 
     auto cfg = Cfg{};
@@ -566,8 +566,8 @@ TEST(PosixConfig, ArgsDelimiter)
 TEST(PosixConfig, ArgsDelimiterFront)
 {
     struct Cfg : public Config{
-        PARAM(optionalParam, int)(0);
-        ARGLIST(argList, std::string);
+        CMDLIME_PARAM(optionalParam, int)(0);
+        CMDLIME_ARGLIST(argList, std::string);
     };
 
     auto cfg = Cfg{};
@@ -579,8 +579,8 @@ TEST(PosixConfig, ArgsDelimiterFront)
 TEST(PosixConfig, ArgsDelimiterBack)
 {
     struct Cfg : public Config{
-        PARAM(optionalParam, int)(0);
-        ARGLIST(argList, std::string);
+        CMDLIME_PARAM(optionalParam, int)(0);
+        CMDLIME_ARGLIST(argList, std::string);
     };
 
     auto cfg = Cfg{};
@@ -592,14 +592,14 @@ TEST(PosixConfig, ArgsDelimiterBack)
 TEST(PosixConfig, PascalNames)
 {
     struct PascalConfig : public Config{
-        PARAM(RequiredParam, std::string);
-        PARAM(OptionalParam, std::string)("defaultValue");
-        PARAM(IntParamOptional, std::optional<int>)();
-        PARAMLIST(ListOfParam, std::string);
-        PARAMLIST(MyListOfParamOptional, int)(std::vector<int>{99,100});
-        FLAG(Flag);
-        ARG(Arg, double);
-        ARGLIST(ArgList, float);
+        CMDLIME_PARAM(RequiredParam, std::string);
+        CMDLIME_PARAM(OptionalParam, std::string)("defaultValue");
+        CMDLIME_PARAM(IntParamOptional, std::optional<int>)();
+        CMDLIME_PARAMLIST(ListOfParam, std::string);
+        CMDLIME_PARAMLIST(MyListOfParamOptional, int)(std::vector<int>{99, 100});
+        CMDLIME_FLAG(Flag);
+        CMDLIME_ARG(Arg, double);
+        CMDLIME_ARGLIST(ArgList, float);
     };
     auto cfg = PascalConfig{};
     cfg.read({"-r","FOO", "-o", "BAR", "-i","9", "-l", "zero", "-l","one",
@@ -617,7 +617,7 @@ TEST(PosixConfig, PascalNames)
 TEST(PosixConfig, CustomNamesMissingParam)
 {
     struct TestConfig : public Config{
-        PARAM(param, double) << cmdlime::Name{"P"};
+        CMDLIME_PARAM(param, double) << cmdlime::Name{"P"};
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -630,8 +630,8 @@ TEST(PosixConfig, CustomNamesMissingParam)
 TEST(PosixConfig, CustomNamesMissingParamList)
 {
     struct TestConfig : public Config{
-        PARAM(param, double) << cmdlime::Name{"P"};
-        PARAMLIST(paramList, float) << cmdlime::Name{"L"};
+        CMDLIME_PARAM(param, double) << cmdlime::Name{"P"};
+        CMDLIME_PARAMLIST(paramList, float) << cmdlime::Name{"L"};
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -644,8 +644,8 @@ TEST(PosixConfig, CustomNamesMissingParamList)
 TEST(PosixConfig, CustomNamesMissingArg)
 {
     struct TestConfig : public Config{
-        ARG(arg, double) << cmdlime::Name{"a"};
-        ARGLIST(argList, float) << cmdlime::Name{"A"};
+        CMDLIME_ARG(arg, double) << cmdlime::Name{"a"};
+        CMDLIME_ARGLIST(argList, float) << cmdlime::Name{"A"};
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -658,8 +658,8 @@ TEST(PosixConfig, CustomNamesMissingArg)
 TEST(PosixConfig, CustomNamesMissingArgList)
 {
     struct TestConfig : public Config{
-        ARG(arg, double) << cmdlime::Name{"a"};
-        ARGLIST(argList, float) << cmdlime::Name{"A"};
+        CMDLIME_ARG(arg, double) << cmdlime::Name{"a"};
+        CMDLIME_ARGLIST(argList, float) << cmdlime::Name{"A"};
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
@@ -672,8 +672,8 @@ TEST(PosixConfig, CustomNamesMissingArgList)
 TEST(PosixConfig, ConfigErrorRepeatingParamNames)
 {
     struct TestConfig : public Config{
-        PARAM(Param, double)();
-        PARAM(param, int)();
+        CMDLIME_PARAM(Param, double)();
+        CMDLIME_PARAM(param, int)();
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ConfigError>(
@@ -716,12 +716,12 @@ TEST(PosixConfig, DetailedUsageInfo)
 
 TEST(PosixConfig, WrongParamsWithExitFlag){
     struct ConfigWithExitFlag : public Config{
-        PARAM(requiredParam, int);
-        PARAM(optionalParam, std::string)("defaultValue");
-        FLAG(flag);
-        EXITFLAG(exitFlag);
-        ARG(arg, double);
-        ARGLIST(argList, float);
+        CMDLIME_PARAM(requiredParam, int);
+        CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+        CMDLIME_FLAG(flag);
+        CMDLIME_EXITFLAG(exitFlag);
+        CMDLIME_ARG(arg, double);
+        CMDLIME_ARGLIST(argList, float);
     } cfg;
 
     cfg.read({"-asd", "-asf", "-e"});

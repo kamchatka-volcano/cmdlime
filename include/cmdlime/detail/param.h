@@ -1,7 +1,7 @@
 #pragma once
 #include "iparam.h"
 #include "configaccess.h"
-#include "configvar.h"
+#include "optioninfo.h"
 #include "format.h"
 #include "streamreader.h"
 #include <gsl/gsl>
@@ -15,13 +15,13 @@
 namespace cmdlime::detail{
 
 template<typename T>
-class Param : public IParam, public ConfigVar{
+class Param : public IParam{
 public:
     Param(std::string name,
           std::string shortName,
           std::string type,
           std::function<T&()> paramGetter)
-        : ConfigVar(std::move(name), std::move(shortName), std::move(type))
+        : info_(std::move(name), std::move(shortName), std::move(type))
         , paramGetter_(std::move(paramGetter))
     {       
     }
@@ -32,17 +32,17 @@ public:
         defaultValue_ = value;
     }
 
+    OptionInfo& info() override
+    {
+        return info_;
+    }
+
+    const OptionInfo& info() const override
+    {
+        return info_;
+    }
+
 private:
-    ConfigVar& info() override
-    {
-        return *this;
-    }
-
-    const ConfigVar& info() const override
-    {
-        return *this;
-    }
-
     bool read(const std::string& data) override
     {
         auto stream = std::stringstream{data};
@@ -72,6 +72,7 @@ private:
     }
 
 private:
+    OptionInfo info_;
     std::function<T&()> paramGetter_;
     std::optional<T> defaultValue_;
     bool hasValue_ = false;
@@ -105,13 +106,13 @@ public:
 
     ParamCreator<T, TConfig>& operator<<(const std::string& info)
     {
-        param_->addDescription(info);
+        param_->info().addDescription(info);
         return *this;
     }
 
     ParamCreator<T, TConfig>& operator<<(const Name& customName)
     {
-        param_->resetName(customName.value());
+        param_->info().resetName(customName.value());
         return *this;
     }
 
@@ -119,7 +120,7 @@ public:
     {
         static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
                       "Current command line format doesn't support short names");
-        param_->resetShortName(customName.value());
+        param_->info().resetShortName(customName.value());
         return *this;
     }
 
@@ -127,13 +128,13 @@ public:
     {
         static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
                       "Current command line format doesn't support short names");
-        param_->resetShortName({});
+        param_->info().resetShortName({});
         return *this;
     }
 
     ParamCreator<T, TConfig>& operator<<(const ValueName& valueName)
     {
-        param_->resetValueName(valueName.value());
+        param_->info().resetValueName(valueName.value());
         return *this;
     }
 
