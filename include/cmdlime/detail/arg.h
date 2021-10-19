@@ -1,6 +1,6 @@
 #pragma once
 #include "iarg.h"
-#include "configvar.h"
+#include "optioninfo.h"
 #include "configaccess.h"
 #include "format.h"
 #include "streamreader.h"
@@ -14,34 +14,35 @@
 namespace cmdlime::detail{
 
 template <typename T>
-class Arg : public IArg, public ConfigVar{
+class Arg : public IArg{
 public:
     Arg(std::string name,
         std::string type,
         std::function<T&()> argGetter)
-        : ConfigVar(std::move(name), {}, std::move(type))
+        : info_(std::move(name), {}, std::move(type))
         , argGetter_(std::move(argGetter))
     {
     }
 
+    OptionInfo& info() override
+    {
+        return info_;
+    }
+
+    const OptionInfo& info() const override
+    {
+        return info_;
+    }
+
 private:
-    ConfigVar& info() override
-    {
-        return *this;
-    }
-
-    const ConfigVar& info() const override
-    {
-        return *this;
-    }
-
     bool read(const std::string& data) override
     {
         auto stream = std::stringstream{data};
         return readFromStream(stream, argGetter_());
     }
 
-private:    
+private:
+    OptionInfo info_;
     std::function<T&()> argGetter_;
 };
 
@@ -71,19 +72,19 @@ public:
 
     ArgCreator<T, TConfig>& operator<<(const std::string& info)
     {
-        arg_->addDescription(info);
+        arg_->info().addDescription(info);
         return *this;
     }
 
     ArgCreator<T, TConfig>& operator<<(const Name& customName)
     {
-        arg_->resetName(customName.value());
+        arg_->info().resetName(customName.value());
         return *this;
     }
 
     ArgCreator<T, TConfig>& operator<<(const ValueName& valueName)
     {
-        arg_->resetValueName(valueName.value());
+        arg_->info().resetValueName(valueName.value());
         return *this;
     }
 

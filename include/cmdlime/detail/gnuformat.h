@@ -119,7 +119,7 @@ class GNUParser : public Parser<formatType>
 
     void checkLongNames()
     {
-        auto check = [](const ConfigVar& var, const std::string& varType){
+        auto check = [](const OptionInfo& var, const std::string& varType){
             if (!std::isalpha(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
             if (var.name().size() > 1){
@@ -128,20 +128,20 @@ class GNUParser : public Parser<formatType>
                     throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters and hyphens"};
             }
         };
-        this->forEachParamInfo([check](const ConfigVar& var){
+        this->forEachParamInfo([check](const OptionInfo& var){
             check(var, "Parameter");
         });
-        this->forEachParamListInfo([check](const ConfigVar& var){
+        this->forEachParamListInfo([check](const OptionInfo& var){
             check(var, "Parameter");
         });
-        this->forEachFlagInfo([check](const ConfigVar& var){
+        this->forEachFlagInfo([check](const OptionInfo& var){
             check(var, "Flag");
         });
     }
 
     void checkShortNames()
     {
-        auto check = [](const ConfigVar& var, const std::string& varType){
+        auto check = [](const OptionInfo& var, const std::string& varType){
             if (var.shortName().empty())
                 return;
             if (var.shortName().size() != 1)
@@ -149,13 +149,13 @@ class GNUParser : public Parser<formatType>
             if (!std::isalnum(var.shortName().front()))
                 throw ConfigError{varType + "'s short name '" + var.shortName() + "' must be an alphanumeric character"};
         };
-        this->forEachParamInfo([check](const ConfigVar& var){
+        this->forEachParamInfo([check](const OptionInfo& var){
             check(var, "Parameter");
         });
-        this->forEachParamListInfo([check](const ConfigVar& var){
+        this->forEachParamListInfo([check](const OptionInfo& var){
             check(var, "Parameter");
         });
-        this->forEachFlagInfo([check](const ConfigVar& var){
+        this->forEachFlagInfo([check](const OptionInfo& var){
             check(var, "Flag");
         });
     }
@@ -192,22 +192,22 @@ private:
 
 class GNUNameProvider{
 public:
-    static std::string name(const std::string& configVarName)
+    static std::string name(const std::string& optionName)
     {
-        Expects(!configVarName.empty());
-        return toKebabCase(configVarName);
+        Expects(!optionName.empty());
+        return toKebabCase(optionName);
     }
 
-    static std::string shortName(const std::string& configVarName)
+    static std::string shortName(const std::string& optionName)
     {
-        Expects(!configVarName.empty());
-        return toLowerCase(configVarName.substr(0,1));
+        Expects(!optionName.empty());
+        return toLowerCase(optionName.substr(0, 1));
     }
 
-    static std::string fullName(const std::string& configVarName)
+    static std::string fullName(const std::string& optionName)
     {
-        Expects(!configVarName.empty());
-        return toKebabCase(configVarName);
+        Expects(!optionName.empty());
+        return toKebabCase(optionName);
     }
 
     static std::string valueName(const std::string& typeName)

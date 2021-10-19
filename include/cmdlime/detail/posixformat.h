@@ -92,19 +92,19 @@ class PosixParser : public Parser<formatType>
 
     void checkNames()
     {
-        auto check = [](const ConfigVar& var, const std::string& varType){
+        auto check = [](const OptionInfo& var, const std::string& varType){
             if (var.name().size() != 1)
                 throw ConfigError{varType + "'s name '" + var.name() + "' can't have more than one symbol"};
             if (!std::isalnum(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must be an alphanumeric character"};
         };
-        this->forEachParamInfo([check](const ConfigVar& var){
+        this->forEachParamInfo([check](const OptionInfo& var){
             check(var, "Parameter");
         });
-        this->forEachParamListInfo([check](const ConfigVar& var){
+        this->forEachParamListInfo([check](const OptionInfo& var){
             check(var, "Parameter");
         });
-        this->forEachFlagInfo([check](const ConfigVar& var){
+        this->forEachFlagInfo([check](const OptionInfo& var){
             check(var, "Flag");
         });
     }
@@ -126,22 +126,22 @@ private:
 
 class PosixNameProvider{
 public:
-    static std::string name(const std::string& configVarName)
+    static std::string name(const std::string& optionName)
     {
-        Expects(!configVarName.empty());
-        return std::string{static_cast<char>(std::tolower(configVarName.front()))};
+        Expects(!optionName.empty());
+        return std::string{static_cast<char>(std::tolower(optionName.front()))};
     }
 
-    static std::string shortName(const std::string& configVarName)
+    static std::string shortName(const std::string& optionName)
     {
-        Expects(!configVarName.empty());
+        Expects(!optionName.empty());
         return {};
     }
 
-    static std::string fullName(const std::string& configVarName)
+    static std::string fullName(const std::string& optionName)
     {
-        Expects(!configVarName.empty());
-        return toKebabCase(configVarName);
+        Expects(!optionName.empty());
+        return toKebabCase(optionName);
     }
 
     static std::string valueName(const std::string& typeName)

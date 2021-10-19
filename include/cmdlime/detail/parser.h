@@ -232,19 +232,19 @@ protected:
     }
 
 
-    void forEachParamInfo(const std::function<void(const ConfigVar&)>& handler)
+    void forEachParamInfo(const std::function<void(const OptionInfo&)>& handler)
     {
         for (auto param : params_)
             handler(param->info());
     }
 
-    void forEachParamListInfo(const std::function<void(const ConfigVar&)>& handler)
+    void forEachParamListInfo(const std::function<void(const OptionInfo&)>& handler)
     {
         for (auto paramList : paramLists_)
             handler(paramList->info());
     }
 
-    void forEachFlagInfo(const std::function<void(const ConfigVar&)>& handler)
+    void forEachFlagInfo(const std::function<void(const OptionInfo&)>& handler)
     {
         for (auto flag : flags_)
             handler(flag->info());
@@ -349,7 +349,7 @@ private:
     {
         auto encounteredNames = std::unordered_set<std::string>{};
 
-        auto processName = [&encounteredNames](const std::string& varType, const ConfigVar& var){
+        auto processName = [&encounteredNames](const std::string& varType, const OptionInfo& var){
             if (encounteredNames.count(var.name()))
                 throw ConfigError{varType + " name '" + var.name() + "' is already used."};
             encounteredNames.insert(var.name());

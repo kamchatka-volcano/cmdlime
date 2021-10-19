@@ -6,9 +6,9 @@
 
 namespace cmdlime::detail{
 
-class ConfigVar{
+class OptionInfo{
 public:
-    ConfigVar(std::string name, std::string shortName, std::string valueName)
+    OptionInfo(std::string name, std::string shortName, std::string valueName)
         : name_(std::move(name))
         , shortName_(std::move(shortName))
         , valueName_(std::move(valueName))
@@ -16,9 +16,9 @@ public:
         Expects(!name_.empty());
     }
 
-    void addDescription(const std::string& info)
+    void addDescription(const std::string& desc)
     {
-        info_ += info;
+        description_ += desc;
     }
 
     void resetName(const std::string& name)
@@ -54,14 +54,14 @@ public:
 
     const std::string& description() const
     {
-        return info_;
+        return description_;
     }
 
 private:
     std::string name_;
     std::string shortName_;
     std::string valueName_;
-    std::string info_;        
+    std::string description_;
 };
 
 }

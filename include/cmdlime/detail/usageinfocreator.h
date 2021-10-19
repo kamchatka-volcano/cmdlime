@@ -5,7 +5,7 @@
 #include "iarg.h"
 #include "iarglist.h"
 #include "icommand.h"
-#include "configvar.h"
+#include "optioninfo.h"
 #include "format.h"
 #include <sfun/string_utils.h>
 #include <cmdlime/usageinfoformat.h>
@@ -65,21 +65,21 @@ inline std::vector<not_null<T*>> getParamsByOptionality(const std::vector<not_nu
 }
 
 template <typename T>
-const std::string& getName(T& configVar)
+const std::string& getName(T& option)
 {
-    return configVar.info().name();
+    return option.info().name();
 }
 
 template <typename T>
-const std::string& getType(T& configVar)
+const std::string& getType(T& option)
 {
-    return configVar.info().type();
+    return option.info().type();
 }
 
 template <typename T>
-const std::string& getDescription(T& configVar)
+const std::string& getDescription(T& option)
 {
-    return configVar.info().description();
+    return option.info().description();
 }
 
 template <FormatType formatType>

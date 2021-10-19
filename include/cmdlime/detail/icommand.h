@@ -1,5 +1,5 @@
 #pragma once
-#include "configvar.h"
+#include "optioninfo.h"
 #include "gsl/pointers"
 #include <vector>
 #include <string>
@@ -11,8 +11,8 @@ class IFlag;
 class ICommand{
 public:
     virtual ~ICommand() = default;
-    virtual ConfigVar& info() = 0;
-    virtual const ConfigVar& info() const = 0;
+    virtual OptionInfo& info() = 0;
+    virtual const OptionInfo& info() const = 0;
     virtual void read(const std::vector<std::string>& commandLine) = 0;    
     virtual bool isSubCommand() const = 0;    
     virtual std::string usageInfo() const = 0;
