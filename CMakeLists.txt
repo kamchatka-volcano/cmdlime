@@ -10,35 +10,8 @@ endif()
 
 
 project(cmdlime VERSION 1.0.0 DESCRIPTION "C++17 command line parsing library")
-
-include(FetchContent)
-Set(FETCHCONTENT_QUIET FALSE)
-
-FetchContent_Declare(
-        gsl
-        GIT_REPOSITORY https://github.com/microsoft/GSL
-        GIT_TAG        v3.1.0
-        GIT_SHALLOW    ON
-        GIT_PROGRESS TRUE
-)
-FetchContent_Declare(sfun
-        GIT_REPOSITORY "https://github.com/kamchatka-volcano/sfun.git"
-        GIT_TAG fe5b60f3fd7a545515ca2e50a406c6bc2c924ac7
-        GIT_SHALLOW    ON
-        GIT_PROGRESS TRUE
-        )
-
-FetchContent_GetProperties(sfun)
-if(NOT sfun_POPULATED)
-    FetchContent_Populate(sfun)
-    add_subdirectory("${sfun_SOURCE_DIR}" "${sfun_BINARY_DIR}" EXCLUDE_FROM_ALL)
-endif()
-
-FetchContent_GetProperties(gsl)
-if(NOT gsl_POPULATED)
-    FetchContent_Populate(gsl)
-    add_subdirectory("${gsl_SOURCE_DIR}" "${gsl_BINARY_DIR}" EXCLUDE_FROM_ALL)
-endif()
+include(external/gsl)
+include(external/sfun)
 
 add_library(cmdlime INTERFACE)
 target_compile_features(cmdlime INTERFACE cxx_std_17)
