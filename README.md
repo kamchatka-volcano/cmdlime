@@ -589,10 +589,12 @@ FetchContent_Declare(cmdlime
     GIT_REPOSITORY "https://github.com/kamchatka-volcano/cmdlime.git"
     GIT_TAG "origin/master"
 )
+#uncomment if you need to install cmdlime with your target
+#set(INSTALL_CMDLIME ON)
 FetchContent_MakeAvailable(cmdlime)
 
-add_executable(my_app)
-target_link_libraries(myapp PRIVATE cmdlime)
+add_executable(${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME} PRIVATE cmdlime::cmdlime)
 ```
 
 For the system-wide installation use these commands:
@@ -602,10 +604,13 @@ cd cmdlime
 cmake -S . -B build
 cmake --build build
 cmake --install build
-cmake --install build --component gsl
-cmake --install build --component sfun
 ```
- You can skip the installation of [GSL](https://github.com/microsoft/GSL) and [sfun](https://github.com/kamchatka-volcano/sfun) libraries if you already have them in your system's includes path.  
+
+Afterwards, you can use find_package() command to make installed library available inside your project:
+```
+find_package(cmdlime 0.10.0 REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE cmdlime::cmdlime)   
+```
 
 ## Running tests
 ```

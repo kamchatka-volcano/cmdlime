@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(sfun)
+find_dependency(Microsoft.GSL)
+
+include("${CMAKE_CURRENT_LIST_DIR}/cmdlimeTargets.cmake")

@@ -1,21 +1,31 @@
 cmake_minimum_required(VERSION 3.18)
 
-if(NOT DEFINED CMDLIME_SUBPROJECT)
-    if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-        set(CMDLIME_SUBPROJECT OFF)
-    else()
-        set(CMDLIME_SUBPROJECT ON)
-    endif()
+project(cmdlime VERSION 0.10.0 DESCRIPTION "C++17 command line parsing library")
+
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(CMDLIME_SUBPROJECT OFF)
+else()
+    set(CMDLIME_SUBPROJECT ON)
 endif()
 
+if (NOT USE_SYSTEM_GSL)
+    set(INSTALL_GSL ON)
+    include(external/gsl)
+else()
+    find_package(Microsoft.GSL 3.1.0 REQUIRED)
+endif()
 
-project(cmdlime VERSION 1.0.0 DESCRIPTION "C++17 command line parsing library")
-include(external/gsl)
-include(external/sfun)
+if (NOT USE_SYSTEM_SFUN)
+    set(INSTALL_SFUN ON)
+    include(external/sfun)
+else()
+    find_package(sfun 1.0 REQUIRED)
+endif()
 
 add_library(cmdlime INTERFACE)
+add_library(cmdlime::cmdlime ALIAS cmdlime)
 target_compile_features(cmdlime INTERFACE cxx_std_17)
-target_link_libraries(cmdlime INTERFACE GSL sfun)
+target_link_libraries(cmdlime INTERFACE Microsoft.GSL::GSL sfun::sfun)
 
 target_include_directories(
     cmdlime
@@ -30,15 +40,35 @@ if (ENABLE_TESTS AND NOT CMDLIME_SUBPROJECT)
     add_subdirectory(tests)
 endif()
 
-include(GNUInstallDirs)
-if(NOT CMDLIME_SUBPROJECT)
+option(INSTALL_CMDLIME "Install cmdlime library unconditionally" OFF)
+if (NOT CMDLIME_SUBPROJECT OR INSTALL_CMDLIME)
+    include(GNUInstallDirs)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/cmdlime DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-    install(DIRECTORY "${gsl_SOURCE_DIR}/include/gsl"
-            COMPONENT gsl
-            EXCLUDE_FROM_ALL
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-    install(DIRECTORY "${sfun_SOURCE_DIR}/include/sfun"
-            COMPONENT sfun
-            EXCLUDE_FROM_ALL
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+    set(CMDLIME_PACK_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/cmdlime)
+
+    install(TARGETS cmdlime
+            EXPORT cmdlime-targets
+            )
+    install(EXPORT cmdlime-targets
+            FILE cmdlimeTargets.cmake
+            NAMESPACE cmdlime::
+            DESTINATION ${CMDLIME_PACK_PATH}
+            )
+
+    include(CMakePackageConfigHelpers)
+    write_basic_package_version_file(
+            ${CMAKE_CURRENT_BINARY_DIR}/cmdlimeConfigVersion.cmake
+            COMPATIBILITY SameMajorVersion
+            ARCH_INDEPENDENT
+    )
+    configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/cmdlimeConfig.cmake.in
+            ${CMAKE_CURRENT_BINARY_DIR}/cmdlimeConfig.cmake
+            INSTALL_DESTINATION ${CMDLIME_PACK_PATH}
+            )
+    install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/cmdlimeConfig.cmake
+            ${CMAKE_CURRENT_BINARY_DIR}/cmdlimeConfigVersion.cmake
+            DESTINATION ${CMDLIME_PACK_PATH}
+            )
 endif()
