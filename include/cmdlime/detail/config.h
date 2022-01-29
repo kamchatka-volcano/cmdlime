@@ -3,7 +3,7 @@
 #include "paramlistcreator.h"
 #include "flagcreator.h"
 #include "argcreator.h"
-#include "iarglist.h"
+#include "arglistcreator.h"
 #include "icommand.h"
 #include "format.h"
 #include "usageinfocreator.h"
@@ -132,6 +132,12 @@ protected:
     detail::ArgCreator<T, TCfg> arg(T TCfg::* member, const std::string& name, const std::string& type)
     {
         return detail::ArgCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
+    }
+
+    template <typename T, typename TCfg>
+    detail::ArgListCreator<T, TCfg> argList(std::vector<T> TCfg::* member, const std::string& name, const std::string& type)
+    {
+        return detail::ArgListCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
     }
 
 private:

@@ -56,6 +56,7 @@ struct FullConfigWithoutMacro : public Config{
     std::vector<int> optionalPrmList = paramList(&FullConfigWithoutMacro::optionalPrmList, "optionalParamList", "int")(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
     bool flg = flag(&FullConfigWithoutMacro::flg, "flag");
     double a = arg(&FullConfigWithoutMacro::a, "arg", "double");
+    std::vector<float> aList = argList(&FullConfigWithoutMacro::aList, "argList", "float");
 };
 
 TEST(GNUConfig, AllSet)
@@ -78,7 +79,7 @@ TEST(GNUConfig, AllSetWithoutMacro)
 {
     auto cfg = FullConfigWithoutMacro{};
     cfg.read({"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-              "--optional-param-list=1,2", "-f", "4.2"});
+              "--optional-param-list=1,2", "-f", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
     EXPECT_EQ(cfg.optionalIntParam, 9);
@@ -86,6 +87,7 @@ TEST(GNUConfig, AllSetWithoutMacro)
     EXPECT_EQ(cfg.optionalPrmList, (std::vector<int>{1, 2}));
     EXPECT_EQ(cfg.flg, true);
     EXPECT_EQ(cfg.a, 4.2);
+    EXPECT_EQ(cfg.aList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
 }
 
 TEST(GNUConfig, AllSetInSubCommand)
