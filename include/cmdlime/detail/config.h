@@ -4,13 +4,13 @@
 #include "flagcreator.h"
 #include "argcreator.h"
 #include "arglistcreator.h"
-#include "icommand.h"
+#include "commandcreator.h"
 #include "format.h"
 #include "usageinfocreator.h"
 #include "configaccess.h"
-#include "gsl/pointers"
 #include <cmdlime/usageinfoformat.h>
 #include <cmdlime/errors.h>
+#include <gsl/pointers>
 #include <vector>
 #include <string>
 #include <map>
@@ -138,6 +138,22 @@ protected:
     detail::ArgListCreator<T, TCfg> argList(std::vector<T> TCfg::* member, const std::string& name, const std::string& type)
     {
         return detail::ArgListCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
+    }
+
+    template <typename T, typename TCfg>
+    detail::CommandCreator<T, TCfg> command(std::optional<T> TCfg::* member, const std::string& name)
+    {
+        static_assert (std::is_base_of_v<Config<ConfigAccess<TCfg>::format()>, T>,
+                      "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
+        return detail::CommandCreator<T, TCfg>{static_cast<TCfg&>(*this), name, static_cast<TCfg*>(this)->*member};
+    }
+
+    template <typename T, typename TCfg>
+    detail::CommandCreator<T, TCfg> subCommand(std::optional<T> TCfg::* member, const std::string& name)
+    {
+        static_assert (std::is_base_of_v<Config<ConfigAccess<TCfg>::format()>, T>,
+                       "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
+        return detail::CommandCreator<T, TCfg>{static_cast<TCfg&>(*this), name, static_cast<TCfg*>(this)->*member, detail::Command<T>::Type::SubCommand};
     }
 
 private:

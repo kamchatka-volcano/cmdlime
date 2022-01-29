@@ -1,10 +1,10 @@
 #pragma once
-#include "param.h"
-#include "paramlist.h"
-#include "flag.h"
-#include "arg.h"
-#include "arglist.h"
-#include "command.h"
+#include "paramcreator.h"
+#include "paramlistcreator.h"
+#include "flagcreator.h"
+#include "argcreator.h"
+#include "arglistcreator.h"
+#include "commandcreatormaker.h"
 #include <optional>
 
 #define CMDLIME_PARAM(name, type) type name = cmdlime::detail::makeParamCreator<type>(*this, #name, #type, [this]()->type&{return name;})

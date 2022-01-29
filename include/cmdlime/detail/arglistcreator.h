@@ -64,7 +64,7 @@ template <typename T, typename TConfig>
 ArgListCreator<T, TConfig> makeArgListCreator(TConfig& cfg,
                                               const std::string& varName,
                                               const std::string& type,
-                                              std::function<std::vector<T>&()> argListGetter)
+                                              const std::function<std::vector<T>&()>& argListGetter)
 {
     return ArgListCreator<T, TConfig>{cfg, varName, type, argListGetter()};
 }

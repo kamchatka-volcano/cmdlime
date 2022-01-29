@@ -2,14 +2,12 @@
 #include "icommand.h"
 #include "optioninfo.h"
 #include "configaccess.h"
-#include "config.h"
 #include "format.h"
 #include "streamreader.h"
+#include "flag.h"
 #include <gsl/gsl>
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
-#include <cmdlime/detail/configaccess.h>
-#include <cmdlime/detail/flag.h>
 #include <sstream>
 #include <functional>
 #include <memory>
@@ -25,10 +23,10 @@ public:
     };
 
     Command(const std::string& name,        
-            std::function<std::optional<TConfig>&()> commandGetter,
+            std::optional<TConfig>& commandValue,
             Type type)
         : info_(name, {}, {})
-        , commandGetter_(commandGetter)
+        , commandValue_(commandValue)
         , type_(type)
     {
     }
@@ -46,15 +44,14 @@ public:
 private:
     void read(const std::vector<std::string>& commandLine) override
     {
-        auto& commandCfg = commandGetter_();
-        if (!commandCfg.has_value()){
-            commandCfg.emplace();
+        if (!commandValue_){
+            commandValue_.emplace();
             if (helpFlag_){
-                detail::ConfigAccess<TConfig>(*commandCfg).addFlag(std::move(helpFlag_));
-                detail::ConfigAccess<TConfig>(*commandCfg).addHelpFlagToCommands(programName_);
+                detail::ConfigAccess<TConfig>(*commandValue_).addFlag(std::move(helpFlag_));
+                detail::ConfigAccess<TConfig>(*commandValue_).addHelpFlagToCommands(programName_);
             }
         }
-        commandCfg->read(commandLine);
+        commandValue_->read(commandLine);
     }
 
     void enableHelpFlag(const std::string& programName) override
@@ -80,84 +77,32 @@ private:
 
     std::string usageInfo() const override
     {
-        auto& commandCfg = commandGetter_();
-        if (!commandCfg.has_value())
+        if (!commandValue_)
             return {};
-        return commandCfg->usageInfo(programName_);
+        return commandValue_->usageInfo(programName_);
     }
 
     std::string usageInfoDetailed() const override
     {
-        auto& commandCfg = commandGetter_();
-        if (!commandCfg.has_value())
+        if (!commandValue_)
             return {};
-        return commandCfg->usageInfoDetailed(programName_);
+        return commandValue_->usageInfoDetailed(programName_);
     }
 
     std::vector<not_null<ICommand*>> commandList() override
     {
-        auto& commandCfg = commandGetter_();
-        if (!commandCfg.has_value())
+        if (!commandValue_)
             return {};
-        return detail::ConfigAccess<TConfig>(*commandCfg).commandList();
+        return detail::ConfigAccess<TConfig>(*commandValue_).commandList();
     }
 
 private:
     OptionInfo info_;
-    std::function<std::optional<TConfig>&()> commandGetter_;
+    std::optional<TConfig>& commandValue_;
     Type type_;
     std::string programName_;
     std::unique_ptr<IFlag> helpFlag_;
     bool helpFlagValue_ = false;
 };
-
-template<typename T, typename TConfig>
-class CommandCreator{
-    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
-public:
-    CommandCreator(TConfig& cfg,
-                   const std::string& varName,
-                   std::function<std::optional<T>&()> commandGetter,
-                   typename Command<T>::Type type = Command<T>::Type::Normal)
-        : cfg_(cfg)
-    {
-        static_assert (std::is_base_of_v<Config<ConfigAccess<TConfig>::format()>, T>,
-                       "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
-        Expects(!varName.empty());        
-        command_ = std::make_unique<Command<T>>(NameProvider::fullName(varName), commandGetter, type);
-    }
-
-    CommandCreator<T, TConfig>& operator<<(const std::string& info)
-    {
-        command_->info().addDescription(info);
-        return *this;
-    }
-
-    CommandCreator<T, TConfig>& operator<<(const Name& customName)
-    {
-        command_->info().resetName(customName.value());
-        return *this;
-    }
-
-    operator std::optional<T>()
-    {
-        ConfigAccess<TConfig>{cfg_}.addCommand(std::move(command_));
-        return std::optional<T>{};
-    }
-
-private:
-    std::unique_ptr<Command<T>> command_;
-    TConfig& cfg_;
-};
-
-template <typename T, typename TConfig>
-CommandCreator<T, TConfig> makeCommandCreator(TConfig& cfg,
-                                              const std::string& varName,
-                                              std::function<std::optional<T>&()> commandGetter,
-                                              typename Command<T>::Type type = Command<T>::Type::Normal)
-{
-    return CommandCreator<T, TConfig>{cfg, varName, commandGetter, type};
-}
-
 
 }
