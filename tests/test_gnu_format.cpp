@@ -48,6 +48,12 @@ struct FullConfigWithCommand : public Config{
     CMDLIME_COMMAND(subcommand, SubcommandConfig);
 };
 
+struct FullConfigWithoutMacro : public Config{
+    std::string requiredParam = param(&FullConfigWithoutMacro::requiredParam, "requiredParam", "string");
+    std::string optionalParam = param(&FullConfigWithoutMacro::optionalParam, "optionalParam", "string")("defaultValue");
+    std::optional<int> optionalIntParam = param(&FullConfigWithoutMacro::optionalIntParam, "optionalIntParam", "int")()  << cmdlime::ShortName("i");
+};
+
 TEST(GNUConfig, AllSet)
 {
     auto cfg = FullConfig{};
@@ -62,6 +68,15 @@ TEST(GNUConfig, AllSet)
     EXPECT_EQ(cfg.arg, 4.2);
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
     EXPECT_FALSE(cfg.subcommand.has_value());
+}
+
+TEST(GNUConfig, AllSetWithoutMacro)
+{
+    auto cfg = FullConfigWithoutMacro{};
+    cfg.read({"-r", "FOO", "-oBAR", "--optional-int-param", "9"});
+    EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
+    EXPECT_EQ(cfg.optionalIntParam, 9);
 }
 
 TEST(GNUConfig, AllSetInSubCommand)

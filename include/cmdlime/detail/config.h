@@ -1,5 +1,5 @@
 #pragma once
-#include "iparam.h"
+#include "paramcreator.h"
 #include "iparamlist.h"
 #include "iflag.h"
 #include "iarg.h"
@@ -101,6 +101,13 @@ public:
     void setUsageInfoDetailed(const std::string& info)
     {
         customUsageInfoDetailed_ = info;
+    }
+
+protected:
+    template <typename T, typename TCfg>
+    detail::ParamCreator<T, TCfg> param(T TCfg::* member, const std::string& name, const std::string& type)
+    {
+        return detail::ParamCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
     }
 
 private:
