@@ -5,23 +5,23 @@
 int main(int argc, char** argv)
 {
     struct RecordCfg: public cmdlime::Config{
-        PARAM(file, std::string)() << "save result to file";
-        PARAM(db, std::string)()   << "save result to database";
-        FLAG(detailed)             << "hide search results" << cmdlime::WithoutShortName{};
+        CMDLIME_PARAM(file, std::string)() << "save result to file";
+        CMDLIME_PARAM(db, std::string)()   << "save result to database";
+        CMDLIME_FLAG(detailed)             << "hide search results" << cmdlime::WithoutShortName{};
     };
 
     struct HistoryCfg: public cmdlime::Config{
-        PARAM(surname, std::string)() << "filter search queries by surname";
-        FLAG(noResults)               << "hide search results";
+        CMDLIME_PARAM(surname, std::string)() << "filter search queries by surname";
+        CMDLIME_FLAG(noResults)               << "hide search results";
     };
 
     struct Cfg : public cmdlime::Config{
-        ARG(zipCode, int)             << "zip code of the searched region";
-        PARAM(surname, std::string)   << "surname of the person to find";
-        PARAM(name, std::string)()    << "name of the person to find";
-        FLAG(verbose)                 << "adds more information to the output";
-        SUBCOMMAND(record, RecordCfg) << "record search result";
-        COMMAND(history, HistoryCfg)  << "show search history";
+        CMDLIME_ARG(zipCode, int)             << "zip code of the searched region";
+        CMDLIME_PARAM(surname, std::string)   << "surname of the person to find";
+        CMDLIME_PARAM(name, std::string)()    << "name of the person to find";
+        CMDLIME_FLAG(verbose)                 << "adds more information to the output";
+        CMDLIME_SUBCOMMAND(record, RecordCfg) << "record search result";
+        CMDLIME_COMMAND(history, HistoryCfg)  << "show search history";
     } cfg;
 
     auto reader = cmdlime::ConfigReader{cfg, "person-finder"};

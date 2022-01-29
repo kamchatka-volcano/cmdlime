@@ -4,9 +4,9 @@
 int main(int argc, char** argv)
 {
     struct Cfg : public cmdlime::Config{
-        ARG(zipCode, int);
-        PARAM(name, std::string);
-        FLAG(verbose);
+        CMDLIME_ARG(zipCode, int);
+        CMDLIME_PARAM(name, std::string);
+        CMDLIME_FLAG(verbose);
     } cfg;
 
     auto reader = cmdlime::ConfigReader{cfg, "person-finder"};

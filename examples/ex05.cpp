@@ -4,11 +4,11 @@
 int main(int argc, char** argv)
 {
     struct Cfg : public cmdlime::Config{
-        ARG(zipCode, int);
-        PARAM(name, std::string);
-        FLAG(verbose);
-        EXITFLAG(help)    << cmdlime::WithoutShortName{};
-        EXITFLAG(version) << cmdlime::WithoutShortName{};
+        CMDLIME_ARG(zipCode, int);
+        CMDLIME_PARAM(name, std::string);
+        CMDLIME_FLAG(verbose);
+        CMDLIME_EXITFLAG(help)    << cmdlime::WithoutShortName{};
+        CMDLIME_EXITFLAG(version) << cmdlime::WithoutShortName{};
     } cfg;
 
     try{

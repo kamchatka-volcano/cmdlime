@@ -4,10 +4,10 @@
 int main(int argc, char** argv)
 {
     struct Cfg : public cmdlime::Config{
-        ARG(zipCode, int)              << "zip code of the searched region";
-        PARAM(surname, std::string)    << "surname of the person to find";
-        PARAM(name, std::string)()     << "name of the person to find";
-        FLAG(verbose)                  << "adds more information to the output";
+        CMDLIME_ARG(zipCode, int)              << "zip code of the searched region";
+        CMDLIME_PARAM(surname, std::string)    << "surname of the person to find";
+        CMDLIME_PARAM(name, std::string)()     << "name of the person to find";
+        CMDLIME_FLAG(verbose)                  << "adds more information to the output";
     } cfg;
 
 

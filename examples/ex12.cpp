@@ -27,11 +27,11 @@ std::stringstream& operator>>(std::stringstream& stream, Coord& coord)
 int main(int argc, char** argv)
 {
     struct Cfg : public cmdlime::Config{
-        ARG(zipCode, int)              << "zip code of the searched region";
-        PARAM(surname, std::string)    << "surname of the person to find";
-        PARAM(name, std::string)()     << "name of the person to find";
-        PARAM(coord, Coord)            << "possible location";
-        FLAG(verbose)                  << "adds more information to the output";
+        CMDLIME_ARG(zipCode, int)              << "zip code of the searched region";
+        CMDLIME_PARAM(surname, std::string)    << "surname of the person to find";
+        CMDLIME_PARAM(name, std::string)()     << "name of the person to find";
+        CMDLIME_PARAM(coord, Coord)            << "possible location";
+        CMDLIME_FLAG(verbose)                  << "adds more information to the output";
     } cfg;
 
 
