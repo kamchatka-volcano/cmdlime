@@ -1,6 +1,6 @@
 #pragma once
 #include "paramcreator.h"
-#include "iparamlist.h"
+#include "paramlistcreator.h"
 #include "iflag.h"
 #include "iarg.h"
 #include "iarglist.h"
@@ -108,6 +108,12 @@ protected:
     detail::ParamCreator<T, TCfg> param(T TCfg::* member, const std::string& name, const std::string& type)
     {
         return detail::ParamCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
+    }
+
+    template <typename T, typename TCfg>
+    detail::ParamListCreator<T, TCfg> paramList(std::vector<T> TCfg::* member, const std::string& name, const std::string& type)
+    {
+        return detail::ParamListCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
     }
 
 private:
