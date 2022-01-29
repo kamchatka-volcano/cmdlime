@@ -2,7 +2,7 @@
 #include "paramcreator.h"
 #include "paramlistcreator.h"
 #include "flagcreator.h"
-#include "iarg.h"
+#include "argcreator.h"
 #include "iarglist.h"
 #include "icommand.h"
 #include "format.h"
@@ -126,6 +126,12 @@ protected:
     detail::FlagCreator<TCfg> exitFlag(bool TCfg::* member, const std::string& name)
     {
         return detail::FlagCreator<TCfg>{static_cast<TCfg&>(*this), name, static_cast<TCfg*>(this)->*member, detail::Flag::Type::Exit};
+    }
+
+    template <typename T, typename TCfg>
+    detail::ArgCreator<T, TCfg> arg(T TCfg::* member, const std::string& name, const std::string& type)
+    {
+        return detail::ArgCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
     }
 
 private:

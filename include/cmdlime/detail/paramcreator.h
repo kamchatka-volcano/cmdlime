@@ -80,7 +80,7 @@ template <typename T, typename TConfig>
 ParamCreator<T, TConfig> makeParamCreator(TConfig& cfg,
                                           const std::string& varName,
                                           const std::string& type,
-                                          std::function<T&()> paramGetter)
+                                          const std::function<T&()>& paramGetter)
 {
     return ParamCreator<T, TConfig>{cfg, varName, type, paramGetter()};
 }

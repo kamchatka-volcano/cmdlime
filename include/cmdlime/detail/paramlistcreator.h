@@ -81,7 +81,7 @@ template <typename T, typename TConfig>
 ParamListCreator<T, TConfig> makeParamListCreator(TConfig& cfg,
                                                   const std::string& varName,
                                                   const std::string& type,
-                                                  std::function<std::vector<T>&()> paramListGetter)
+                                                  const std::function<std::vector<T>&()>& paramListGetter)
 {
 return ParamListCreator<T, TConfig>{cfg, varName, type, paramListGetter()};
 }
