@@ -416,7 +416,7 @@ Flags:
 ```
 
 ### Using custom types
-To use custom types in the config, it's necessary to overload `std::stringstream` `operator<<` and `operator>>`.  
+To use custom types in the config, it's necessary to add a specialization of the struct `cmdlime::StringConverter` and implement its static methods `toString` and `fromString`.   
 Let's add a coordinate parameter `--coord` to the `person-finder` program.
 
 ```C++
@@ -424,29 +424,34 @@ Let's add a coordinate parameter `--coord` to the `person-finder` program.
 ///
 #include <cmdlime/config.h>
 #include <iostream>
-#include <sstream>
 
 struct Coord{
     double lat;
     double lon;
 };
-std::stringstream& operator<<(std::stringstream& stream, const Coord& coord)
-{
-    stream << coord.lat << "-" << coord.lon;
-    return stream;
-}
-std::stringstream& operator>>(std::stringstream& stream, Coord& coord)
-{
-    auto coordStr = std::string{};
-    stream >> coordStr;
-    auto delimPos = coordStr.find('-');
-    if (delimPos == std::string::npos)
-        throw cmdlime::Error{"Wrong coord format"};
-    coord.lat = std::stod(coordStr.substr(0, delimPos));
-    coord.lon = std::stod(coordStr.substr(delimPos + 1, coordStr.size() - delimPos - 1));
-    return stream;
-}
 
+namespace cmdlime{
+template<>
+struct StringConverter<Coord>{
+    static std::optional<std::string> toString(const Coord& coord)
+    {
+        auto stream = std::stringstream{};
+        stream << coord.lat << "-" << coord.lon;
+        return stream.str();
+    }
+
+    static std::optional<Coord> fromString(const std::string& data)
+    {
+        auto delimPos = data.find('-');
+        if (delimPos == std::string::npos)
+            return {};
+        auto coord = Coord{};
+        coord.lat = std::stod(data.substr(0, delimPos));
+        coord.lon = std::stod(data.substr(delimPos + 1, data.size() - delimPos - 1));
+        return coord;
+    }
+};
+}
 
 int main(int argc, char** argv)
 {

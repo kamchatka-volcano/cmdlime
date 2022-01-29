@@ -7,6 +7,7 @@
 #include <gsl/gsl>
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
+#include <cmdlime/stringconverter.h>
 #include <sstream>
 #include <functional>
 #include <memory>
@@ -37,21 +38,17 @@ public:
 private:
     bool read(const std::string& data) override
     {
-        auto stream = std::stringstream{data};
-        return readFromStream(stream, argGetter_());
+        auto argVal = convertFromString<T>(data);
+        if (!argVal)
+            return false;
+        argGetter_() = *argVal;
+        return true;
     }
 
 private:
     OptionInfo info_;
     std::function<T&()> argGetter_;
 };
-
-template <>
-inline bool Arg<std::string>::read(const std::string& data)
-{
-    argGetter_() = data;
-    return true;
-}
 
 template<typename T, typename TConfig>
 class ArgCreator{
