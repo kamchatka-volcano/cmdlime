@@ -1,7 +1,7 @@
 #pragma once
 #include "paramcreator.h"
 #include "paramlistcreator.h"
-#include "iflag.h"
+#include "flagcreator.h"
 #include "iarg.h"
 #include "iarglist.h"
 #include "icommand.h"
@@ -114,6 +114,18 @@ protected:
     detail::ParamListCreator<T, TCfg> paramList(std::vector<T> TCfg::* member, const std::string& name, const std::string& type)
     {
         return detail::ParamListCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
+    }
+
+    template <typename TCfg>
+    detail::FlagCreator<TCfg> flag(bool TCfg::* member, const std::string& name)
+    {
+        return detail::FlagCreator<TCfg>{static_cast<TCfg&>(*this), name, static_cast<TCfg*>(this)->*member, detail::Flag::Type::Normal};
+    }
+
+    template <typename TCfg>
+    detail::FlagCreator<TCfg> exitFlag(bool TCfg::* member, const std::string& name)
+    {
+        return detail::FlagCreator<TCfg>{static_cast<TCfg&>(*this), name, static_cast<TCfg*>(this)->*member, detail::Flag::Type::Exit};
     }
 
 private:

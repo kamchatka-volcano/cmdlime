@@ -63,7 +63,7 @@ private:
         using NameProvider = typename detail::Format<detail::ConfigAccess<TConfig>::format()>::nameProvider;
         helpFlag_ = std::make_unique<detail::Flag>(NameProvider::name("help"),
                                                    std::string{},
-                                                   [this]()->bool&{return helpFlagValue_;},
+                                                   helpFlagValue_,
                                                    detail::Flag::Type::Exit);
         helpFlag_->info().addDescription("show usage info and exit");
     }
