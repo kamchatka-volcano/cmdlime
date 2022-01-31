@@ -1,17 +1,11 @@
 #pragma once
+#include "detail/utils.h"
 #include <string>
 #include <sstream>
 #include <optional>
 
+
 namespace cmdlime{
-
-namespace detail {
-template<typename T, typename Enable = void>
-struct is_optional : std::false_type {};
-
-template<typename T>
-struct is_optional<std::optional<T> > : std::true_type {};
-}
 
 template<typename T>
 struct StringConverter{

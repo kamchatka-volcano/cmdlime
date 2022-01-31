@@ -8,9 +8,10 @@
 #include "format.h"
 #include "usageinfocreator.h"
 #include "configaccess.h"
+#include "utils.h"
+#include "nameof_import.h"
 #include <cmdlime/usageinfoformat.h>
 #include <cmdlime/errors.h>
-#include <gsl/pointers>
 #include <vector>
 #include <string>
 #include <map>
@@ -20,15 +21,6 @@
 
 namespace cmdlime::detail{
 using namespace gsl;
-
-template <typename T>
-inline std::vector<not_null<T*>> getPtrList(const std::vector<std::unique_ptr<T>>& ownerList)
-{
-    auto result = std::vector<not_null<T*>>{};
-    std::transform(ownerList.begin(), ownerList.end(), std::back_inserter(result),
-                   [](auto& owner){return owner.get();});
-    return result;
-}
 
 template<FormatType formatType>
 class Config{
@@ -104,59 +96,259 @@ public:
     }
 
 protected:
-    template <typename T, typename TCfg>
-    detail::ParamCreator<T, TCfg> param(T TCfg::* member, const std::string& name, const std::string& type)
+    template<auto TMember>
+    auto param(const std::string& memberName, const std::string& memberTypeName)
     {
-        return detail::ParamCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(TMember){};
+        return param<TMember>(ptr, memberName, memberTypeName);
     }
 
-    template <typename T, typename TCfg>
-    detail::ParamListCreator<T, TCfg> paramList(std::vector<T> TCfg::* member, const std::string& name, const std::string& type)
+    template<auto TMember>
+    auto paramList(const std::string& memberName, const std::string& memberTypeName)
     {
-        return detail::ParamListCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(TMember){};
+        return paramList<TMember>(ptr, memberName, memberTypeName);
     }
 
-    template <typename TCfg>
-    detail::FlagCreator<TCfg> flag(bool TCfg::* member, const std::string& name)
+    template<auto TMember>
+    auto flag(const std::string& memberName)
     {
-        return detail::FlagCreator<TCfg>{static_cast<TCfg&>(*this), name, static_cast<TCfg*>(this)->*member, detail::Flag::Type::Normal};
+        auto ptr = decltype(TMember){};
+        return flag<TMember>(ptr, memberName);
     }
 
-    template <typename TCfg>
-    detail::FlagCreator<TCfg> exitFlag(bool TCfg::* member, const std::string& name)
+    template<auto TMember>
+    auto exitFlag(const std::string& memberName)
     {
-        return detail::FlagCreator<TCfg>{static_cast<TCfg&>(*this), name, static_cast<TCfg*>(this)->*member, detail::Flag::Type::Exit};
+        auto ptr = decltype(TMember){};
+        return exitFlag<TMember>(ptr, memberName);
     }
 
-    template <typename T, typename TCfg>
-    detail::ArgCreator<T, TCfg> arg(T TCfg::* member, const std::string& name, const std::string& type)
+    template<auto TMember>
+    auto arg(const std::string& memberName, const std::string& memberTypeName)
     {
-        return detail::ArgCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(TMember){};
+        return arg<TMember>(ptr, memberName, memberTypeName);
     }
 
-    template <typename T, typename TCfg>
-    detail::ArgListCreator<T, TCfg> argList(std::vector<T> TCfg::* member, const std::string& name, const std::string& type)
+    template<auto TMember>
+    auto argList(const std::string& memberName, const std::string& memberTypeName)
     {
-        return detail::ArgListCreator<T, TCfg>{static_cast<TCfg&>(*this), name, type, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(TMember){};
+        return argList<TMember>(ptr, memberName, memberTypeName);
     }
 
-    template <typename T, typename TCfg>
-    detail::CommandCreator<T, TCfg> command(std::optional<T> TCfg::* member, const std::string& name)
+    template<auto TMember>
+    auto command(const std::string& memberName)
     {
-        static_assert (std::is_base_of_v<Config<ConfigAccess<TCfg>::format()>, T>,
-                      "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
-        return detail::CommandCreator<T, TCfg>{static_cast<TCfg&>(*this), name, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(TMember){};
+        return command<TMember>(ptr, memberName);
     }
 
-    template <typename T, typename TCfg>
-    detail::CommandCreator<T, TCfg> subCommand(std::optional<T> TCfg::* member, const std::string& name)
+    template<auto TMember>
+    auto subCommand(const std::string& memberName)
     {
-        static_assert (std::is_base_of_v<Config<ConfigAccess<TCfg>::format()>, T>,
-                       "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
-        return detail::CommandCreator<T, TCfg>{static_cast<TCfg&>(*this), name, static_cast<TCfg*>(this)->*member, detail::Command<T>::Type::SubCommand};
+        auto ptr = decltype(TMember){};
+        return subCommand<TMember>(ptr, memberName);
     }
+
+#ifdef CMDLIME_NAMEOF_AVAILABLE
+    template<auto TMember>
+    auto param()
+    {
+        auto ptr = decltype(TMember){};
+        return param<TMember>(ptr);
+    }
+
+    template<auto TMember>
+    auto paramList()
+    {
+        auto ptr = decltype(TMember){};
+        return paramList<TMember>(ptr);
+    }
+
+    template<auto TMember>
+    auto flag()
+    {
+        auto ptr = decltype(TMember){};
+        return flag<TMember>(ptr);
+    }
+
+    template<auto TMember>
+    auto exitFlag()
+    {
+        auto ptr = decltype(TMember){};
+        return exitFlag<TMember>(ptr);
+    }
+
+    template<auto TMember>
+    auto arg()
+    {
+        auto ptr = decltype(TMember){};
+        return arg<TMember>(ptr);
+    }
+
+    template<auto TMember>
+    auto argList()
+    {
+        auto ptr = decltype(TMember){};
+        return argList<TMember>(ptr);
+    }
+
+    template<auto TMember>
+    auto command()
+    {
+        auto ptr = decltype(TMember){};
+        return command<TMember>(ptr);
+    }
+
+    template<auto TMember>
+    auto subCommand()
+    {
+        auto ptr = decltype(TMember){};
+        return subCommand<TMember>(ptr);
+    }
+#endif
 
 private:
+
+    template <auto member, typename T, typename TCfg>
+    detail::ParamCreator<T, TCfg> param(T TCfg::*, const std::string& memberName, const std::string& memberTypeName)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ParamCreator<T, TCfg>{*cfg, memberName, memberTypeName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    detail::ParamListCreator<T, TCfg> paramList(std::vector<T> TCfg::*,
+                                                const std::string& memberName,
+                                                const std::string& memberTypeName)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ParamListCreator<T, TCfg>{*cfg, memberName, memberTypeName, cfg->*member};
+    }
+
+    template <auto member, typename TCfg>
+    detail::FlagCreator<TCfg> flag(bool TCfg::*, const std::string& memberName)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::FlagCreator<TCfg>{*cfg, memberName, cfg->*member};
+    }
+
+    template <auto member, typename TCfg>
+    detail::FlagCreator<TCfg> exitFlag(bool TCfg::*, const std::string& memberName)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::FlagCreator<TCfg>{*cfg, memberName, cfg->*member, detail::Flag::Type::Exit};
+    }
+
+
+    template <auto member, typename T, typename TCfg>
+    detail::ArgCreator<T, TCfg> arg(T TCfg::*, const std::string& memberName, const std::string& memberTypeName)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ArgCreator<T, TCfg>{*cfg, memberName, memberTypeName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    detail::ArgListCreator<T, TCfg> argList(std::vector<T> TCfg::*,
+                                            const std::string& memberName,
+                                            const std::string& memberTypeName)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ArgListCreator<T, TCfg>{*cfg, memberName, memberTypeName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    detail::CommandCreator<T, TCfg> command(std::optional<T> TCfg::*, const std::string& memberName)
+    {
+        static_assert(std::is_base_of_v<Config<ConfigAccess<TCfg>::format()>, T>,
+                      "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::CommandCreator<T, TCfg>{*cfg, memberName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    detail::CommandCreator<T, TCfg> subCommand(std::optional<T> TCfg::*, const std::string& memberName)
+    {
+        static_assert(std::is_base_of_v<Config<ConfigAccess<TCfg>::format()>, T>,
+                      "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::CommandCreator<T, TCfg>{*cfg, memberName, cfg->*member, detail::Command<T>::Type::SubCommand};
+    }
+
+#ifdef CMDLIME_NAMEOF_AVAILABLE
+    template <auto member, typename T, typename TCfg>
+    detail::ParamCreator<T, TCfg> param(T TCfg::*)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        auto [memberName, memberTypeName] = getMemberPtrNameAndType<member>(cfg);
+        return detail::ParamCreator<T, TCfg>{*cfg, memberName, memberTypeName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    detail::ParamListCreator<T, TCfg> paramList(std::vector<T> TCfg::*)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        auto [memberName, _] = getMemberPtrNameAndType<member>(cfg);
+        const auto memberTypeName = nameOfType<T>();
+        return detail::ParamListCreator<T, TCfg>{*cfg, memberName, memberTypeName, cfg->*member};
+    }
+
+    template <auto member, typename TCfg>
+    detail::FlagCreator<TCfg> flag(bool TCfg::*)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        auto [memberName, _] = getMemberPtrNameAndType<member>(cfg);
+        return detail::FlagCreator{*cfg, memberName, cfg->*member};
+    }
+
+    template <auto member, typename TCfg>
+    detail::FlagCreator<TCfg> exitFlag(bool TCfg::*)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        auto [memberName, _] = getMemberPtrNameAndType<member>(cfg);
+        return detail::FlagCreator{*cfg, memberName, cfg->*member, detail::Flag::Type::Exit};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    detail::ArgCreator<T, TCfg> arg(T TCfg::*)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        auto [memberName, memberTypeName] = getMemberPtrNameAndType<member>(cfg);
+        return detail::ArgCreator<T, TCfg>{*cfg, memberName, memberTypeName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    detail::ArgListCreator<T, TCfg> argList(std::vector<T> TCfg::*)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        auto [memberName, _] = getMemberPtrNameAndType<member>(cfg);
+        const auto memberTypeName = nameOfType<T>();
+        return detail::ArgListCreator<T, TCfg>{*cfg, memberName, memberTypeName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    detail::CommandCreator<T, TCfg> command(std::optional<T> TCfg::*)
+    {
+        static_assert(std::is_base_of_v<Config<ConfigAccess<TCfg>::format()>, T>,
+                      "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
+        auto cfg = static_cast<TCfg*>(this);
+        auto [memberName, _] = getMemberPtrNameAndType<member>(cfg);
+        return detail::CommandCreator<T, TCfg>{*cfg, memberName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    detail::CommandCreator<T, TCfg> subCommand(std::optional<T> TCfg::*)
+    {
+        static_assert(std::is_base_of_v<Config<ConfigAccess<TCfg>::format()>, T>,
+                      "Command's type must be a subclass of Config<FormatType> and have the same format as its parent config.");
+        auto cfg = static_cast<TCfg*>(this);
+        auto [memberName, _] = getMemberPtrNameAndType<member>(cfg);
+        return detail::CommandCreator<T, TCfg>{*cfg, memberName, cfg->*member, detail::Command<T>::Type::SubCommand};
+    }
+#endif
+
     void addParam(std::unique_ptr<IParam> param)
     {
         params_.emplace_back(std::move(param));
