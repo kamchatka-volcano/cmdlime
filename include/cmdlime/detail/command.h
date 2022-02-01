@@ -1,18 +1,18 @@
 #pragma once
 #include "icommand.h"
 #include "optioninfo.h"
-#include "configaccess.h"
-#include "format.h"
-#include "streamreader.h"
 #include "flag.h"
-#include <gsl/gsl>
+#include "iconfig.h"
+#include "options.h"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
+#include <gsl/gsl>
 #include <sstream>
 #include <functional>
 #include <memory>
 
 namespace cmdlime::detail{
+using namespace gsl;
 
 template <typename TConfig>
 class Command : public ICommand{
@@ -23,11 +23,14 @@ public:
     };
 
     Command(const std::string& name,        
-            std::optional<TConfig>& commandValue,
+            std::optional<TConfig>& commandCfg,
             Type type)
         : info_(name, {}, {})
-        , commandValue_(commandValue)
         , type_(type)
+        , makeCfg_([&commandCfg]{
+            commandCfg.emplace();
+            return &commandCfg.value();
+          })
     {
     }
 
@@ -44,20 +47,21 @@ public:
 private:
     void read(const std::vector<std::string>& commandLine) override
     {
-        if (!commandValue_){
-            commandValue_.emplace();
+        if (!cfg_){
+            cfg_ = makeCfg_();
             if (helpFlag_){
-                detail::ConfigAccess<TConfig>(*commandValue_).addFlag(std::move(helpFlag_));
-                detail::ConfigAccess<TConfig>(*commandValue_).addHelpFlagToCommands(programName_);
+                cfg_->addFlag(std::move(helpFlag_));
+                for (auto& command : cfg_->options().commands())
+                    command->enableHelpFlag(programName_);
             }
         }
-        commandValue_->read(commandLine);
+        cfg_->read(commandLine);
     }
 
     void enableHelpFlag(const std::string& programName) override
     {        
         programName_ = programName + " " + info_.name();
-        using NameProvider = typename detail::Format<detail::ConfigAccess<TConfig>::format()>::nameProvider;
+        using NameProvider = typename detail::FormatCfg<TConfig::format()>::nameProvider;
         helpFlag_ = std::make_unique<detail::Flag>(NameProvider::name("help"),
                                                    std::string{},
                                                    helpFlagValue_,
@@ -75,33 +79,32 @@ private:
         return type_ == Type::SubCommand;
     }
 
+    IConfig* config() const override
+    {
+        return cfg_;
+    }
+
     std::string usageInfo() const override
     {
-        if (!commandValue_)
+        if (!cfg_)
             return {};
-        return commandValue_->usageInfo(programName_);
+        return cfg_->usageInfo(programName_);
     }
 
     std::string usageInfoDetailed() const override
     {
-        if (!commandValue_)
+        if (!cfg_)
             return {};
-        return commandValue_->usageInfoDetailed(programName_);
-    }
-
-    std::vector<not_null<ICommand*>> commandList() override
-    {
-        if (!commandValue_)
-            return {};
-        return detail::ConfigAccess<TConfig>(*commandValue_).commandList();
+        return cfg_->usageInfoDetailed(programName_);
     }
 
 private:
     OptionInfo info_;
-    std::optional<TConfig>& commandValue_;
     Type type_;
+    std::function<not_null<IConfig*>()> makeCfg_;
     std::string programName_;
     std::unique_ptr<IFlag> helpFlag_;
+    IConfig* cfg_ = nullptr;
     bool helpFlagValue_ = false;
 };
 

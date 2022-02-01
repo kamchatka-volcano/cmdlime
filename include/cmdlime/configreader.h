@@ -1,9 +1,8 @@
 #pragma once
 #include "errors.h"
 #include "usageinfoformat.h"
-#include "detail/config.h"
+#include "baseconfig.h"
 #include "detail/configmacro.h"
-#include "detail/configaccess.h"
 #include "detail/flag.h"
 #include <gsl/gsl>
 #include <iostream>
@@ -63,13 +62,13 @@ public:
 private:
     void addExitFlags()
     {
-        using NameProvider = typename detail::Format<detail::ConfigAccess<TConfig>::format()>::nameProvider;
+        using NameProvider = typename detail::FormatCfg<TConfig::format()>::nameProvider;
         auto helpFlag = std::make_unique<detail::Flag>(NameProvider::name("help"),
                                                        std::string{},
                                                        help_,
                                                        detail::Flag::Type::Exit);
         helpFlag->info().addDescription("show usage info and exit");
-        detail::ConfigAccess<TConfig>{cfg_}.addFlag(std::move(helpFlag));
+        cfg_.addFlag(std::move(helpFlag));
 
         if (!cfg_.versionInfo().empty()){
             auto versionFlag = std::make_unique<detail::Flag>(NameProvider::name("version"),
@@ -77,10 +76,11 @@ private:
                                                            version_,
                                                            detail::Flag::Type::Exit);
             versionFlag->info().addDescription("show version info and exit");
-            detail::ConfigAccess<TConfig>{cfg_}.addFlag(std::move(versionFlag));
+            cfg_.addFlag(std::move(versionFlag));
         }
 
-        detail::ConfigAccess<TConfig>(cfg_).addHelpFlagToCommands(programName_);
+        for (auto& command : cfg_.options().commands())
+            command->enableHelpFlag(programName_);
     }
 
     bool processCommandLine(const std::vector<std::string>& cmdLine)
@@ -112,23 +112,24 @@ private:
             return true;
         }
 
-        for (auto command :  detail::ConfigAccess<TConfig>{cfg_}.commandList())
-            if (checkCommandHelpFlag(command))
+        for (auto& command : cfg_.options().commands())
+            if (checkCommandHelpFlag(*command))
                 return true;
 
         return false;
     }
 
-    bool checkCommandHelpFlag(gsl::not_null<detail::ICommand*> command)
+    bool checkCommandHelpFlag(detail::ICommand& command)
     {
-        if (command->isHelpFlagSet()){
-            std::cout << command->usageInfoDetailed() << std::endl;
+        if (command.isHelpFlagSet()){
+            std::cout << command.usageInfoDetailed() << std::endl;
             return true;
         }
 
-        for (auto childCommand : command->commandList())
-            if (checkCommandHelpFlag(childCommand))
-                return true;
+        if (command.config())
+            for (auto& childCommand : command.config()->options().commands())
+                if (checkCommandHelpFlag(*childCommand))
+                    return true;
 
         return false;
     }
@@ -152,7 +153,7 @@ private:
     }
 
 private:
-    TConfig& cfg_;
+    detail::IConfig& cfg_;
     std::string programName_;
     UsageInfoFormat usageInfoFormat_;
     std::map<int, CommandHelpFlag> commandHelpFlags_;

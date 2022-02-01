@@ -1,8 +1,9 @@
 #pragma once
 #include <string>
-#include "optioninfo.h"
 
 namespace cmdlime::detail{
+class OptionInfo;
+
 class IArg{
 public:    
     virtual ~IArg() = default;

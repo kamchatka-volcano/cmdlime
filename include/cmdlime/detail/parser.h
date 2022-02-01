@@ -5,7 +5,8 @@
 #include "iarg.h"
 #include "iarglist.h"
 #include "icommand.h"
-#include "format.h"
+#include "options.h"
+#include "formatcfg.h"
 #include <cmdlime/errors.h>
 #include <gsl/gsl>
 #include <utility>
@@ -18,7 +19,7 @@
 namespace cmdlime::detail{
 using namespace gsl;
 
-template <FormatType formatType>
+template <Format formatType>
 class Parser{
 protected:
     enum class ReadMode{
@@ -29,7 +30,7 @@ protected:
     };
 
 private:
-    using OutputFormatter = typename Format<formatType>::outputFormatter;
+    using OutputFormatter = typename FormatCfg<formatType>::outputFormatter;
 
     class ReadModeScope{
     public:
@@ -49,18 +50,8 @@ private:
     };
 
 public:
-    Parser(std::vector<not_null<IParam*>> params,
-           std::vector<not_null<IParamList*>> paramLists,
-           std::vector<not_null<IFlag*>> flags,
-           std::vector<not_null<IArg*>> args,
-           IArgList* argList,
-           std::vector<not_null<ICommand*>> commands)
-        : params_(std::move(params))
-        , paramLists_(std::move(paramLists))
-        , flags_(std::move(flags))
-        , args_(std::move(args))
-        , argList_(argList)
-        , commands_(std::move(commands))
+    explicit Parser(const Options& options)
+        : options_(options)
     {}
     virtual ~Parser() = default;
 
@@ -68,7 +59,10 @@ public:
     {
         checkNames();
         argsToRead_.clear();
-        std::copy(args_.begin(), args_.end(), std::back_inserter(argsToRead_));
+
+        std::transform(options_.args().begin(), options_.args().end(),
+                       std::back_inserter(argsToRead_),
+                       [](auto& arg) { return arg.get(); });
 
         if (readCommandsAndExitFlags(cmdLine))
             return;
@@ -108,8 +102,8 @@ protected:
     };
     IParam* findParam(const std::string& name, FindMode mode = FindMode::All)
     {
-        auto paramIt = std::find_if(params_.begin(), params_.end(),
-            [&](auto param){
+        auto paramIt = std::find_if(options_.params().begin(), options_.params().end(),
+            [&](auto& param){
                 switch(mode){
                 case FindMode::Name:
                     return param->info().name() == name;
@@ -121,15 +115,15 @@ protected:
                     return false;
                 }
             });
-        if (paramIt == params_.end())
+        if (paramIt == options_.params().end())
             return nullptr;
-        return *paramIt;
+        return paramIt->get();
     }
 
     IParamList* findParamList(const std::string& name, FindMode mode = FindMode::All)
     {
-        auto paramListIt = std::find_if(paramLists_.begin(), paramLists_.end(),
-            [&](auto paramList){
+        auto paramListIt = std::find_if(options_.paramLists().begin(), options_.paramLists().end(),
+            [&](auto& paramList){
                 switch(mode){
                 case FindMode::Name:
                     return paramList->info().name() == name;
@@ -141,9 +135,9 @@ protected:
                     return false;
                 }
             });
-        if (paramListIt == paramLists_.end())
+        if (paramListIt == options_.paramLists().end())
             return nullptr;
-        return *paramListIt;
+        return paramListIt->get();
     }
 
     void readParam(const std::string& name, const std::string& value)
@@ -170,8 +164,8 @@ protected:
 
     IFlag* findFlag(const std::string& name, FindMode mode = FindMode::All)
     {
-        auto flagIt = std::find_if(flags_.begin(), flags_.end(),
-            [&](auto flag){
+        auto flagIt = std::find_if(options_.flags().begin(), options_.flags().end(),
+            [&](auto& flag){
             switch(mode){
                 case FindMode::Name:
                     return flag->info().name() == name;
@@ -183,9 +177,9 @@ protected:
                     return false;
                 }
             });
-        if (flagIt == flags_.end())
+        if (flagIt == options_.flags().end())
             return nullptr;
-        return *flagIt;
+        return flagIt->get();
     }
 
     void readFlag(const std::string& name)
@@ -221,11 +215,11 @@ protected:
             if (!arg->read(value))
                 throw ParsingError{"Couldn't set argument '" + arg->info().name() + "' value from '" + value + "'"};
         }
-        else if (argList_){
+        else if (options_.argList()){
             if (value.empty())
-                throw ParsingError{"Arg list '" + argList_->info().name() + "' element value can't be empty"};
-            if (!argList_->read(value))
-                throw ParsingError{"Couldn't set argument list '" + argList_->info().name() + "' element's value from '" + value + "'"};
+                throw ParsingError{"Arg list '" + options_.argList()->info().name() + "' element value can't be empty"};
+            if (!options_.argList()->read(value))
+                throw ParsingError{"Couldn't set argument list '" + options_.argList()->info().name() + "' element's value from '" + value + "'"};
         }
         else
             throw ParsingError("Encountered unknown positional argument '" + value + "'");
@@ -234,19 +228,19 @@ protected:
 
     void forEachParamInfo(const std::function<void(const OptionInfo&)>& handler)
     {
-        for (auto param : params_)
+        for (auto& param : options_.params())
             handler(param->info());
     }
 
     void forEachParamListInfo(const std::function<void(const OptionInfo&)>& handler)
     {
-        for (auto paramList : paramLists_)
+        for (auto& paramList : options_.paramLists())
             handler(paramList->info());
     }
 
     void forEachFlagInfo(const std::function<void(const OptionInfo&)>& handler)
     {
-        for (auto flag : flags_)
+        for (auto& flag : options_.flags())
             handler(flag->info());
     }
 
@@ -257,14 +251,14 @@ private:
 
     ICommand* findCommand(const std::string& name)
     {
-        auto commandIt = std::find_if(commands_.begin(), commands_.end(),
-            [&](auto command){
+        auto commandIt = std::find_if(options_.commands().begin(), options_.commands().end(),
+            [&](auto& command){
                 return command->info().name() == name;
 
             });
-        if (commandIt == commands_.end())
+        if (commandIt == options_.commands().end())
             return nullptr;
-        return *commandIt;
+        return commandIt->get();
     }
 
     void readCommand(ICommand* command, const std::vector<std::string>& cmdLine)
@@ -316,7 +310,7 @@ private:
 
     bool isExitFlagSet()
     {
-        for (const auto flag : flags_)
+        for (const auto& flag : options_.flags())
             if (flag->isSet() && flag->isExitFlag())
                 return true;
         return false;
@@ -324,11 +318,11 @@ private:
 
     void checkUnreadParams()
     {
-        for (const auto param : params_)
+        for (const auto& param : options_.params())
             if (!param->hasValue())
                 throw ParsingError{"Parameter '" + OutputFormatter::paramPrefix() + param->info().name() + "' is missing."};
 
-        for (const auto paramList : paramLists_)
+        for (const auto& paramList : options_.paramLists())
             if (!paramList->hasValue())
                 throw ParsingError{"Parameter '" + OutputFormatter::paramPrefix() + paramList->info().name() + "' is missing."};
     }
@@ -341,8 +335,8 @@ private:
 
     void checkUnreadArgList()
     {
-        if (argList_ && !argList_->hasValue())
-            throw ParsingError{"Arguments list '" + argList_->info().name() + "' is missing."};
+        if (options_.argList() && !options_.argList()->hasValue())
+            throw ParsingError{"Arguments list '" + options_.argList()->info().name() + "' is missing."};
     }
 
     void checkNames()
@@ -359,11 +353,11 @@ private:
                 throw ConfigError{varType + " short name '" + var.shortName() + "' is already used."};
             encounteredNames.insert(var.shortName());
         };
-        for (auto param : params_)
+        for (auto& param : options_.params())
             processName("Parameter's", param->info());
-        for (auto paramList : paramLists_)
+        for (auto& paramList : options_.paramLists())
             processName("Parameter's", paramList->info());
-        for (auto flag : flags_)
+        for (auto& flag : options_.flags())
             processName("Flag's", flag->info());
     }
 
@@ -371,12 +365,7 @@ protected:
     ReadMode readMode_ = ReadMode::All;
 
 private:
-    std::vector<not_null<IParam*>> params_;
-    std::vector<not_null<IParamList*>> paramLists_;
-    std::vector<not_null<IFlag*>> flags_;
-    std::vector<not_null<IArg*>> args_;    
-    IArgList* argList_;
-    std::vector<not_null<ICommand*>> commands_;
+    const Options& options_;
     std::deque<not_null<IArg*>> argsToRead_;
     ICommand* foundCommand_ = nullptr;
 };

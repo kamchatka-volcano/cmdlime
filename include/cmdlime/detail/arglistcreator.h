@@ -1,16 +1,16 @@
 #pragma once
 #include "arglist.h"
-#include "configaccess.h"
-#include "format.h"
+#include "iconfig.h"
+#include "formatcfg.h"
 
 namespace cmdlime::detail{
 
-template<typename T, typename TConfig>
+template<typename T, Format format>
 class ArgListCreator{
-    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
+    using NameProvider = typename FormatCfg<format>::nameProvider;
 
 public:
-    ArgListCreator(TConfig& cfg,
+    ArgListCreator(IConfig& cfg,
                    const std::string& varName,
                    const std::string& type,
                    std::vector<T>& argListValue)
@@ -23,25 +23,25 @@ public:
                                                 argListValue);
     }
 
-    ArgListCreator<T, TConfig>& operator<<(const std::string& info)
+    auto& operator<<(const std::string& info)
     {
         argList_->info().addDescription(info);
         return *this;
     }
 
-    ArgListCreator<T, TConfig>& operator<<(const Name& customName)
+    auto& operator<<(const Name& customName)
     {
         argList_->info().resetName(customName.value());
         return *this;
     }
 
-    ArgListCreator<T, TConfig>& operator<<(const ValueName& valueName)
+    auto& operator<<(const ValueName& valueName)
     {
         argList_->info().resetValueName(valueName.value());
         return *this;
     }
 
-    ArgListCreator<T, TConfig>& operator()(std::vector<T> defaultValue = {})
+    auto& operator()(std::vector<T> defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
         argList_->setDefaultValue(defaultValue_);
@@ -50,23 +50,23 @@ public:
 
     operator std::vector<T>()
     {
-        ConfigAccess<TConfig>{cfg_}.setArgList(std::move(argList_));
+        cfg_.setArgList(std::move(argList_));
         return defaultValue_;
     }
 
 private:
     std::unique_ptr<ArgList<T>> argList_;
     std::vector<T> defaultValue_;
-    TConfig& cfg_;
+    IConfig& cfg_;
 };
 
 template <typename T, typename TConfig>
-ArgListCreator<T, TConfig> makeArgListCreator(TConfig& cfg,
-                                              const std::string& varName,
-                                              const std::string& type,
-                                              const std::function<std::vector<T>&()>& argListGetter)
+auto makeArgListCreator(TConfig& cfg,
+                        const std::string& varName,
+                        const std::string& type,
+                        const std::function<std::vector<T>&()>& argListGetter)
 {
-    return ArgListCreator<T, TConfig>{cfg, varName, type, argListGetter()};
+    return ArgListCreator<T, TConfig::format()>{cfg, varName, type, argListGetter()};
 }
 
 }

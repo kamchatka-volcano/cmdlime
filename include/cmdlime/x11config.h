@@ -2,10 +2,10 @@
 #include "customnames.h"
 #include "configreader.h"
 #include "stringconverter.h"
-#include "detail/config.h"
+#include "baseconfig.h"
 #include "detail/configmacro.h"
 #include "detail/x11format.h"
 
 namespace cmdlime{
-using X11Config = cmdlime::detail::Config<cmdlime::detail::FormatType::X11>;
+using X11Config = cmdlime::BaseConfig<cmdlime::Format::X11>;
 }

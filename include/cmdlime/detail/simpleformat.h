@@ -1,6 +1,6 @@
 #pragma once
 #include "parser.h"
-#include "format.h"
+#include "formatcfg.h"
 #include "nameutils.h"
 #include "utils.h"
 #include <sfun/string_utils.h>
@@ -13,7 +13,7 @@
 namespace cmdlime::detail{
 namespace str = sfun::string_utils;
 
-template <FormatType formatType>
+template <Format formatType>
 class DefaultParser : public Parser<formatType>
 {
     using Parser<formatType>::Parser;
@@ -198,9 +198,9 @@ public:
 };
 
 template<>
-struct Format<FormatType::Simple>
+struct FormatCfg<Format::Simple>
 {
-    using parser = DefaultParser<FormatType::Simple>;
+    using parser = DefaultParser<Format::Simple>;
     using nameProvider = DefaultNameProvider;
     using outputFormatter = DefaultOutputFormatter;
     static constexpr bool shortNamesEnabled = false;

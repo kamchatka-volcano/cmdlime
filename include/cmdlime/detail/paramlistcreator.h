@@ -1,16 +1,16 @@
 #pragma once
 #include "paramlist.h"
-#include "configaccess.h"
-#include "format.h"
+#include "iconfig.h"
+#include "formatcfg.h"
 
 namespace cmdlime::detail {
 
-template<typename T, typename TConfig>
+template<typename T, Format format>
 class ParamListCreator{
-    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
+    using NameProvider = typename FormatCfg<format>::nameProvider;
 
 public:
-    ParamListCreator(TConfig& cfg,
+    ParamListCreator(IConfig& cfg,
                      const std::string& varName,
                      const std::string& type,
                      std::vector<T>& paramListValue)
@@ -24,41 +24,41 @@ public:
                 paramListValue);
     }
 
-    ParamListCreator<T, TConfig>& operator<<(const std::string& info)
+    auto& operator<<(const std::string& info)
     {
         paramList_->info().addDescription(info);
         return *this;
     }
 
-    ParamListCreator<T, TConfig>& operator<<(const Name& customName)
+    auto& operator<<(const Name& customName)
     {
         paramList_->info().resetName(customName.value());
         return *this;
     }
 
-    ParamListCreator<T, TConfig>& operator<<(const ShortName& customName)
+    auto& operator<<(const ShortName& customName)
     {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
+        static_assert(FormatCfg<format>::shortNamesEnabled,
                       "Current command line format doesn't support short names");
         paramList_->info().resetShortName(customName.value());
         return *this;
     }
 
-    ParamListCreator<T, TConfig>& operator<<(const WithoutShortName&)
+    auto& operator<<(const WithoutShortName&)
     {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
+        static_assert(FormatCfg<format>::shortNamesEnabled,
                       "Current command line format doesn't support short names");
         paramList_->info().resetShortName({});
         return *this;
     }
 
-    ParamListCreator<T, TConfig>& operator<<(const ValueName& valueName)
+    auto& operator<<(const ValueName& valueName)
     {
         paramList_->info().resetValueName(valueName.value());
         return *this;
     }
 
-    ParamListCreator<T, TConfig>& operator()(std::vector<T> defaultValue = {})
+    auto& operator()(std::vector<T> defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
         paramList_->setDefaultValue(defaultValue_);
@@ -67,23 +67,23 @@ public:
 
     operator std::vector<T>()
     {
-        ConfigAccess<TConfig>{cfg_}.addParamList(std::move(paramList_));
+        cfg_.addParamList(std::move(paramList_));
         return defaultValue_;
     }
 
 private:
     std::unique_ptr<ParamList<T>> paramList_;
     std::vector<T> defaultValue_;
-    TConfig& cfg_;
+    IConfig& cfg_;
 };
 
 template <typename T, typename TConfig>
-ParamListCreator<T, TConfig> makeParamListCreator(TConfig& cfg,
-                                                  const std::string& varName,
-                                                  const std::string& type,
-                                                  const std::function<std::vector<T>&()>& paramListGetter)
+auto makeParamListCreator(TConfig& cfg,
+                          const std::string& varName,
+                          const std::string& type,
+                          const std::function<std::vector<T>&()>& paramListGetter)
 {
-return ParamListCreator<T, TConfig>{cfg, varName, type, paramListGetter()};
+return ParamListCreator<T, TConfig::format()>{cfg, varName, type, paramListGetter()};
 }
 
 

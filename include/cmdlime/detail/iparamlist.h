@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
-#include "optioninfo.h"
 
 namespace cmdlime::detail{
+class OptionInfo;
 
 class IParamList{
 public:

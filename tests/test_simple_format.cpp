@@ -360,7 +360,7 @@ TEST(SimpleConfig, MultipleArgLists)
     assert_exception<cmdlime::ConfigError>(
         [&cfg]{cfg.read({"-param=Foo"});},
         [](const cmdlime::ConfigError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Config can have only one arguments list"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"BaseConfig can have only one arguments list"});
         });
 }
 

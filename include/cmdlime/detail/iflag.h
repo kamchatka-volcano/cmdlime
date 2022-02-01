@@ -1,7 +1,7 @@
 #pragma once
-#include "optioninfo.h"
 
 namespace cmdlime::detail{
+class OptionInfo;
 
 class IFlag{
 public:    
