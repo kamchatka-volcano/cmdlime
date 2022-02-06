@@ -642,16 +642,18 @@ TEST(X11Config, ConfigErrorRepeatingFlagNames)
 TEST(X11Config, UsageInfo)
 {
     auto cfg = FullConfig{};
+    cfg.setProgramName("testproc");
     auto expectedInfo = std::string{
     "Usage: testproc [commands] <arg> -requiredparam <string> -paramlist <string>... "
     "[-optionalparam <string>] [-optionalintparam <int>] [-optionalparamlist <int>...] [-flag] <arglist...>\n"
     };
-    EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
+    EXPECT_EQ(cfg.usageInfo(), expectedInfo);
 }
 
 TEST(X11Config, DetailedUsageInfo)
 {
     auto cfg = FullConfig{};
+    cfg.setProgramName("testproc");
     auto expectedDetailedInfo = std::string{
     "Usage: testproc [commands] <arg> -requiredparam <string> -paramlist <string>... [params] [flags] <arglist...>\n"
     "Arguments:\n"
@@ -667,7 +669,7 @@ TEST(X11Config, DetailedUsageInfo)
     "   -flag                       \n"
     "Commands:\n"
     "    subcommand [options]       \n"};
-    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
+    EXPECT_EQ(cfg.usageInfoDetailed(), expectedDetailedInfo);
 }
 
 TEST(X11Config, CustomValueNames)
@@ -680,6 +682,7 @@ TEST(X11Config, CustomValueNames)
     };
 
     auto cfg = TestConfig{};
+    cfg.setProgramName("testproc");
     auto expectedInfo = std::string{
     "Usage: testproc <arg> -param <STRING> [params] <arglist...>\n"
     "Arguments:\n"
@@ -689,7 +692,7 @@ TEST(X11Config, CustomValueNames)
     "   -param <STRING>         \n"
     "   -paramlist <INTS>       multi-value, optional, default: {}\n"
     };
-    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedInfo);
+    EXPECT_EQ(cfg.usageInfoDetailed(), expectedInfo);
 }
 
 TEST(X11Config, WrongParamsWithExitFlag){

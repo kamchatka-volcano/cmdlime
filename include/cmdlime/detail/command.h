@@ -6,6 +6,7 @@
 #include "options.h"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
+#include <cmdlime/usageinfoformat.h>
 #include <gsl/gsl>
 #include <sstream>
 #include <functional>
@@ -22,7 +23,7 @@ public:
         SubCommand
     };
 
-    Command(const std::string& name,        
+    Command(const std::string& name,
             std::optional<TConfig>& commandCfg,
             Type type)
         : info_(name, {}, {})
@@ -49,18 +50,19 @@ private:
     {
         if (!cfg_){
             cfg_ = makeCfg_();
+            cfg_->setCommandName(commandName_);
+            cfg_->setUsageInfoFormat(commandUsageInfoFormat_);
             if (helpFlag_){
                 cfg_->addFlag(std::move(helpFlag_));
                 for (auto& command : cfg_->options().commands())
-                    command->enableHelpFlag(programName_);
+                    command->enableHelpFlag();
             }
         }
         cfg_->read(commandLine);
     }
 
-    void enableHelpFlag(const std::string& programName) override
-    {        
-        programName_ = programName + " " + info_.name();
+    void enableHelpFlag() override
+    {
         using NameProvider = typename detail::FormatCfg<TConfig::format()>::nameProvider;
         helpFlag_ = std::make_unique<detail::Flag>(NameProvider::name("help"),
                                                    std::string{},
@@ -88,21 +90,33 @@ private:
     {
         if (!cfg_)
             return {};
-        return cfg_->usageInfo(programName_);
+        return cfg_->usageInfo();
     }
 
     std::string usageInfoDetailed() const override
     {
         if (!cfg_)
             return {};
-        return cfg_->usageInfoDetailed(programName_);
+        return cfg_->usageInfoDetailed();
+    }
+
+    void setUsageInfoFormat(const UsageInfoFormat& format) override
+    {
+        commandUsageInfoFormat_ = format;
+    }
+
+    void setCommandName(const std::string& parentCommandName) override
+    {
+        commandName_ = parentCommandName.empty() ? info_.name() :
+                       parentCommandName + " " + info_.name();
     }
 
 private:
     OptionInfo info_;
     Type type_;
+    UsageInfoFormat commandUsageInfoFormat_;
     std::function<not_null<IConfig*>()> makeCfg_;
-    std::string programName_;
+    std::string commandName_;
     std::unique_ptr<IFlag> helpFlag_;
     IConfig* cfg_ = nullptr;
     bool helpFlagValue_ = false;

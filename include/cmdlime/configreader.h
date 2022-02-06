@@ -27,14 +27,15 @@ class ConfigReader{
 
 public:
     ConfigReader(TConfig& cfg,
-                 std::string programName,
+                 const std::string& programName,
                  const UsageInfoFormat& usageInfoFormat = {},
                  ErrorOutputMode errorOutputMode = ErrorOutputMode::STDERR)
         : cfg_(cfg)
-        , programName_(std::move(programName))
-        , usageInfoFormat_(usageInfoFormat)
-        , errorOutput_(errorOutputMode == ErrorOutputMode::STDERR ? std::cerr : std::cout)
-    {}
+        , errorOutput_(errorOutputMode == ErrorOutputMode::STDERR ? &std::cerr : &std::cout)
+    {
+        cfg_.setCommandName(programName);
+        cfg_.setUsageInfoFormat(usageInfoFormat);
+    }
 
     int exitCode() const
     {
@@ -59,6 +60,16 @@ public:
         return read(cmdLine);
     }
 
+    void setOutputStream(std::ostream& outStream)
+    {
+        output_ = &outStream;
+    }
+
+    void setErrorOutputStream(std::ostream& outStream)
+    {
+        errorOutput_ = &outStream;
+    }
+
 private:
     void addExitFlags()
     {
@@ -80,7 +91,7 @@ private:
         }
 
         for (auto& command : cfg_.options().commands())
-            command->enableHelpFlag(programName_);
+            command->enableHelpFlag();
     }
 
     bool processCommandLine(const std::vector<std::string>& cmdLine)
@@ -89,13 +100,13 @@ private:
             cfg_.read(cmdLine);
         }
         catch(const CommandError& e){
-            errorOutput_ << "Command '" + e.commandName() + "' error: " << e.what() << "\n";
-            std::cout << e.commandUsageInfo() << std::endl;
+            *errorOutput_ << "Command '" + e.commandName() + "' error: " << e.what() << "\n";
+            *output_ << e.commandUsageInfo() << std::endl;
             return false;
         }
         catch(const Error& e){
-            errorOutput_ << e.what() << "\n";
-            std::cout << cfg_.usageInfo(programName_) << std::endl;
+            *errorOutput_ << e.what() << "\n";
+            *output_ << cfg_.usageInfo() << std::endl;
             return false;
         }
         return true;
@@ -104,11 +115,11 @@ private:
     bool processFlagsAndExit()
     {
         if (help_){
-            std::cout << cfg_.usageInfoDetailed(programName_, usageInfoFormat_) << std::endl;
+            *output_ << cfg_.usageInfoDetailed() << std::endl;
             return true;
         }
         if (version_){
-            std::cout << cfg_.versionInfo() << std::endl;
+            *output_ << cfg_.versionInfo() << std::endl;
             return true;
         }
 
@@ -122,7 +133,7 @@ private:
     bool checkCommandHelpFlag(detail::ICommand& command)
     {
         if (command.isHelpFlagSet()){
-            std::cout << command.usageInfoDetailed() << std::endl;
+            *output_ << command.usageInfoDetailed() << std::endl;
             return true;
         }
 
@@ -154,10 +165,8 @@ private:
 
 private:
     detail::IConfig& cfg_;
-    std::string programName_;
-    UsageInfoFormat usageInfoFormat_;
-    std::map<int, CommandHelpFlag> commandHelpFlags_;
-    std::ostream& errorOutput_;
+    not_null<std::ostream*> errorOutput_;
+    not_null<std::ostream*> output_ = &std::cout;
     int exitCode_ = 0;
     bool help_ = false;
     bool version_ = false;

@@ -46,20 +46,20 @@ public:
         return versionInfo_;
     }
 
-    std::string usageInfo(const std::string& name) const override
+    std::string usageInfo() const override
     {
         if (!customUsageInfo_.empty())
             return customUsageInfo_;
 
-        return detail::UsageInfoCreator<formatType>{name, UsageInfoFormat{}, options_}.create();
+        return detail::UsageInfoCreator<formatType>{commandName_, usageInfoFormat_, options_}.create();
     }
 
-    std::string usageInfoDetailed(const std::string& name, UsageInfoFormat outputSettings = {}) const override
+    std::string usageInfoDetailed() const override
     {
         if (!customUsageInfoDetailed_.empty())
             return customUsageInfoDetailed_;
 
-        return detail::UsageInfoCreator<formatType>{name, outputSettings, options_}.createDetailed();
+        return detail::UsageInfoCreator<formatType>{commandName_, usageInfoFormat_, options_}.createDetailed();
     }
 
     void setVersionInfo(const std::string& info)
@@ -75,6 +75,18 @@ public:
     void setUsageInfoDetailed(const std::string& info)
     {
         customUsageInfoDetailed_ = info;
+    }
+
+    void setProgramName(const std::string& name)
+    {
+        setCommandName(name);
+    }
+
+    void setUsageInfoFormat(const UsageInfoFormat& format) override
+    {
+        usageInfoFormat_ = format;
+        for (auto& command : options_.commands())
+            command->setUsageInfoFormat(format);
     }
 
     static constexpr Format format()
@@ -372,12 +384,21 @@ private:
         return options_;
     }
 
+    void setCommandName(const std::string& name) override
+    {
+        commandName_ = name;
+        for (auto& command : options_.commands())
+            command->setCommandName(name);
+    }
+
 private:
     std::string versionInfo_;
     std::string customUsageInfo_;
     std::string customUsageInfoDetailed_;
     std::string configError_;
     detail::Options options_;
+    std::string commandName_;
+    UsageInfoFormat usageInfoFormat_;
     bool argListSet_ = false;
 };
 

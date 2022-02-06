@@ -843,6 +843,7 @@ TEST(GNUConfig, CustomNamesWithoutShortName)
     }
     {
     auto cfg = TestConfig{};
+    cfg.setProgramName("testproc");
     auto expectedDetailedInfo = std::string{
     "Usage: testproc <arg> --required-param <string> --param-list <string>... [params] [flags] <arg-list...>\n"
     "Arguments:\n"
@@ -858,7 +859,7 @@ TEST(GNUConfig, CustomNamesWithoutShortName)
     "Flags:\n"
     "       --flag                         \n"
     "   -s, --second-flag                  \n"};
-    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
+    EXPECT_EQ(cfg.usageInfoDetailed(), expectedDetailedInfo);
     }
 }
 
@@ -949,26 +950,29 @@ TEST(GNUConfig, ConfigErrorRepeatingParamShortNames)
 TEST(GNUConfig, UsageInfo)
 {
     auto cfg = FullConfig{};
+    cfg.setProgramName("testproc");
     auto expectedInfo = std::string{
     "Usage: testproc [commands] <arg> --required-param <string> --param-list <string>... "
     "[--optional-param <string>] [--optional-int-param <int>] [--optional-param-list <int>...] [--flag] [--second-flag] <arg-list...>\n"
     };
-    EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
+    EXPECT_EQ(cfg.usageInfo(), expectedInfo);
 }
 
 TEST(GNUConfig, UsageInfoWithoutMacro)
 {
     auto cfg = FullConfigWithoutMacro{};
+    cfg.setProgramName("testproc");
     auto expectedInfo = std::string{
             "Usage: testproc [commands] <a> --required-param <string> --prm-list <string>... "
             "[--optional-param <string>] [--optional-int-param <int>] [--optional-prm-list <int>...] [--flg] <a-list...>\n"
     };
-    EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
+    EXPECT_EQ(cfg.usageInfo(), expectedInfo);
 }
 
 TEST(GNUConfig, DetailedUsageInfo)
 {
     auto cfg = FullConfig{};
+    cfg.setProgramName("testproc");
     auto expectedDetailedInfo = std::string{
     "Usage: testproc [commands] <arg> --required-param <string> --param-list <string>... [params] [flags] <arg-list...>\n"
     "Arguments:\n"
@@ -987,12 +991,13 @@ TEST(GNUConfig, DetailedUsageInfo)
     "Commands:\n"
     "    command [options]                 \n"
     "    subcommand [options]              \n"};
-    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
+    EXPECT_EQ(cfg.usageInfoDetailed(), expectedDetailedInfo);
 }
 
 TEST(GNUConfig, DetailedUsageInfoWithoutMacro)
 {
     auto cfg = FullConfigWithoutMacro{};
+    cfg.setProgramName("testproc");
     auto expectedDetailedInfo = std::string{
             "Usage: testproc [commands] <a> --required-param <string> --prm-list <string>... [params] [flags] <a-list...>\n"
             "Arguments:\n"
@@ -1010,7 +1015,7 @@ TEST(GNUConfig, DetailedUsageInfoWithoutMacro)
             "Commands:\n"
             "    cmd [options]                     \n"
             "    subcommand [options]              \n"};
-    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
+    EXPECT_EQ(cfg.usageInfoDetailed(), expectedDetailedInfo);
 }
 
 

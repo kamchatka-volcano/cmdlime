@@ -3,6 +3,10 @@
 #include <string>
 #include <memory>
 
+namespace cmdlime{
+struct UsageInfoFormat;
+};
+
 namespace cmdlime::detail{
 class Options;
 class IParam;
@@ -17,8 +21,10 @@ public:
     virtual ~IConfig() = default;
     virtual void read(const std::vector<std::string>& cmdLine) = 0;
     virtual const std::string& versionInfo() const = 0;
-    virtual std::string usageInfo(const std::string& name) const = 0;
-    virtual std::string usageInfoDetailed(const std::string& name, UsageInfoFormat outputSettings = {}) const = 0;
+    virtual std::string usageInfo() const = 0;
+    virtual std::string usageInfoDetailed() const = 0;
+    virtual void setUsageInfoFormat(const UsageInfoFormat&) = 0;
+    virtual void setCommandName(const std::string&) = 0;
     virtual void addParam(std::unique_ptr<IParam> param) = 0;
     virtual void addParamList(std::unique_ptr<IParamList> paramList) = 0;
     virtual void addFlag(std::unique_ptr<IFlag> flag) = 0;

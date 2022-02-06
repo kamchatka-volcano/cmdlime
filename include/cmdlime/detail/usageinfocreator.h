@@ -89,10 +89,10 @@ const std::string& getDescription(T& option)
 template <Format formatType>
 class UsageInfoCreator{
 public:
-    UsageInfoCreator(std::string programName,
+    UsageInfoCreator(std::string commandName,
                      UsageInfoFormat outputSettings,
                      const Options& options)
-    : programName_(std::move(programName))
+    : commandName_(std::move(commandName))
     , params_(getParamsByOptionality(options.params(), false))
     , optionalParams_(getParamsByOptionality(options.params(), true))
     , paramLists_(getParamsByOptionality(options.paramLists(), false))
@@ -125,7 +125,7 @@ private:
 
     std::string usageInfo()
     {
-        auto result = "Usage: " + programName_ + " ";
+        auto result = "Usage: " + commandName_ + " ";
         if (!options_.commands().empty())
             result += "[commands] ";
 
@@ -153,7 +153,7 @@ private:
 
     std::string minimizedUsageInfo()
     {
-        auto result = "Usage: " + programName_ + " ";
+        auto result = "Usage: " + commandName_ + " ";
 
         if (!options_.commands().empty())
             result += "[commands] ";
@@ -372,7 +372,7 @@ private:
     }
 
 private:    
-    std::string programName_;    
+    std::string commandName_;
     std::vector<not_null<IParam*>> params_;
     std::vector<not_null<IParam*>> optionalParams_;
     std::vector<not_null<IParamList*>> paramLists_;

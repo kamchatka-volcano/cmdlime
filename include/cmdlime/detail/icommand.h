@@ -1,4 +1,5 @@
 #pragma once
+#include "ioption.h"
 #include <gsl/pointers>
 #include <vector>
 #include <string>
@@ -9,18 +10,17 @@ class OptionInfo;
 class IFlag;
 class IConfig;
 
-class ICommand{
+class ICommand : public IOption{
 public:
-    virtual ~ICommand() = default;
-    virtual OptionInfo& info() = 0;
-    virtual const OptionInfo& info() const = 0;
     virtual const IConfig* config() const = 0;
     virtual void read(const std::vector<std::string>& commandLine) = 0;    
     virtual bool isSubCommand() const = 0;
-    virtual void enableHelpFlag(const std::string& commandName) = 0;
+    virtual void enableHelpFlag() = 0;
     virtual bool isHelpFlagSet() const = 0;
     virtual std::string usageInfo() const = 0;
     virtual std::string usageInfoDetailed() const = 0;
+    virtual void setUsageInfoFormat(const UsageInfoFormat&) = 0;
+    virtual void setCommandName(const std::string& parentCommandName) = 0;
 };
 
 }
