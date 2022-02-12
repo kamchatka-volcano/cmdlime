@@ -19,7 +19,7 @@ int main(int argc, char** argv)
     } cfg;
 
     auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.readCommandLine(argc, argv))
+    if (!reader.read(argc, argv))
         return reader.exitCode();
 
     //At this point your config is ready to use
@@ -51,6 +51,7 @@ Please note, that in this example, `--name` is a parameter, `--verbose` is a fla
           *    [Simple format](#simple-format)
      * [Using custom types](#using-custom-types)
      * [Using subcommands](#using-subcommands)
+     * [Using validators](#using-validators)
 *    [Installation](#installation)
 *    [Running tests](#running-tests)
 *    [License](#license)
@@ -137,7 +138,7 @@ Let's modify `person-finder` and see how it works.
 ...
     cfg.setVersionInfo("person-finder 1.0");
     auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.readCommandLine(argc, argv))
+    if (!reader.read(argc, argv))
         return reader.exitCode();
 ...
 ```
@@ -175,7 +176,7 @@ int main(int argc, char** argv)
     } cfg;
 	
     try{
-    	cfg.readCommandLine(argc, argv);
+    	cfg.read(argc, argv);
     }
     catch(const cmdlime::Error& e){
     	std::cerr << e.what();
@@ -492,7 +493,7 @@ int main(int argc, char** argv)
 
     cfg.setVersionInfo("person-finder 1.0");
     auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.readCommandLine(argc, argv))
+    if (!reader.read(argc, argv))
         return reader.exitCode();
 
     //At this point your config is ready to use
@@ -534,7 +535,7 @@ int main(int argc, char** argv)
     } cfg;
 
     auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.readCommandLine(argc, argv))
+    if (!reader.read(argc, argv))
         return reader.exitCode();
     std::cout << "Looking for person " << cfg.name << " " << cfg.surname << " in the region with zip code: " << cfg.zipCode << std::endl;
     if (cfg.record.has_value())
@@ -584,7 +585,7 @@ int main(int argc, char** argv)
     } cfg;
 
     auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.readCommandLine(argc, argv))
+    if (!reader.read(argc, argv))
         return reader.exitCode();
 
     if (cfg.history.has_value()){
@@ -606,6 +607,94 @@ Preparing search history with surname filter:Doe
 ```
 
 As you can see a config structure can have multiple commands, but only one can be specified for each config.
+
+###Using validators
+Processed command line options can be validated by registering constraints checking functions or callable objects. The signature must be compatible with `void (const T&)` where T - is a type of validated config structure field. If option's value is invalid, a validator is required to throw an exception of type `cmdlime::ValidationError`:
+
+```c++
+struct Cfg : cmdlime::Config{
+    CMDLIME_PARAM(number, int) 
+        << [](int paramValue){
+            if (paramValue < 0)
+                throw cmdlime::ValidationError{"value can't be negative."};
+        };
+};
+```
+
+Let's improve `person-finder` by checking that either `file` or `db` parameter of subcommand `record` is set and all names contain only alphabet characters:
+```c++
+///examples/ex15.cpp
+///
+#include <cmdlime/config.h>
+#include <algorithm>
+
+struct EnsureAlpha{
+    void operator()(const std::string& name)
+    {
+        if (!std::all_of(std::begin(name), std::end(name),
+                         [](auto ch){
+                             return std::isalpha(static_cast<int>(ch));
+                         }))
+            throw cmdlime::ValidationError{"value must contain alphabet characters only."};
+    }
+};
+
+int main(int argc, char** argv)
+{
+    struct RecordCfg: public cmdlime::Config{
+        CMDLIME_PARAM(file, std::string)() << "save result to file";
+        CMDLIME_PARAM(db, std::string)()   << "save result to database";
+        CMDLIME_FLAG(detailed)             << "hide search results" << cmdlime::WithoutShortName{};
+    };
+
+    struct HistoryCfg: public cmdlime::Config{
+        CMDLIME_PARAM(surname, std::string)() << "filter search queries by surname" << EnsureAlpha{};
+        CMDLIME_FLAG(noResults)               << "hide search results";
+    };
+
+    struct Cfg : public cmdlime::Config{
+        CMDLIME_ARG(zipCode, int)             << "zip code of the searched region";
+        CMDLIME_PARAM(surname, std::string)   << "surname of the person to find" << EnsureAlpha{};
+        CMDLIME_PARAM(name, std::string)()    << "name of the person to find" 	 << EnsureAlpha{};
+        CMDLIME_FLAG(verbose)                 << "adds more information to the output";
+        CMDLIME_SUBCOMMAND(record, RecordCfg) << "record search result"
+            << [](auto& record){
+              if (record && record->file.empty() && record->db.empty())
+                  throw cmdlime::ValidationError{"file or db paremeter must be provided."};
+            };
+        CMDLIME_COMMAND(history, HistoryCfg)  << "show search history";
+    } cfg;
+
+    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
+    if (!reader.readCommandLine(argc, argv))
+        return reader.exitCode();
+
+    if (cfg.history.has_value()){
+        std::cout << "Preparing search history with surname filter:" << cfg.history->surname << std::endl;
+        return 0;
+    }
+
+    std::cout << "Looking for person " << cfg.name << " " << cfg.surname << " in the region with zip code: " << cfg.zipCode << std::endl;
+    if (cfg.record.has_value())
+        std::cout << "Record settings: " << "file:" << cfg.record->file << " db:" << cfg.record->db << " detailed:" << cfg.record->detailed << std::endl;
+
+    return 0;
+}
+```
+
+Now you'll get the following error messages if you provide invalid parameters:
+
+```console
+kamchatka-volcano@home:~$ ./person-finder --surname Deer 684007 record
+Subcommand 'record' is invalid: file or db paremeter must be provided.
+Usage: person-finder [commands] <zip-code> --surname <string> [--name <string>] [--verbose] [--help] 
+```
+
+```console
+kamchatka-volcano@home:~$ ./person-finder --surname Deer1 684007
+Parameter 'surname' is invalid: value must contain alphabet characters only.
+Usage: person-finder [commands] <zip-code> --surname <string> [--name <string>] [--verbose] [--help] 
+```
 
 
 

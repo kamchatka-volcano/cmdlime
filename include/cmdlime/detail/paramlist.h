@@ -42,6 +42,11 @@ public:
         return info_;
     }
 
+    OptionType type() const override
+    {
+        return OptionType::ParamList;
+    }
+
 private:
     bool read(const std::string& data) override
     {

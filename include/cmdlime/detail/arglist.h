@@ -39,6 +39,11 @@ public:
         return info_;
     }
 
+    OptionType type() const override
+    {
+        return OptionType::ArgList;
+    }
+
 private:
     bool read(const std::string& data) override
     {

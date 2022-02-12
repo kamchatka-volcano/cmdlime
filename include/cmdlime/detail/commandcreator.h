@@ -2,6 +2,7 @@
 #include "command.h"
 #include "iconfig.h"
 #include "formatcfg.h"
+#include "validator.h"
 
 namespace cmdlime::detail{
 
@@ -14,6 +15,7 @@ public:
                    std::optional<T>& commandValue,
                    typename Command<T>::Type type = Command<T>::Type::Normal)
             : cfg_(cfg)
+            , commandValue_(commandValue)
     {
         Expects(!varName.empty());
         command_ = std::make_unique<Command<T>>(NameProvider::fullName(varName), commandValue, type);
@@ -31,6 +33,12 @@ public:
         return *this;
     }
 
+    auto& operator<<(std::function<void(const std::optional<T>&)> validationFunc)
+    {
+        cfg_.addValidator(std::make_unique<Validator<std::optional<T>>>(*command_, commandValue_, std::move(validationFunc)));
+        return *this;
+    }
+
     operator std::optional<T>()
     {
         cfg_.addCommand(std::move(command_));
@@ -39,6 +47,7 @@ public:
 
 private:
     std::unique_ptr<Command<T>> command_;
+    std::optional<T>& commandValue_;
     IConfig& cfg_;
 };
 

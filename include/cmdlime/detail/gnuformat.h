@@ -29,15 +29,15 @@ class GNUParser : public Parser<formatType>
     }
 
     void process(const std::string& token) override
-    {        
-        if (str::startsWith(token, "--") && token.size() > 2)
-            processCommand(token);
-        else if (str::startsWith(token, "-") && token.size() > 1)
-            processShortCommand(token);
-        else if (!foundParam_.empty()){
+    {
+        if (!foundParam_.empty()){
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
+        else if (str::startsWith(token, "--") && token.size() > 2)
+            processCommand(token);
+        else if (str::startsWith(token, "-") && token.size() > 1)
+            processShortCommand(token);
         else
             this->readArg(token);
     }

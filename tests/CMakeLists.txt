@@ -15,7 +15,9 @@ set(SRC
     test_gnu_format.cpp 
     test_posix_format.cpp
     test_x11_format.cpp
-    test_nameutils.cpp 
+    test_validator.cpp
+    test_nameutils.cpp
+
 )
 
 add_executable(test_cmdlime ${SRC})

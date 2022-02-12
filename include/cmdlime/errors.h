@@ -19,6 +19,11 @@ class ConfigError : public Error
     using Error::Error;
 };
 
+class ValidationError : public Error
+{
+    using Error::Error;
+};
+
 class CommandError : public Error
 {
 public:

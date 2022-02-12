@@ -2,6 +2,7 @@
 #include "paramlist.h"
 #include "iconfig.h"
 #include "formatcfg.h"
+#include "validator.h"
 
 namespace cmdlime::detail {
 
@@ -15,6 +16,7 @@ public:
                      const std::string& type,
                      std::vector<T>& paramListValue)
             : cfg_(cfg)
+            , paramListValue_(paramListValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
@@ -58,6 +60,13 @@ public:
         return *this;
     }
 
+    auto& operator<<(std::function<void(const std::vector<T>&)> validationFunc)
+    {
+        cfg_.addValidator(std::make_unique<Validator<std::vector<T>>>(*paramList_, paramListValue_, std::move(validationFunc)));
+        return *this;
+    }
+
+
     auto& operator()(std::vector<T> defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
@@ -73,6 +82,7 @@ public:
 
 private:
     std::unique_ptr<ParamList<T>> paramList_;
+    std::vector<T>& paramListValue_;
     std::vector<T> defaultValue_;
     IConfig& cfg_;
 };

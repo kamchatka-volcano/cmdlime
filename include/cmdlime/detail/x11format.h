@@ -26,8 +26,12 @@ class X11Parser : public Parser<formatType>
     }
 
     void process(const std::string& token) override
-    {        
-        if (str::startsWith(token, "-") && token.size() > 1){
+    {
+        if (!foundParam_.empty()){
+            this->readParam(foundParam_, token);
+            foundParam_.clear();
+        }
+        else if (str::startsWith(token, "-") && token.size() > 1){
             auto command = str::after(token, "-");
             if (isParamOrFlag(command) && !foundParam_.empty())
                 throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
@@ -42,10 +46,6 @@ class X11Parser : public Parser<formatType>
                 this->readArg(token);
             else
                 throw ParsingError{"Encountered unknown parameter or flag '" + token + "'"};
-        }
-        else if (!foundParam_.empty()){
-            this->readParam(foundParam_, token);
-            foundParam_.clear();
         }
         else
             this->readArg(token);

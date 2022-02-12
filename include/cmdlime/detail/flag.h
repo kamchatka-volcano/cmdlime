@@ -36,6 +36,11 @@ public:
         return info_;
     }
 
+    OptionType type() const override
+    {
+        return isExitFlag() ? OptionType::ExitFlag : OptionType::Flag;
+    }
+
 private:
     void set() override
     {

@@ -16,6 +16,14 @@ inline std::vector<gsl::not_null<T*>> getPtrList(const std::vector<std::unique_p
     return result;
 }
 
+inline std::string capitalize(const std::string& input)
+{
+    if (input.empty())
+        return {};
+    auto result = input;
+    result[0] = static_cast<char>(std::toupper(static_cast<int>(result[0])));
+    return result;
+}
 
 inline bool isNumber(const std::string& str)
 {

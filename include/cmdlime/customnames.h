@@ -5,6 +5,15 @@
 
 namespace cmdlime{
 
+namespace detail {
+enum class CustomNameType {
+    Name,
+    ShortName,
+    ValueName
+};
+}
+
+template <detail::CustomNameType>
 class CustomName{
 public:
     CustomName(std::string name)
@@ -23,18 +32,9 @@ private:
     std::string value_;
 };
 
-class Name : public CustomName{
-    using CustomName::CustomName;
-};
-
-class ShortName : public CustomName{
-    using CustomName::CustomName;
-};
-
-class ValueName : public CustomName{
-    using CustomName::CustomName;
-};
-
+using Name = CustomName<detail::CustomNameType::Name>;
+using ShortName = CustomName<detail::CustomNameType::ShortName>;
+using ValueName = CustomName<detail::CustomNameType::ValueName>;
 class WithoutShortName{};
 
 }
