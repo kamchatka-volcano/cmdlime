@@ -360,7 +360,7 @@ TEST(SimpleConfig, MultipleArgLists)
     assert_exception<cmdlime::ConfigError>(
         [&cfg]{cfg.read({"-param=Foo"});},
         [](const cmdlime::ConfigError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Config can have only one arguments list"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"BaseConfig can have only one arguments list"});
         });
 }
 
@@ -671,16 +671,18 @@ TEST(SimpleConfig, ConfigErrorRepeatingFlagNames)
 TEST(SimpleConfig, UsageInfo)
 {
     auto cfg = FullConfig{};
+    cfg.setProgramName("testproc");
     auto expectedInfo = std::string{
     "Usage: testproc [commands] <arg> -requiredParam=<string> -paramList=<string>... "
     "[-optionalParam=<string>] [-optionalIntParam=<int>] [-optionalParamList=<int>...] [--flag] <argList...>\n"
     };
-    EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
+    EXPECT_EQ(cfg.usageInfo(), expectedInfo);
 }
 
 TEST(SimpleConfig, DetailedUsageInfo)
 {
     auto cfg = FullConfig{};
+    cfg.setProgramName("testproc");
     auto expectedDetailedInfo = std::string{
     "Usage: testproc [commands] <arg> -requiredParam=<string> -paramList=<string>... [params] [flags] <argList...>\n"
     "Arguments:\n"
@@ -697,16 +699,18 @@ TEST(SimpleConfig, DetailedUsageInfo)
     "Commands:\n"
     "    subcommand [options]       \n"
     };
-    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
+    EXPECT_EQ(cfg.usageInfoDetailed(), expectedDetailedInfo);
 }
 
 TEST(SimpleConfig, DetailedUsageInfoFormat)
 {
     auto cfg = FullConfig{};
+    cfg.setProgramName("testproc");
     auto format = cmdlime::UsageInfoFormat{};
     format.columnsSpacing = 2;
     format.nameIndentation = 0;
     format.terminalWidth = 50;
+    cfg.setUsageInfoFormat(format);
     auto expectedDetailedInfo = std::string{
     "Usage: testproc [commands] <arg> -requiredParam=<string> -paramList=<string>... [params] [flags] <argList...>\n"
     "Arguments:\n"
@@ -725,7 +729,7 @@ TEST(SimpleConfig, DetailedUsageInfoFormat)
     "Commands:\n"
     "subcommand [options]      \n"
     };
-    EXPECT_EQ(cfg.usageInfoDetailed("testproc", format), expectedDetailedInfo);
+    EXPECT_EQ(cfg.usageInfoDetailed(), expectedDetailedInfo);
 }
 
 
@@ -739,6 +743,7 @@ TEST(SimpleConfig, CustomValueNames)
     };
 
     auto cfg = TestConfig{};
+    cfg.setProgramName("testproc");
     auto expectedInfo = std::string{
     "Usage: testproc <arg> -param=<STRING> [params] <argList...>\n"
     "Arguments:\n"
@@ -748,14 +753,18 @@ TEST(SimpleConfig, CustomValueNames)
     "   -param=<STRING>         \n"
     "   -paramList=<INTS>       multi-value, optional, default: {}\n"
     };
-    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedInfo);
+    EXPECT_EQ(cfg.usageInfoDetailed(), expectedInfo);
 }
 
 TEST(SimpleConfig, ConfigReaderMissingVersionInfo)
 {
     auto cfg = FullConfig{};
-    auto reader = cmdlime::ConfigReader{cfg, "testproc", {}, cmdlime::ErrorOutputMode::STDOUT};
+    auto reader = cmdlime::ConfigReader{cfg, "testproc", {}};
+    auto errorOutput = std::stringstream{};
+    reader.setErrorOutputStream(errorOutput);
+
     EXPECT_EQ(reader.read({"--version"}), false);
+    EXPECT_EQ(errorOutput.str(), "Encountered unknown flag '--version'\n");
     EXPECT_EQ(reader.exitCode(), -1);
 }
 
@@ -764,7 +773,10 @@ TEST(SimpleConfig, ConfigReaderVersion)
     auto cfg = FullConfig{};
     cfg.setVersionInfo("testproc 1.0");
     auto reader = cmdlime::ConfigReader{cfg, "testproc"};
+    auto output = std::stringstream{};
+    reader.setOutputStream(output);
     EXPECT_EQ(reader.read({"--version"}), false);
+    EXPECT_EQ(output.str(), "testproc 1.0\n");
     EXPECT_EQ(reader.exitCode(), 0);
 }
 
@@ -772,7 +784,62 @@ TEST(SimpleConfig, ConfigReaderHelp)
 {
     auto cfg = FullConfig{};
     auto reader = cmdlime::ConfigReader{cfg, "testproc"};
+    auto output = std::stringstream{};
+    reader.setOutputStream(output);
     EXPECT_EQ(reader.read({"--help"}), false);
+    auto expectedDetailedInfo = std::string{
+            "Usage: testproc [commands] <arg> -requiredParam=<string> -paramList=<string>... [params] [flags] <argList...>\n"
+            "Arguments:\n"
+            "    <arg> (double)             \n"
+            "    <argList> (float)          multi-value\n"
+            "Parameters:\n"
+            "   -requiredParam=<string>     \n"
+            "   -paramList=<string>         multi-value\n"
+            "   -optionalParam=<string>     optional, default: defaultValue\n"
+            "   -optionalIntParam=<int>     optional\n"
+            "   -optionalParamList=<int>    multi-value, optional, default: {99, 100}\n"
+            "Flags:\n"
+            "  --flag                       \n"
+            "  --help                       show usage info and exit\n"
+            "Commands:\n"
+            "    subcommand [options]       \n\n"
+    };
+    EXPECT_EQ(output.str(), expectedDetailedInfo);
+    EXPECT_EQ(reader.exitCode(), 0);
+}
+
+TEST(SimpleConfig, ConfigReaderHelpUsageInfoFormat)
+{
+    auto cfg = FullConfig{};
+    auto format = cmdlime::UsageInfoFormat{};
+    format.columnsSpacing = 2;
+    format.nameIndentation = 0;
+    format.terminalWidth = 50;
+    auto reader = cmdlime::ConfigReader{cfg, "testproc", format};
+    auto output = std::stringstream{};
+    reader.setOutputStream(output);
+    EXPECT_EQ(reader.read({"--help"}), false);
+    auto expectedDetailedInfo = std::string{
+            "Usage: testproc [commands] <arg> -requiredParam=<string> -paramList=<string>... [params] [flags] <argList...>\n"
+            "Arguments:\n"
+            "<arg> (double)            \n"
+            "<argList> (float)         multi-value\n"
+            "Parameters:\n"
+            "-requiredParam=<string>   \n"
+            "-paramList=<string>       multi-value\n"
+            "-optionalParam=<string>   optional, default: \n"
+            "                            defaultValue\n"
+            "-optionalIntParam=<int>   optional\n"
+            "-optionalParamList=<int>  multi-value, optional,\n"
+            "                            default: {99, 100}\n"
+            "Flags:\n"
+            "--flag                    \n"
+            "--help                    show usage info and \n"
+            "                            exit\n"
+            "Commands:\n"
+            "subcommand [options]      \n\n"
+    };
+    EXPECT_EQ(output.str(), expectedDetailedInfo);
     EXPECT_EQ(reader.exitCode(), 0);
 }
 
@@ -780,7 +847,63 @@ TEST(SimpleConfig, ConfigReaderCommandHelp)
 {
     auto cfg = FullConfigWithCommand{};
     auto reader = cmdlime::ConfigReader{cfg, "testproc"};
+    auto output = std::stringstream{};
+    reader.setOutputStream(output);
+    auto expectedDetailedInfo = std::string{
+            "Usage: testproc subcommand [commands] <arg> -requiredParam=<string> -paramList=<string>... [params] [flags] <argList...>\n"
+            "Arguments:\n"
+            "    <arg> (double)             \n"
+            "    <argList> (float)          multi-value\n"
+            "Parameters:\n"
+            "   -requiredParam=<string>     \n"
+            "   -paramList=<string>         multi-value\n"
+            "   -optionalParam=<string>     optional, default: defaultValue\n"
+            "   -optionalIntParam=<int>     optional\n"
+            "   -optionalParamList=<int>    multi-value, optional, default: {99, 100}\n"
+            "Flags:\n"
+            "  --flag                       \n"
+            "  --help                       show usage info and exit\n"
+            "Commands:\n"
+            "    nested [options]           \n\n"
+    };
     EXPECT_EQ(reader.read({"subcommand", "--help"}), false);
+    EXPECT_EQ(output.str(), expectedDetailedInfo);
+    EXPECT_EQ(reader.exitCode(), 0);
+}
+
+TEST(SimpleConfig, ConfigReaderCommandHelpUsageInfoFormat)
+{
+    auto cfg = FullConfigWithCommand{};
+    auto format = cmdlime::UsageInfoFormat{};
+    format.columnsSpacing = 2;
+    format.nameIndentation = 0;
+    format.terminalWidth = 50;
+    auto reader = cmdlime::ConfigReader{cfg, "testproc", format};
+    auto output = std::stringstream{};
+    reader.setOutputStream(output);
+    EXPECT_EQ(reader.read({"subcommand", "--help"}), false);
+    EXPECT_EQ(reader.exitCode(), 0);
+    auto expectedDetailedInfo = std::string{
+            "Usage: testproc subcommand [commands] <arg> -requiredParam=<string> -paramList=<string>... [params] [flags] <argList...>\n"
+            "Arguments:\n"
+            "<arg> (double)            \n"
+            "<argList> (float)         multi-value\n"
+            "Parameters:\n"
+            "-requiredParam=<string>   \n"
+            "-paramList=<string>       multi-value\n"
+            "-optionalParam=<string>   optional, default: \n"
+            "                            defaultValue\n"
+            "-optionalIntParam=<int>   optional\n"
+            "-optionalParamList=<int>  multi-value, optional,\n"
+            "                            default: {99, 100}\n"
+            "Flags:\n"
+            "--flag                    \n"
+            "--help                    show usage info and \n"
+            "                            exit\n"
+            "Commands:\n"
+            "nested [options]          \n\n"
+    };
+    EXPECT_EQ(output.str(), expectedDetailedInfo);
     EXPECT_EQ(reader.exitCode(), 0);
 }
 
@@ -788,7 +911,39 @@ TEST(SimpleConfig, ConfigReaderNestedCommandHelp)
 {
     auto cfg = FullConfigWithCommand{};
     auto reader = cmdlime::ConfigReader{cfg, "testproc"};
+    auto output = std::stringstream{};
+    reader.setOutputStream(output);
+    auto expectedDetailedInfo = std::string{
+            "Usage: testproc subcommand nested -param=<string> [flags] \n"
+            "Parameters:\n"
+            "   -param=<string>     \n"
+            "Flags:\n"
+            "  --help               show usage info and exit\n\n"
+    };
     EXPECT_EQ(reader.read({"subcommand", "nested", "--help"}), false);
+    EXPECT_EQ(output.str(), expectedDetailedInfo);
+    EXPECT_EQ(reader.exitCode(), 0);
+}
+
+TEST(SimpleConfig, ConfigReaderNestedCommandHelpUsageInfoFormat)
+{
+    auto cfg = FullConfigWithCommand{};
+    auto format = cmdlime::UsageInfoFormat{};
+    format.columnsSpacing = 2;
+    format.nameIndentation = 0;
+    format.terminalWidth = 50;
+    auto reader = cmdlime::ConfigReader{cfg, "testproc", format};
+    auto output = std::stringstream{};
+    reader.setOutputStream(output);
+    auto expectedDetailedInfo = std::string{
+            "Usage: testproc subcommand nested -param=<string> [flags] \n"
+            "Parameters:\n"
+            "-param=<string>   \n"
+            "Flags:\n"
+            "--help            show usage info and exit\n\n"
+    };
+    EXPECT_EQ(reader.read({"subcommand", "nested", "--help"}), false);
+    EXPECT_EQ(output.str(), expectedDetailedInfo);
     EXPECT_EQ(reader.exitCode(), 0);
 }
 

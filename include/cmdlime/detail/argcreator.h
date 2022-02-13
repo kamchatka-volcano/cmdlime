@@ -1,15 +1,15 @@
 #pragma once
 #include "arg.h"
-#include "configaccess.h"
-#include "format.h"
+#include "iconfig.h"
+#include "formatcfg.h"
 
 namespace cmdlime::detail{
 
-template<typename T, typename TConfig>
+template<typename T, Format format>
 class ArgCreator{
-    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
+    using NameProvider = typename FormatCfg<format>::nameProvider;
 public:
-    ArgCreator(TConfig& cfg,
+    ArgCreator(IConfig& cfg,
                const std::string& varName,
                const std::string& type,
                T& argValue)
@@ -22,19 +22,19 @@ public:
                 argValue);
     }
 
-    ArgCreator<T, TConfig>& operator<<(const std::string& info)
+    auto& operator<<(const std::string& info)
     {
         arg_->info().addDescription(info);
         return *this;
     }
 
-    ArgCreator<T, TConfig>& operator<<(const Name& customName)
+    auto& operator<<(const Name& customName)
     {
         arg_->info().resetName(customName.value());
         return *this;
     }
 
-    ArgCreator<T, TConfig>& operator<<(const ValueName& valueName)
+    auto& operator<<(const ValueName& valueName)
     {
         arg_->info().resetValueName(valueName.value());
         return *this;
@@ -42,22 +42,21 @@ public:
 
     operator T()
     {
-        ConfigAccess<TConfig>{cfg_}.addArg(std::move(arg_));
+        cfg_.addArg(std::move(arg_));
         return T{};
     }
 
 private:
     std::unique_ptr<Arg<T>> arg_;
-    TConfig& cfg_;
+    IConfig& cfg_;
 };
 
 template <typename T, typename TConfig>
-ArgCreator<T, TConfig> makeArgCreator(TConfig& cfg,
-                                      const std::string& varName,
-                                      const std::string& type,
-                                      const std::function<T&()>& argGetter)
+auto makeArgCreator(TConfig& cfg, const std::string& varName,
+                                  const std::string& type,
+                                  const std::function<T&()>& argGetter)
 {
-    return ArgCreator<T, TConfig>{cfg, varName, type, argGetter()};
+    return ArgCreator<T, TConfig::format()>{cfg, varName, type, argGetter()};
 }
 
 

@@ -1,14 +1,12 @@
 #pragma once
+#include "ioption.h"
 #include <string>
-#include "optioninfo.h"
 
 namespace cmdlime::detail{
+class OptionInfo;
 
-class IArgList{
-public:    
-    virtual ~IArgList() = default;
-    virtual OptionInfo& info() = 0;
-    virtual const OptionInfo& info() const = 0;
+class IArgList : public IOption{
+public:
     virtual bool read(const std::string& data)  = 0;
     virtual bool hasValue() const = 0;
     virtual bool isOptional() const = 0;

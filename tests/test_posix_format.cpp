@@ -686,16 +686,18 @@ TEST(PosixConfig, ConfigErrorRepeatingParamNames)
 TEST(PosixConfig, UsageInfo)
 {
     auto cfg = FullConfig{};
+    cfg.setProgramName("testproc");
     auto expectedInfo = std::string{
     "Usage: testproc [commands] <arg> -r <string> -L <string>... "
     "[-o <string>] [-i <int>] [-O <int>...] [-f] <arg-list...>\n"
     };
-    EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
+    EXPECT_EQ(cfg.usageInfo(), expectedInfo);
 }
 
 TEST(PosixConfig, DetailedUsageInfo)
 {
     auto cfg = FullConfig{};
+    cfg.setProgramName("testproc");
     auto expectedDetailedInfo = std::string{
     "Usage: testproc [commands] <arg> -r <string> -L <string>... [params] [flags] <arg-list...>\n"
     "Arguments:\n"
@@ -711,7 +713,7 @@ TEST(PosixConfig, DetailedUsageInfo)
     "   -f                      \n"
     "Commands:\n"
     "    subcommand [options]   \n"};
-    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
+    EXPECT_EQ(cfg.usageInfoDetailed(), expectedDetailedInfo);
 }
 
 TEST(PosixConfig, WrongParamsWithExitFlag){

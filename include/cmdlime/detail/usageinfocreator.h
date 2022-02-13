@@ -6,9 +6,10 @@
 #include "iarglist.h"
 #include "icommand.h"
 #include "optioninfo.h"
-#include "format.h"
-#include <sfun/string_utils.h>
+#include "options.h"
+#include "formatcfg.h"
 #include <cmdlime/usageinfoformat.h>
+#include <sfun/string_utils.h>
 #include <gsl/gsl>
 #include <utility>
 #include <vector>
@@ -56,10 +57,13 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
 }
 
 template <typename T>
-inline std::vector<not_null<T*>> getParamsByOptionality(const std::vector<not_null<T*>>& params, bool isOptional)
+inline std::vector<not_null<T*>> getParamsByOptionality(const std::vector<std::unique_ptr<T>>& params, bool isOptional)
 {
     auto result = std::vector<not_null<T*>>{};
-    std::copy_if(params.begin(), params.end(), std::back_inserter(result),
+    auto paramPtrList = std::vector<not_null<T*>>{};
+    std::transform(params.begin(), params.end(), std::back_inserter(paramPtrList),
+                   [](auto& param) {return param.get();});
+    std::copy_if(paramPtrList.begin(), paramPtrList.end(), std::back_inserter(result),
                  [isOptional](auto param){return param->isOptional() == isOptional;});
     return result;
 }
@@ -82,26 +86,18 @@ const std::string& getDescription(T& option)
     return option.info().description();
 }
 
-template <FormatType formatType>
+template <Format formatType>
 class UsageInfoCreator{
 public:
-    UsageInfoCreator(std::string programName,
+    UsageInfoCreator(std::string commandName,
                      UsageInfoFormat outputSettings,
-                     const std::vector<not_null<IParam*>>& params,
-                     const std::vector<not_null<IParamList*>>& paramLists,
-                     std::vector<not_null<IFlag*>> flags,
-                     std::vector<not_null<IArg*>> args,
-                     IArgList* argList,
-                     std::vector<not_null<ICommand*>> commands)
-    : programName_(std::move(programName))
-    , params_(getParamsByOptionality(params, false))
-    , optionalParams_(getParamsByOptionality(params, true))
-    , paramLists_(getParamsByOptionality(paramLists, false))
-    , optionalParamLists_(getParamsByOptionality(paramLists, true))
-    , flags_(std::move(flags))
-    , args_(std::move(args))
-    , argList_(argList)
-    , commands_(std::move(commands))
+                     const Options& options)
+    : commandName_(std::move(commandName))
+    , params_(getParamsByOptionality(options.params(), false))
+    , optionalParams_(getParamsByOptionality(options.params(), true))
+    , paramLists_(getParamsByOptionality(options.paramLists(), false))
+    , optionalParamLists_(getParamsByOptionality(options.paramLists(), true))
+    , options_(options)
     , outputSettings_(outputSettings)
     , maxOptionNameSize_(maxOptionNameLength() + outputSettings.columnsSpacing)
     {
@@ -125,15 +121,15 @@ public:
     }
 
 private:
-    using OutputFormatter = typename Format<formatType>::outputFormatter;
+    using OutputFormatter = typename FormatCfg<formatType>::outputFormatter;
 
     std::string usageInfo()
     {
-        auto result = "Usage: " + programName_ + " ";
-        if (!commands_.empty())
+        auto result = "Usage: " + commandName_ + " ";
+        if (!options_.commands().empty())
             result += "[commands] ";
 
-        for (auto arg : args_)
+        for (auto& arg : options_.args())
             result += OutputFormatter::argUsageName(*arg) + " ";
 
         for (auto param : params_)
@@ -145,11 +141,11 @@ private:
         for (auto paramList : optionalParamLists_)
            result += OutputFormatter::paramListUsageName(*paramList) + " ";
 
-        for (auto flag : flags_)
+        for (auto& flag : options_.flags())
             result += OutputFormatter::flagUsageName(*flag) + " ";
 
-        if (argList_)
-            result += OutputFormatter::argListUsageName(*argList_);
+        if (options_.argList())
+            result += OutputFormatter::argListUsageName(*options_.argList());
 
         result += "\n";
         return result;
@@ -157,12 +153,12 @@ private:
 
     std::string minimizedUsageInfo()
     {
-        auto result = "Usage: " + programName_ + " ";
+        auto result = "Usage: " + commandName_ + " ";
 
-        if (!commands_.empty())
+        if (!options_.commands().empty())
             result += "[commands] ";
 
-        for (auto arg : args_)
+        for (auto& arg : options_.args())
             result += OutputFormatter::argUsageName(*arg) + " ";
 
         for (auto param : params_)
@@ -174,11 +170,11 @@ private:
         if (!optionalParams_.empty() || !optionalParamLists_.empty())
             result += "[params] ";
 
-        if (!flags_.empty())
+        if (!options_.flags().empty())
             result += "[flags] ";
 
-        if (argList_)
-            result += OutputFormatter::argListUsageName(*argList_);
+        if (options_.argList())
+            result += OutputFormatter::argListUsageName(*options_.argList());
 
         result += "\n";
         return result;
@@ -265,19 +261,19 @@ private:
 
     std::string argsInfo()
     {
-        if (args_.empty() && !argList_)
+        if (options_.args().empty() && !options_.argList())
             return {};
         auto result = std::string{"Arguments:\n"};
-        for (const auto arg : args_)
+        for (const auto& arg : options_.args())
             result += makeConfigFieldInfo(OutputFormatter::argDescriptionName(*arg, outputSettings_.nameIndentation) + "\n", getDescription(*arg));
 
-        if (argList_){            
-            auto description = getDescription(*argList_);
+        if (options_.argList()){
+            auto description = getDescription(*options_.argList());
             if (!description.empty()){
                 description += "\n(multi-value";
-                if (argList_->isOptional()){
-                    if (!argList_->defaultValue().empty())
-                        description += ", optional, default: " + argList_->defaultValue() + ")";
+                if (options_.argList()->isOptional()){
+                    if (!options_.argList()->defaultValue().empty())
+                        description += ", optional, default: " + options_.argList()->defaultValue() + ")";
                     else
                         description +=  ", optional)";
                 }
@@ -286,34 +282,34 @@ private:
             }
             else{
                 description += "multi-value";
-                if (argList_->isOptional()){
-                    if (!argList_->defaultValue().empty())
-                        description += ", optional, default: " + argList_->defaultValue();
+                if (options_.argList()->isOptional()){
+                    if (!options_.argList()->defaultValue().empty())
+                        description += ", optional, default: " + options_.argList()->defaultValue();
                     else
                         description +=  ", optional";
                 }
             }
-            result += makeConfigFieldInfo(OutputFormatter::argListDescriptionName(*argList_, outputSettings_.nameIndentation) + "\n", description);
+            result += makeConfigFieldInfo(OutputFormatter::argListDescriptionName(*options_.argList(), outputSettings_.nameIndentation) + "\n", description);
         }
         return result;
     }
 
     std::string flagsInfo()
     {
-        if (flags_.empty())
+        if (options_.flags().empty())
             return {};
         auto result = std::string{"Flags:\n"};
-        for (const auto flag : flags_)
+        for (const auto& flag : options_.flags())
             result += makeConfigFieldInfo(OutputFormatter::flagDescriptionName(*flag, outputSettings_.nameIndentation) + "\n", getDescription(*flag));
         return result;
     }
 
     std::string commandsInfo()
     {
-        if (commands_.empty())
+        if (options_.commands().empty())
             return {};
         auto result = std::string{"Commands:\n"};
-        for (const auto command : commands_){
+        for (const auto& command : options_.commands()){
             auto nameStream = std::stringstream{};
             if (outputSettings_.nameIndentation)
                 nameStream << std::setw(outputSettings_.nameIndentation) << " ";
@@ -341,12 +337,12 @@ private:
             updateLength(OutputFormatter::paramDescriptionName(*param, outputSettings_.nameIndentation));
         for (auto option : optionalParams_)
             updateLength(OutputFormatter::paramDescriptionName(*option, outputSettings_.nameIndentation));
-        for (auto flag : flags_)
+        for (auto& flag : options_.flags())
             updateLength(OutputFormatter::flagDescriptionName(*flag, outputSettings_.nameIndentation));
-        for (auto arg : args_)
+        for (auto& arg : options_.args())
             updateLength(OutputFormatter::argDescriptionName(*arg, outputSettings_.nameIndentation));
-        if (argList_)
-            updateLength(OutputFormatter::argListDescriptionName(*argList_, outputSettings_.nameIndentation));
+        if (options_.argList())
+            updateLength(OutputFormatter::argListDescriptionName(*options_.argList(), outputSettings_.nameIndentation));
         return length;
     }
 
@@ -376,15 +372,12 @@ private:
     }
 
 private:    
-    std::string programName_;    
+    std::string commandName_;
     std::vector<not_null<IParam*>> params_;
     std::vector<not_null<IParam*>> optionalParams_;
     std::vector<not_null<IParamList*>> paramLists_;
     std::vector<not_null<IParamList*>> optionalParamLists_;
-    std::vector<not_null<IFlag*>> flags_;
-    std::vector<not_null<IArg*>> args_;
-    IArgList* argList_;
-    std::vector<not_null<ICommand*>> commands_;
+    const Options& options_;
     UsageInfoFormat outputSettings_;
     int maxOptionNameSize_;
 };

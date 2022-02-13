@@ -1,15 +1,15 @@
 #pragma once
 #include "command.h"
-#include "configaccess.h"
-#include "format.h"
+#include "iconfig.h"
+#include "formatcfg.h"
 
 namespace cmdlime::detail{
 
-template<typename T, typename TConfig>
+template<typename T, Format format>
 class CommandCreator{
-    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
+    using NameProvider = typename FormatCfg<format>::nameProvider;
 public:
-    CommandCreator(TConfig& cfg,
+    CommandCreator(IConfig& cfg,
                    const std::string& varName,
                    std::optional<T>& commandValue,
                    typename Command<T>::Type type = Command<T>::Type::Normal)
@@ -19,13 +19,13 @@ public:
         command_ = std::make_unique<Command<T>>(NameProvider::fullName(varName), commandValue, type);
     }
 
-    CommandCreator<T, TConfig>& operator<<(const std::string& info)
+    auto& operator<<(const std::string& info)
     {
         command_->info().addDescription(info);
         return *this;
     }
 
-    CommandCreator<T, TConfig>& operator<<(const Name& customName)
+    auto& operator<<(const Name& customName)
     {
         command_->info().resetName(customName.value());
         return *this;
@@ -33,13 +33,13 @@ public:
 
     operator std::optional<T>()
     {
-        ConfigAccess<TConfig>{cfg_}.addCommand(std::move(command_));
+        cfg_.addCommand(std::move(command_));
         return std::optional<T>{};
     }
 
 private:
     std::unique_ptr<Command<T>> command_;
-    TConfig& cfg_;
+    IConfig& cfg_;
 };
 
 }

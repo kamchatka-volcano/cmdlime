@@ -1,16 +1,16 @@
 #pragma once
 #include "flag.h"
-#include "configaccess.h"
-#include "format.h"
+#include "iconfig.h"
+#include "formatcfg.h"
 
 namespace cmdlime::detail{
 
-template <typename TConfig>
+template <Format format>
 class FlagCreator{
-    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
+    using NameProvider = typename FormatCfg<format>::nameProvider;
 
 public:
-    FlagCreator(TConfig& cfg,
+    FlagCreator(IConfig& cfg,
                 const std::string& varName,
                 bool& flagValue,
                 Flag::Type flagType = Flag::Type::Normal)
@@ -37,7 +37,7 @@ public:
 
     FlagCreator& operator<<(const ShortName& customName)
     {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
+        static_assert(FormatCfg<format>::shortNamesEnabled,
                       "Current command line format doesn't support short names");
         flag_->info().resetShortName(customName.value());
         return *this;
@@ -45,7 +45,7 @@ public:
 
     FlagCreator& operator<<(const WithoutShortName&)
     {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
+        static_assert(FormatCfg<format>::shortNamesEnabled,
                       "Current command line format doesn't support short names");
         flag_->info().resetShortName({});
         return *this;
@@ -53,22 +53,22 @@ public:
 
     operator bool()
     {
-        ConfigAccess<TConfig>{cfg_}.addFlag(std::move(flag_));
+        cfg_.addFlag(std::move(flag_));
         return false;
     }
 
 private:
     std::unique_ptr<Flag> flag_;
-    TConfig& cfg_;
+    IConfig& cfg_;
 };
 
 template <typename TConfig>
-FlagCreator<TConfig> makeFlagCreator(TConfig& cfg,
-                                     const std::string& varName,
-                                     const std::function<bool&()>& flagGetter,
-                                     Flag::Type flagType = Flag::Type::Normal)
+auto makeFlagCreator(TConfig& cfg,
+                     const std::string& varName,
+                     const std::function<bool&()>& flagGetter,
+                     Flag::Type flagType = Flag::Type::Normal)
 {
-    return FlagCreator<TConfig>{cfg, varName, flagGetter(), flagType};
+    return FlagCreator<TConfig::format()>{cfg, varName, flagGetter(), flagType};
 }
 
 }
