@@ -12,7 +12,7 @@ inline std::string trimFront(std::string_view str)
         return !std::isspace(ch);
     });
     auto firstNotBlank = std::distance(str.begin(), it);
-    return std::string{str.substr(firstNotBlank)};
+    return std::string{str.substr(static_cast<std::size_t>(firstNotBlank))};
 }
 
 inline std::string trimBack(std::string_view str)
@@ -21,7 +21,7 @@ inline std::string trimBack(std::string_view str)
         return !std::isspace(ch);
     }).base();
     auto lastNotBlank = std::distance(str.begin(), it);
-    return std::string{str.substr(0, lastNotBlank)};
+    return std::string{str.substr(0, static_cast<std::size_t>(lastNotBlank))};
 }
 
 inline std::string trim(std::string_view str)

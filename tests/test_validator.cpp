@@ -16,7 +16,7 @@ struct EnsureNotShorterThan{
     template <typename T>
     void operator()(const T& val)
     {
-        if (val.size() < minSize_)
+        if (static_cast<int>(val.size()) < minSize_)
             throw cmdlime::ValidationError{"size can't be less than 2."};
     }
 
@@ -70,7 +70,7 @@ struct FullConfig : public Config{
             if (param && param < 0)
                 throw cmdlime::ValidationError{"value can't be negative."};
         };
-    ;
+
     CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::ShortName("L")
         << [](auto param) {
             if (param.size() < 2)
@@ -83,7 +83,7 @@ struct FullConfig : public Config{
             };
     CMDLIME_ARG(arg, double)
         << [](auto param) {
-            if (param && param < 0)
+            if (param < 0)
                 throw cmdlime::ValidationError{"value can't be negative."};
         };
     CMDLIME_ARGLIST(argList, float)

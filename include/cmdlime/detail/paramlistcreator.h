@@ -83,9 +83,9 @@ public:
 
 private:
     std::unique_ptr<ParamList<T>> paramList_;
-    std::vector<T>& paramListValue_;
     std::vector<T> defaultValue_;
     IConfig& cfg_;
+    std::vector<T>& paramListValue_;
 };
 
 template <typename T, typename TConfig>

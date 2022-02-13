@@ -81,9 +81,9 @@ public:
 
 private:
     std::unique_ptr<Param<T>> param_;
-    T& paramValue_;
     T defaultValue_;
     IConfig& cfg_;
+    T& paramValue_;
 };
 
 template <typename T, typename TConfig>

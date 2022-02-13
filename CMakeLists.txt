@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(cmdlime VERSION 0.10.0 DESCRIPTION "C++17 command line parsing library")
+project(cmdlime VERSION 1.0.0 DESCRIPTION "C++17 command line parsing library")
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(CMDLIME_SUBPROJECT OFF)

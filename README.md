@@ -109,7 +109,7 @@ If you have a low tolerance for macros, it's possible to register structure fiel
         bool verbose     = flag<&Cfg::verbose>();
     } cfg;
 ```
-Internally these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings. By default, **cmdlime** ships without it and these methods aren't available, to use them, set `USE_NAMEOF` CMake variable to automatically download it, or install it on your system by yourself.   
+Internally these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings. By default, **cmdlime** ships without it and these methods aren't available, to use them, enable `USE_NAMEOF` CMake variable to automatically download and configure **nameof** library, or install it on your system by yourself.   
 **nameof** relies on non-standard functionality of C++ compilers, so if you don't like it you can use **cmdlime**
 without it, by providing the names by yourself:
 
@@ -608,7 +608,7 @@ Preparing search history with surname filter:Doe
 
 As you can see a config structure can have multiple commands, but only one can be specified for each config.
 
-###Using validators
+### Using validators
 Processed command line options can be validated by registering constraints checking functions or callable objects. The signature must be compatible with `void (const T&)` where T - is a type of validated config structure field. If option's value is invalid, a validator is required to throw an exception of type `cmdlime::ValidationError`:
 
 ```c++
@@ -621,7 +621,7 @@ struct Cfg : cmdlime::Config{
 };
 ```
 
-Let's improve `person-finder` by checking that either `file` or `db` parameter of subcommand `record` is set and all names contain only alphabet characters:
+Let's improve `person-finder` by checking that either `file` or `db` parameter of the `record` subcommand is set and all names contain only alphabet characters:
 ```c++
 ///examples/ex15.cpp
 ///

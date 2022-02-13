@@ -57,9 +57,8 @@ public:
 
 private:
     std::unique_ptr<Arg<T>> arg_;
-    T& argValue_;
     IConfig& cfg_;
-
+    T& argValue_;
 };
 
 template <typename T, typename TConfig>

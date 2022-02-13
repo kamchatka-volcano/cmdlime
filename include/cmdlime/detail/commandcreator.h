@@ -48,8 +48,8 @@ public:
 
 private:
     std::unique_ptr<Command<T>> command_;
-    std::optional<T>& commandValue_;
     IConfig& cfg_;
+    std::optional<T>& commandValue_;
 };
 
 }
