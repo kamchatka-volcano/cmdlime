@@ -1,9 +1,6 @@
 #pragma once
 #include "iparamlist.h"
 #include "optioninfo.h"
-#include "configaccess.h"
-#include "format.h"
-#include "streamreader.h"
 #include <sfun/string_utils.h>
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
@@ -23,9 +20,9 @@ public:
     ParamList(std::string name,
               std::string shortName,
               std::string type,
-              std::function<std::vector<T>&()> paramListGetter)
+              std::vector<T>& paramListValue)
         : info_(std::move(name), std::move(shortName), std::move(type))
-        , paramListGetter_(std::move(paramListGetter))
+        , paramListValue_(paramListValue)
     {
     }
 
@@ -49,7 +46,7 @@ private:
     bool read(const std::string& data) override
     {
         if (!isDefaultValueOverwritten_){
-            paramListGetter_().clear();
+            paramListValue_.clear();
             isDefaultValueOverwritten_ = true;
         }
 
@@ -58,7 +55,7 @@ private:
             auto paramVal = convertFromString<T>(part);
             if (!paramVal)
                 return false;
-            paramListGetter_().emplace_back(*paramVal);
+            paramListValue_.emplace_back(*paramVal);
         }
         hasValue_ = true;
         return true;
@@ -101,91 +98,10 @@ private:
 
 private:
     OptionInfo info_;
-    std::function<std::vector<T>&()> paramListGetter_;
+    std::vector<T>& paramListValue_;
     bool hasValue_ = false;
     std::optional<std::vector<T>> defaultValue_;
     bool isDefaultValueOverwritten_ = false;
 };
-
-template<typename T, typename TConfig>
-class ParamListCreator{
-    using NameProvider = typename Format<ConfigAccess<TConfig>::format()>::nameProvider;
-
-public:
-    ParamListCreator(TConfig& cfg,
-                   const std::string& varName,
-                   const std::string& type,
-                   std::function<std::vector<T>&()> paramListGetter)
-        : cfg_(cfg)
-    {
-        Expects(!varName.empty());
-        Expects(!type.empty());
-        paramList_ = std::make_unique<ParamList<T>>(NameProvider::name(varName),
-                                                    NameProvider::shortName(varName),
-                                                    NameProvider::valueName(type),
-                                                    std::move(paramListGetter));
-    }
-
-    ParamListCreator<T, TConfig>& operator<<(const std::string& info)
-    {
-        paramList_->info().addDescription(info);
-        return *this;
-    }
-
-    ParamListCreator<T, TConfig>& operator<<(const Name& customName)
-    {
-        paramList_->info().resetName(customName.value());
-        return *this;
-    }
-
-    ParamListCreator<T, TConfig>& operator<<(const ShortName& customName)
-    {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
-        paramList_->info().resetShortName(customName.value());
-        return *this;
-    }
-
-    ParamListCreator<T, TConfig>& operator<<(const WithoutShortName&)
-    {
-        static_assert(Format<ConfigAccess<TConfig>::format()>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
-        paramList_->info().resetShortName({});
-        return *this;
-    }
-
-    ParamListCreator<T, TConfig>& operator<<(const ValueName& valueName)
-    {
-        paramList_->info().resetValueName(valueName.value());
-        return *this;
-    }
-
-    ParamListCreator<T, TConfig>& operator()(std::vector<T> defaultValue = {})
-    {
-        defaultValue_ = std::move(defaultValue);
-        paramList_->setDefaultValue(defaultValue_);
-        return *this;
-    }
-
-    operator std::vector<T>()
-    {
-        ConfigAccess<TConfig>{cfg_}.addParamList(std::move(paramList_));
-        return defaultValue_;
-    }
-
-private:
-    std::unique_ptr<ParamList<T>> paramList_;
-    std::vector<T> defaultValue_;
-    TConfig& cfg_;
-};
-
-template <typename T, typename TConfig>
-ParamListCreator<T, TConfig> makeParamListCreator(TConfig& cfg,
-                                                  const std::string& varName,
-                                                  const std::string& type,
-                                                  std::function<std::vector<T>&()> paramListGetter)
-{
-    return ParamListCreator<T, TConfig>{cfg, varName, type, std::move(paramListGetter)};
-}
 
 }

@@ -8,6 +8,7 @@ else()
     set(CMDLIME_SUBPROJECT ON)
 endif()
 
+option(USE_SYSTEM_GSL "Use a GSL library installed on your system, instead of downloading it" OFF)
 if (NOT USE_SYSTEM_GSL)
     set(INSTALL_GSL ON)
     include(external/gsl)
@@ -15,6 +16,7 @@ else()
     find_package(Microsoft.GSL 3.1.0 REQUIRED)
 endif()
 
+option(USE_SYSTEM_SFUN "Use a sfun library installed on your system, instead of downloading it" OFF)
 if (NOT USE_SYSTEM_SFUN)
     set(INSTALL_SFUN ON)
     include(external/sfun)
@@ -22,10 +24,24 @@ else()
     find_package(sfun 1.0 REQUIRED)
 endif()
 
+option(USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" ON)
+option(USE_SYSTEM_NAMEOFF "Use a nameof library installed on your system, instead of downloading it" OFF)
+if (USE_NAMEOF)
+    if (NOT USE_SYSTEM_NAMEOF)
+        set(NAMEOF_OPT_INSTALL ON)
+        include(external/nameof)
+    else()
+        find_package(nameof 0.10.1 REQUIRED)
+    endif()
+endif()
+
 add_library(cmdlime INTERFACE)
 add_library(cmdlime::cmdlime ALIAS cmdlime)
 target_compile_features(cmdlime INTERFACE cxx_std_17)
 target_link_libraries(cmdlime INTERFACE Microsoft.GSL::GSL sfun::sfun)
+if (USE_NAMEOF)
+    target_link_libraries(cmdlime INTERFACE nameof::nameof)
+endif()
 
 target_include_directories(
     cmdlime
@@ -55,7 +71,6 @@ if (NOT CMDLIME_SUBPROJECT OR INSTALL_CMDLIME)
             NAMESPACE cmdlime::
             DESTINATION ${CMDLIME_PACK_PATH}
             )
-
     include(CMakePackageConfigHelpers)
     write_basic_package_version_file(
             ${CMAKE_CURRENT_BINARY_DIR}/cmdlimeConfigVersion.cmake

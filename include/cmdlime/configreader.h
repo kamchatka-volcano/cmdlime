@@ -66,7 +66,7 @@ private:
         using NameProvider = typename detail::Format<detail::ConfigAccess<TConfig>::format()>::nameProvider;
         auto helpFlag = std::make_unique<detail::Flag>(NameProvider::name("help"),
                                                        std::string{},
-                                                       [this]()->bool&{return help_;},
+                                                       help_,
                                                        detail::Flag::Type::Exit);
         helpFlag->info().addDescription("show usage info and exit");
         detail::ConfigAccess<TConfig>{cfg_}.addFlag(std::move(helpFlag));
@@ -74,7 +74,7 @@ private:
         if (!cfg_.versionInfo().empty()){
             auto versionFlag = std::make_unique<detail::Flag>(NameProvider::name("version"),
                                                            std::string{},
-                                                           [this]()->bool&{return version_;},
+                                                           version_,
                                                            detail::Flag::Type::Exit);
             versionFlag->info().addDescription("show version info and exit");
             detail::ConfigAccess<TConfig>{cfg_}.addFlag(std::move(versionFlag));

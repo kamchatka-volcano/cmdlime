@@ -39,17 +39,18 @@ Please note, that in this example, `--name` is a parameter, `--verbose` is a fla
 
 ## Table of Contents
 *    [Usage](#usage)
-     *    [Declaring the config structure](#declaring-the-config-structure)
-     *    [Using ConfigReader](#using-configreader) 
-     *    [Custom names](#custom-names)
-     *    [Auto-generated usage info](#auto-generated-usage-info)
-     *    [Supported formats](#supported-formats)
+     * [Declaring the config structure](#declaring-the-config-structure)
+     * [Avoiding macros](#avoiding-macros)
+     * [Using ConfigReader](#using-configreader) 
+     * [Custom names](#custom-names)
+     * [Auto-generated usage info](#auto-generated-usage-info)
+     * [Supported formats](#supported-formats)
           *    [GNU](#gnu)
           *    [POSIX](#posix)
           *    [X11](#x11)
           *    [Simple format](#simple-format)
-     *    [Using custom types](#using-custom-types)
-     *    [Using subcommands](#using-subcommands)
+     * [Using custom types](#using-custom-types)
+     * [Using subcommands](#using-subcommands)
 *    [Installation](#installation)
 *    [Running tests](#running-tests)
 *    [License](#license)
@@ -77,7 +78,7 @@ If at least one exit flag is set,  no parsing errors are raised regardless of th
 - **CMDLIME_SUBCOMMAND(`name`, `type`)** - creates `std::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Subcommands are always optional and have default value `std::optional<type>{}`.
 - **CMDLIME_COMMAND(`name`, `type`)** - creates `std::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Commands are always optional and have default value `std::optional<type>{}`. If command is encountered, no parsing errors for other config fields are raised and they are left in an unspecified state.
 
-*Note: Types used for config fields must be default constructible and copyable.*  
+*Note: Types used for config fields must be default constructable and copyable.*  
 
 *Another note: You don't need to change your code style when declaring config fields - `camelCase`, `snake_case` and `PascalCase` names are supported and readed from the `kebab-case` named parameters in the command line.*  
 
@@ -85,8 +86,8 @@ Let's alter the config for the `person-finder` program by adding a required para
 ```C++
 ///examples/ex02.cpp
 ///
-struct Cfg : public cmdlime::Config{
-	CMDLIME_ARG(zipCode, int);
+struct Cfg : public cmdlime::Config{ 
+    CMDLIME_ARG(zipCode, int);
     CMDLIME_PARAM(surname, std::string);
     CMDLIME_PARAM(name, std::string)();
     CMDLIME_FLAG(verbose);
@@ -97,6 +98,31 @@ Now parameter `--name` can be skipped without raising an error:
 kamchatka-volcano@home:~$ ./person-finder 684007 --surname Deer
 Looking for person Deer in region with zip code: 684007
 ```
+
+### Avoiding macros
+If you have a low tolerance for macros, it's possible to register structure fields using the similarly named `cmdlime::Config`'s methods:
+```c++
+    struct Cfg : public cmdlime::Config{
+        int zipCode      = arg<&Cfg::zipCode>();
+        std::string name = param<&Cfg::name>();
+        bool verbose     = flag<&Cfg::verbose>();
+    } cfg;
+```
+Internally these methods use a [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings.
+This relies on non-standard functionality of C++ compilers, so if you don't like it you can use **cmdlime**
+without it, by providing the names by yourself:
+
+```c++
+    struct Cfg : public cmdlime::Config{
+        int zipCode      = arg<&Cfg::zipCode>("zipCode", "int");
+        std::string name = param<&Cfg::name>("name", "string");
+        bool verbose     = flag<&Cfg::verbose>("verbose"); //flag are always booleans, so we don't need to specify a type's name here
+    } cfg;
+``` 
+
+Config structures declared using the macros-free methods are fully compatible with all **cmdlime**'s functionality. 
+Examples use registration with macros as it's the least verbose method. 
+
 
 ### Using ConfigReader
 
@@ -616,6 +642,13 @@ Afterwards, you can use find_package() command to make installed library availab
 find_package(cmdlime 0.10.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE cmdlime::cmdlime)   
 ```
+
+**cmdlime** depends on the following libraries: [gsl](https://github.com/microsoft/GSL), [nameof](https://github.com/Neargye/nameof), [sfun](https://github.com/kamchatka-volcano/sfun). By default, everything is downloaded and configured by CMake automatically, so you don't need to think about it.
+If any of these libraries is installed on your system, you can configure **cmdlime** to use this version instead of downloading it from the internet, by enabling these options: `USE_SYSTEM_GSL`, `USE_SYSTEM_NAMEOF`, `USE_SYSTEM_SFUN`.
+
+If you want to remove a dependency on the `nameof` library altogether, unset the option `USE_NAMEOF`.
+
+
 
 ## Running tests
 ```

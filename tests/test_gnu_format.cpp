@@ -3,6 +3,11 @@
 #include "assert_exception.h"
 #include <optional>
 
+#if __has_include(<nameof.hpp>)
+#define NAMEOF_AVAILABLE
+#endif
+
+
 namespace test_gnu_format{
 
 using Config = cmdlime::GNUConfig;
@@ -33,20 +38,43 @@ struct FullConfig : public Config{
     CMDLIME_FLAG(secondFlag) << cmdlime::WithoutShortName();
     CMDLIME_ARG(arg, double);
     CMDLIME_ARGLIST(argList, float);
+    CMDLIME_COMMAND(command, SubcommandConfig);
     CMDLIME_SUBCOMMAND(subcommand, SubcommandConfig);
 };
 
-struct FullConfigWithCommand : public Config{
-    CMDLIME_PARAM(requiredParam, std::string);
-    CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
-    CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::ShortName("i");
-    CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::ShortName("L");
-    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
-    CMDLIME_FLAG(flag);
-    CMDLIME_ARG(arg, double);
-    CMDLIME_ARGLIST(argList, float);
-    CMDLIME_COMMAND(subcommand, SubcommandConfig);
+#ifdef NAMEOF_AVAILABLE
+struct FullConfigWithoutMacro : public Config{
+    std::string requiredParam           = param<&T::requiredParam>();
+    std::string optionalParam           = param<&T::optionalParam>()("defaultValue");
+    std::optional<int> optionalIntParam = param<&T::optionalIntParam>()() << cmdlime::ShortName("i");
+    std::vector<std::string> prmList    = paramList<&T::prmList>() << cmdlime::ShortName("L");
+    std::vector<int> optionalPrmList    = paramList<&T::optionalPrmList>()(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
+    bool flg = flag<&T::flg>();
+    double a = arg<&T::a>();
+    std::vector<float> aList = argList<&T::aList>();
+    std::optional<SubcommandConfig> cmd = command<&T::cmd>();
+    std::optional<SubcommandConfig> subcommand = subCommand<&T::subcommand>();
+
+private:
+    using T = FullConfigWithoutMacro;
 };
+#else
+struct FullConfigWithoutMacro : public Config{
+    std::string requiredParam           = param<&T::requiredParam>("requiredParam", "string");
+    std::string optionalParam           = param<&T::optionalParam>("optionalParam", "string")("defaultValue");
+    std::optional<int> optionalIntParam = param<&T::optionalIntParam>("optionalIntParam", "int")() << cmdlime::ShortName("i");
+    std::vector<std::string> prmList    = paramList<&T::prmList>("prmList", "string") << cmdlime::ShortName("L");
+    std::vector<int> optionalPrmList    = paramList<&T::optionalPrmList>("optionalPrmList", "int")(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
+    bool flg = flag<&T::flg>("flg");
+    double a = arg<&T::a>("a", "double");
+    std::vector<float> aList = argList<&T::aList>("aList", "float");
+    std::optional<SubcommandConfig> cmd = command<&T::cmd>("cmd");
+    std::optional<SubcommandConfig> subcommand = subCommand<&T::subcommand>("subcommand");
+
+private:
+    using T = FullConfigWithoutMacro;
+};
+#endif
 
 TEST(GNUConfig, AllSet)
 {
@@ -61,6 +89,24 @@ TEST(GNUConfig, AllSet)
     EXPECT_EQ(cfg.flag, true);
     EXPECT_EQ(cfg.arg, 4.2);
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+    EXPECT_FALSE(cfg.command.has_value());
+    EXPECT_FALSE(cfg.subcommand.has_value());
+}
+
+TEST(GNUConfig, AllSetWithoutMacro)
+{
+    auto cfg = FullConfigWithoutMacro{};
+    cfg.read({"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
+              "--optional-prm-list=1,2", "-f", "4.2", "1.1", "2.2", "3.3"});
+    EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
+    EXPECT_EQ(cfg.optionalIntParam, 9);
+    EXPECT_EQ(cfg.prmList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.optionalPrmList, (std::vector<int>{1, 2}));
+    EXPECT_EQ(cfg.flg, true);
+    EXPECT_EQ(cfg.a, 4.2);
+    EXPECT_EQ(cfg.aList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+    EXPECT_FALSE(cfg.cmd.has_value());
     EXPECT_FALSE(cfg.subcommand.has_value());
 }
 
@@ -78,6 +124,7 @@ TEST(GNUConfig, AllSetInSubCommand)
     EXPECT_EQ(cfg.flag, false);
     EXPECT_EQ(cfg.arg, 4.2);
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f}));
+    EXPECT_FALSE(cfg.command.has_value());
     ASSERT_TRUE(cfg.subcommand.has_value());
     EXPECT_EQ(cfg.subcommand->requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.subcommand->optionalParam, std::string{"BAR"});
@@ -88,6 +135,67 @@ TEST(GNUConfig, AllSetInSubCommand)
     EXPECT_EQ(cfg.subcommand->arg, 4.2);
     EXPECT_EQ(cfg.subcommand->argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
 }
+
+TEST(GNUConfig, AllSetInSubCommandWithoutMacro)
+{
+    auto cfg = FullConfigWithoutMacro{};
+    cfg.read({"-r", "FOO", "--prm-list=zero", "--prm-list=one", "4.2", "1.1",
+              "subcommand", "--required-param", "FOO", "--optional-param=BAR", "--optional-int-param", "9", "--param-list=zero", "--param-list=one",
+              "--optional-param-list=1,2", "--flag", "4.2", "1.1", "2.2", "3.3"});
+    EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
+    EXPECT_FALSE(cfg.optionalIntParam.has_value());
+    EXPECT_EQ(cfg.prmList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.optionalPrmList, (std::vector<int>{99, 100}));
+    EXPECT_EQ(cfg.flg, false);
+    EXPECT_EQ(cfg.a, 4.2);
+    EXPECT_EQ(cfg.aList, (std::vector<float>{1.1f}));
+    EXPECT_FALSE(cfg.cmd.has_value());
+    ASSERT_TRUE(cfg.subcommand.has_value());
+    EXPECT_EQ(cfg.subcommand->requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.subcommand->optionalParam, std::string{"BAR"});
+    EXPECT_EQ(cfg.subcommand->optionalIntParam, 9);
+    EXPECT_EQ(cfg.subcommand->paramList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.subcommand->optionalParamList, (std::vector<int>{1, 2}));
+    EXPECT_EQ(cfg.subcommand->flag, true);
+    EXPECT_EQ(cfg.subcommand->arg, 4.2);
+    EXPECT_EQ(cfg.subcommand->argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+}
+
+TEST(GNUConfig, AllSetInCommand)
+{
+    auto cfg = FullConfig{};
+    cfg.read({"command", "--required-param=FOO", "--optional-param=BAR", "--optional-int-param=9", "--param-list=zero", "--param-list=one",
+              "--optional-param-list=1,2", "--flag", "4.2", "1.1", "2.2", "3.3"});
+    EXPECT_FALSE(cfg.subcommand.has_value());
+    ASSERT_TRUE(cfg.command.has_value());
+    EXPECT_EQ(cfg.command->requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.command->optionalParam, std::string{"BAR"});
+    EXPECT_EQ(cfg.command->optionalIntParam, 9);
+    EXPECT_EQ(cfg.command->paramList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.command->optionalParamList, (std::vector<int>{1, 2}));
+    EXPECT_EQ(cfg.command->flag, true);
+    EXPECT_EQ(cfg.command->arg, 4.2);
+    EXPECT_EQ(cfg.command->argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+}
+
+TEST(GNUConfig, AllSetInCommandWithoutMacro)
+{
+    auto cfg = FullConfigWithoutMacro{};
+    cfg.read({"cmd", "--required-param", "FOO", "--optional-param=BAR", "--optional-int-param", "9", "--param-list=zero", "--param-list=one",
+              "--optional-param-list=1,2", "--flag", "4.2", "1.1", "2.2", "3.3"});
+    EXPECT_FALSE(cfg.subcommand.has_value());
+    ASSERT_TRUE(cfg.cmd.has_value());
+    EXPECT_EQ(cfg.cmd->requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.cmd->optionalParam, std::string{"BAR"});
+    EXPECT_EQ(cfg.cmd->optionalIntParam, 9);
+    EXPECT_EQ(cfg.cmd->paramList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.cmd->optionalParamList, (std::vector<int>{1, 2}));
+    EXPECT_EQ(cfg.cmd->flag, true);
+    EXPECT_EQ(cfg.cmd->arg, 4.2);
+    EXPECT_EQ(cfg.cmd->argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+}
+
 
 TEST(GNUConfig, CombinedFlagsAndParams)
 {
@@ -195,35 +303,10 @@ TEST(GNUConfig, MissingParamAllSetInSubCommand)
         });
 }
 
-TEST(GNUConfig, AllSetInCommand)
-{
-    auto cfg = FullConfigWithCommand{};
-    cfg.read({"--required-param=FOO", "--param-list=zero", "--param-list=one", "4.2", "1.1",
-              "subcommand", "--required-param=FOO", "--optional-param=BAR", "--optional-int-param=9", "--param-list=zero", "--param-list=one",
-              "--optional-param-list=1,2", "--flag", "4.2", "1.1", "2.2", "3.3"});
-    EXPECT_TRUE(cfg.requiredParam.empty());
-    EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
-    EXPECT_FALSE(cfg.optionalIntParam.has_value());
-    EXPECT_TRUE(cfg.paramList.empty());
-    EXPECT_EQ(cfg.optionalParamList, (std::vector<int>{99,100}));
-    EXPECT_EQ(cfg.flag, false);
-    EXPECT_EQ(cfg.arg, 0.f);
-    EXPECT_TRUE(cfg.argList.empty());
-    ASSERT_TRUE(cfg.subcommand.has_value());
-    EXPECT_EQ(cfg.subcommand->requiredParam, std::string{"FOO"});
-    EXPECT_EQ(cfg.subcommand->optionalParam, std::string{"BAR"});
-    EXPECT_EQ(cfg.subcommand->optionalIntParam, 9);
-    EXPECT_EQ(cfg.subcommand->paramList, (std::vector<std::string>{"zero", "one"}));
-    EXPECT_EQ(cfg.subcommand->optionalParamList, (std::vector<int>{1, 2}));
-    EXPECT_EQ(cfg.subcommand->flag, true);
-    EXPECT_EQ(cfg.subcommand->arg, 4.2);
-    EXPECT_EQ(cfg.subcommand->argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
-}
-
 TEST(GNUConfig, MissingParamAllSetInCommand)
 {
-    auto cfg = FullConfigWithCommand{};
-    cfg.read({"subcommand", "--required-param=FOO", "--optional-param=BAR", "--optional-int-param=9", "--param-list=zero", "--param-list=one",
+    auto cfg = FullConfig{};
+    cfg.read({"command", "--required-param=FOO", "--optional-param=BAR", "--optional-int-param=9", "--param-list=zero", "--param-list=one",
               "--optional-param-list=1,2", "--flag", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_TRUE(cfg.requiredParam.empty());
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
@@ -233,21 +316,21 @@ TEST(GNUConfig, MissingParamAllSetInCommand)
     EXPECT_EQ(cfg.flag, false);
     EXPECT_EQ(cfg.arg, 0.f);
     EXPECT_TRUE(cfg.argList.empty());
-    ASSERT_TRUE(cfg.subcommand.has_value());
-    EXPECT_EQ(cfg.subcommand->requiredParam, std::string{"FOO"});
-    EXPECT_EQ(cfg.subcommand->optionalParam, std::string{"BAR"});
-    EXPECT_EQ(cfg.subcommand->optionalIntParam, 9);
-    EXPECT_EQ(cfg.subcommand->paramList, (std::vector<std::string>{"zero", "one"}));
-    EXPECT_EQ(cfg.subcommand->optionalParamList, (std::vector<int>{1, 2}));
-    EXPECT_EQ(cfg.subcommand->flag, true);
-    EXPECT_EQ(cfg.subcommand->arg, 4.2);
-    EXPECT_EQ(cfg.subcommand->argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+    ASSERT_TRUE(cfg.command.has_value());
+    EXPECT_EQ(cfg.command->requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.command->optionalParam, std::string{"BAR"});
+    EXPECT_EQ(cfg.command->optionalIntParam, 9);
+    EXPECT_EQ(cfg.command->paramList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.command->optionalParamList, (std::vector<int>{1, 2}));
+    EXPECT_EQ(cfg.command->flag, true);
+    EXPECT_EQ(cfg.command->arg, 4.2);
+    EXPECT_EQ(cfg.command->argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
 }
 
 TEST(GNUConfig, MissingParamAllSetInNestedCommand)
 {
-    auto cfg = FullConfigWithCommand{};
-    cfg.read({"subcommand", "nested", "--param=FOO"});
+    auto cfg = FullConfig{};
+    cfg.read({"command", "nested", "--param=FOO"});
     EXPECT_TRUE(cfg.requiredParam.empty());
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_FALSE(cfg.optionalIntParam.has_value());
@@ -256,17 +339,17 @@ TEST(GNUConfig, MissingParamAllSetInNestedCommand)
     EXPECT_EQ(cfg.flag, false);
     EXPECT_EQ(cfg.arg, 0.f);
     EXPECT_TRUE(cfg.argList.empty());
-    ASSERT_TRUE(cfg.subcommand.has_value());
-    EXPECT_TRUE(cfg.subcommand->requiredParam.empty());
-    EXPECT_EQ(cfg.subcommand->optionalParam, std::string{"defaultValue"});
-    EXPECT_FALSE(cfg.subcommand->optionalIntParam.has_value());
-    EXPECT_TRUE(cfg.subcommand->paramList.empty());
-    EXPECT_EQ(cfg.subcommand->optionalParamList, (std::vector<int>{99,100}));
-    EXPECT_EQ(cfg.subcommand->flag, false);
-    EXPECT_EQ(cfg.subcommand->arg, 0.f);
-    EXPECT_TRUE(cfg.subcommand->argList.empty());
-    ASSERT_TRUE(cfg.subcommand->nested.has_value());
-    EXPECT_EQ(cfg.subcommand->nested->param, "FOO");
+    ASSERT_TRUE(cfg.command.has_value());
+    EXPECT_TRUE(cfg.command->requiredParam.empty());
+    EXPECT_EQ(cfg.command->optionalParam, std::string{"defaultValue"});
+    EXPECT_FALSE(cfg.command->optionalIntParam.has_value());
+    EXPECT_TRUE(cfg.command->paramList.empty());
+    EXPECT_EQ(cfg.command->optionalParamList, (std::vector<int>{99,100}));
+    EXPECT_EQ(cfg.command->flag, false);
+    EXPECT_EQ(cfg.command->arg, 0.f);
+    EXPECT_TRUE(cfg.command->argList.empty());
+    ASSERT_TRUE(cfg.command->nested.has_value());
+    EXPECT_EQ(cfg.command->nested->param, "FOO");
 }
 
 struct FullConfigWithOptionalArgList : public Config{
@@ -873,6 +956,16 @@ TEST(GNUConfig, UsageInfo)
     EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
 }
 
+TEST(GNUConfig, UsageInfoWithoutMacro)
+{
+    auto cfg = FullConfigWithoutMacro{};
+    auto expectedInfo = std::string{
+            "Usage: testproc [commands] <a> --required-param <string> --prm-list <string>... "
+            "[--optional-param <string>] [--optional-int-param <int>] [--optional-prm-list <int>...] [--flg] <a-list...>\n"
+    };
+    EXPECT_EQ(cfg.usageInfo("testproc"), expectedInfo);
+}
+
 TEST(GNUConfig, DetailedUsageInfo)
 {
     auto cfg = FullConfig{};
@@ -892,9 +985,34 @@ TEST(GNUConfig, DetailedUsageInfo)
     "   -f, --flag                         \n"
     "       --second-flag                  \n"
     "Commands:\n"
+    "    command [options]                 \n"
     "    subcommand [options]              \n"};
     EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
 }
+
+TEST(GNUConfig, DetailedUsageInfoWithoutMacro)
+{
+    auto cfg = FullConfigWithoutMacro{};
+    auto expectedDetailedInfo = std::string{
+            "Usage: testproc [commands] <a> --required-param <string> --prm-list <string>... [params] [flags] <a-list...>\n"
+            "Arguments:\n"
+            "    <a> (double)                      \n"
+            "    <a-list> (float)                  multi-value\n"
+            "Parameters:\n"
+            "   -r, --required-param <string>      \n"
+            "   -L, --prm-list <string>            multi-value\n"
+            "   -o, --optional-param <string>      optional, default: defaultValue\n"
+            "   -i, --optional-int-param <int>     optional\n"
+            "   -O, --optional-prm-list <int>      multi-value, optional, default: {99, \n"
+            "                                        100}\n"
+            "Flags:\n"
+            "   -f, --flg                          \n"
+            "Commands:\n"
+            "    cmd [options]                     \n"
+            "    subcommand [options]              \n"};
+    EXPECT_EQ(cfg.usageInfoDetailed("testproc"), expectedDetailedInfo);
+}
+
 
 TEST(GNUConfig, WrongParamsWithExitFlag){
     struct ConfigWithExitFlag : public Config{
