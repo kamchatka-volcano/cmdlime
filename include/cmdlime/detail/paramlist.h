@@ -1,18 +1,17 @@
 #pragma once
 #include "iparamlist.h"
 #include "optioninfo.h"
+#include "string_utils.h"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
-#include <sfun/string_utils.h>
-#include <gsl/gsl>
 #include <vector>
 #include <sstream>
 #include <functional>
 #include <memory>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
+namespace str = string_utils;
 
 template <typename T>
 class ParamList : public IParamList{

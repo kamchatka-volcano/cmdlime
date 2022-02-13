@@ -3,16 +3,15 @@
 #include "nameutils.h"
 #include "utils.h"
 #include "formatcfg.h"
+#include "string_utils.h"
 #include <cmdlime/errors.h>
-#include <sfun/string_utils.h>
-#include <gsl/gsl>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <functional>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
+namespace str = string_utils;
 
 template <Format formatType>
 class PosixParser : public Parser<formatType>

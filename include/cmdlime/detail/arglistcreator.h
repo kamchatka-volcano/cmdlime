@@ -3,6 +3,7 @@
 #include "iconfig.h"
 #include "formatcfg.h"
 #include "validator.h"
+#include "gsl_assert.h"
 
 namespace cmdlime::detail{
 

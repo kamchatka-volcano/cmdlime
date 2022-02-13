@@ -5,7 +5,6 @@
 #include "utils.h"
 #include <cmdlime/errors.h>
 #include <functional>
-#include <gsl/gsl_assert>
 
 namespace cmdlime::detail {
 

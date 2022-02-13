@@ -1,20 +1,10 @@
 #pragma once
 #include "nameof_import.h"
-#include <gsl/pointers>
 #include <string>
 #include <sstream>
 #include <optional>
 
 namespace cmdlime::detail{
-
-template <typename T>
-inline std::vector<gsl::not_null<T*>> getPtrList(const std::vector<std::unique_ptr<T>>& ownerList)
-{
-    auto result = std::vector<gsl::not_null<T*>>{};
-    std::transform(ownerList.begin(), ownerList.end(), std::back_inserter(result),
-                   [](auto& owner){return owner.get();});
-    return result;
-}
 
 inline std::string capitalize(const std::string& input)
 {

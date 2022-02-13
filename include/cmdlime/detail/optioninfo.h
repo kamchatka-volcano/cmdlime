@@ -1,5 +1,5 @@
 #pragma once
-#include <gsl/gsl_assert>
+#include "gsl_assert.h"
 #include <string>
 #include <sstream>
 #include <utility>

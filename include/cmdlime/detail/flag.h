@@ -2,7 +2,6 @@
 #include "iflag.h"
 #include "optioninfo.h"
 #include <cmdlime/customnames.h>
-#include <gsl/gsl>
 #include <memory>
 #include <functional>
 #include <utility>
