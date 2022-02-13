@@ -1,6 +1,7 @@
 #pragma once
 #include "customnames.h"
 #include "configreader.h"
+#include "stringconverter.h"
 #include "detail/config.h"
 #include "detail/configmacro.h"
 #include "detail/gnuformat.h"

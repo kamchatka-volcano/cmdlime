@@ -7,6 +7,7 @@
 #include <gsl/gsl>
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
+#include <cmdlime/stringconverter.h>
 #include <sstream>
 #include <optional>
 #include <memory>
@@ -45,9 +46,11 @@ public:
 private:
     bool read(const std::string& data) override
     {
-        auto stream = std::stringstream{data};
-        if (!readFromStream(stream, paramGetter_()))
+        auto paramValue = convertFromString<T>(data);
+        if (!paramValue)
             return false;
+
+        paramGetter_() = *paramValue;
         hasValue_ = true;
         return true;
     }
@@ -64,11 +67,14 @@ private:
 
     std::string defaultValue() const override
     {
-        if (!defaultValue_.has_value())
+        if (!defaultValue_)
             return {};
-        auto stream = std::stringstream{};
-        stream << defaultValue_.value();
-        return stream.str();
+        auto defaultValueStr = convertToString(*defaultValue_);
+        if (!defaultValueStr)
+            return {};
+        if (defaultValueStr->empty())
+            return "\"\"";
+        return *defaultValueStr;
     }
 
 private:
@@ -77,14 +83,6 @@ private:
     std::optional<T> defaultValue_;
     bool hasValue_ = false;
 };
-
-template <>
-inline bool Param<std::string>::read(const std::string& data)
-{    
-    paramGetter_() = data;
-    hasValue_ = true;
-    return true;
-}
 
 template<typename T, typename TConfig>
 class ParamCreator{

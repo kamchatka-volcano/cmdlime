@@ -910,4 +910,86 @@ TEST(GNUConfig, WrongParamsWithExitFlag){
     EXPECT_EQ(cfg.exitFlag, true);
 }
 
+struct CustomType{
+    std::string value;
+};
+
+struct CustomTypeConfig: public Config{
+    CMDLIME_PARAM(param, CustomType);
+    CMDLIME_PARAMLIST(paramList, CustomType) << cmdlime::ShortName{"l"};
+    CMDLIME_ARG(arg, CustomType);
+    CMDLIME_ARGLIST(argList, CustomType);
+};
+
+struct CustomTypeInt{
+    int value;
+};
+
+struct CustomTypeIntConfig: public Config{
+    CMDLIME_PARAM(param, CustomTypeInt);
+    CMDLIME_PARAMLIST(paramList, CustomTypeInt) << cmdlime::ShortName{"l"};
+    CMDLIME_ARG(arg, CustomTypeInt);
+    CMDLIME_ARGLIST(argList, CustomTypeInt);
+};
+
+
+TEST(GNUConfig, CustomTypeUsage){
+    auto cfg = CustomTypeConfig{};
+    cfg.read({"--param", "hello world", "test arg", "--param-list", "foo bar", "--param-list", "baz", "1", "2 3"});
+    EXPECT_EQ(cfg.param.value, "hello world");
+    ASSERT_EQ(cfg.paramList.size(), 2); //(std::vector<CustomType>{{"foo bar"}, {"baz"}}));
+    EXPECT_EQ(cfg.paramList.at(0).value, "foo bar");
+    EXPECT_EQ(cfg.paramList.at(1).value, "baz");
+    EXPECT_EQ(cfg.arg.value, "test arg");
+    EXPECT_EQ(cfg.argList.size(), 2);
+    EXPECT_EQ(cfg.argList.at(0).value, "1");
+    EXPECT_EQ(cfg.argList.at(1).value, "2 3");
+}
+
+TEST(GNUConfig, CustomTypeIntUsage){
+    auto cfg = CustomTypeIntConfig{};
+    cfg.read({"--param", "10", "42", "--param-list", "0", "--param-list", "1", "43", "44"});
+    EXPECT_EQ(cfg.param.value, 10);
+    ASSERT_EQ(cfg.paramList.size(), 2); //(std::vector<CustomType>{{"foo bar"}, {"baz"}}));
+    EXPECT_EQ(cfg.paramList.at(0).value, 0);
+    EXPECT_EQ(cfg.paramList.at(1).value, 1);
+    EXPECT_EQ(cfg.arg.value, 42);
+    EXPECT_EQ(cfg.argList.size(), 2);
+    EXPECT_EQ(cfg.argList.at(0).value, 43);
+    EXPECT_EQ(cfg.argList.at(1).value, 44);
+}
+
+
+}
+
+namespace cmdlime{
+    template<>
+    struct StringConverter<test_gnu_format::CustomType>{
+        static std::string toString(const test_gnu_format::CustomType& val)
+        {
+            return val.value;
+        }
+
+        static std::optional<test_gnu_format::CustomType> fromString(const std::string& str)
+        {
+            auto val = test_gnu_format::CustomType{};
+            val.value = str;
+            return val;
+        }
+    };
+
+template<>
+struct StringConverter<test_gnu_format::CustomTypeInt>{
+    static std::string toString(const test_gnu_format::CustomTypeInt& val)
+    {
+        return std::to_string(val.value);
+    }
+
+    static std::optional<test_gnu_format::CustomTypeInt> fromString(const std::string& str)
+    {
+        auto val = test_gnu_format::CustomTypeInt{};
+        val.value = std::stoi(str);
+        return val;
+    }
+};
 }

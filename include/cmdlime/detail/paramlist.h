@@ -7,6 +7,7 @@
 #include <sfun/string_utils.h>
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
+#include <cmdlime/stringconverter.h>
 #include <gsl/gsl>
 #include <vector>
 #include <sstream>
@@ -54,10 +55,10 @@ private:
 
         const auto dataParts = str::split(data, ",");
         for (const auto& part : dataParts){
-            auto stream = std::stringstream{part};            
-            paramListGetter_().emplace_back();
-            if (!readFromStream(stream, paramListGetter_().back()))
+            auto paramVal = convertFromString<T>(part);
+            if (!paramVal)
                 return false;
+            paramListGetter_().emplace_back(*paramVal);
         }
         hasValue_ = true;
         return true;
@@ -75,17 +76,24 @@ private:
 
     std::string defaultValue() const override
     {
-        if (!defaultValue_.has_value())
+        if (!defaultValue_)
             return {};
         auto stream = std::stringstream{};
         stream << "{";
         auto firstVal = true;
-        for (auto& val : defaultValue_.value()){
-            if (firstVal)
-                stream << val;
-            else
-                stream << ", " << val;
+        for (auto& val : *defaultValue_){
+            auto valStr = convertToString(val);
+            if (!valStr)
+                return {};
+
+            if (!firstVal)
+                stream << ", ";
             firstVal = false;
+
+            if (valStr->empty())
+                stream << "\"\"";
+            else
+                stream << *valStr;
         }
         stream << "}";
         return stream.str();
@@ -98,17 +106,6 @@ private:
     std::optional<std::vector<T>> defaultValue_;
     bool isDefaultValueOverwritten_ = false;
 };
-
-template <>
-inline bool ParamList<std::string>::read(const std::string& data)
-{
-    const auto dataParts = str::split(data, ",");
-    for (const auto& part : dataParts){
-        paramListGetter_().push_back(part);
-    }
-    hasValue_ = true;
-    return true;
-}
 
 template<typename T, typename TConfig>
 class ParamListCreator{
