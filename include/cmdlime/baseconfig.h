@@ -13,6 +13,7 @@
 #include "detail/usageinfocreator.h"
 #include "detail/utils.h"
 #include "detail/nameof_import.h"
+#include "detail/ivalidator.h"
 #include <vector>
 #include <string>
 #include <map>
@@ -29,16 +30,13 @@ public:
     void readCommandLine(int argc, char** argv)
     {
         auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
-        read(cmdLine);
+        readCommandLine(cmdLine);
     }
 
-    void read(const std::vector<std::string>& cmdLine) override
+    void readCommandLine(const std::vector<std::string>& cmdLine)
     {
-        if (!configError_.empty())
-            throw ConfigError{configError_};
-        using ParserType = typename detail::FormatCfg<formatType>::parser;
-        auto parser = ParserType{options_};
-        parser.parse(cmdLine);
+        read(cmdLine);
+        validate({});
     }
 
     const std::string& versionInfo() const override
@@ -391,6 +389,37 @@ private:
             command->setCommandName(name);
     }
 
+    void addValidator(std::unique_ptr<detail::IValidator> validator) override
+    {
+        validators_.emplace_back(std::move(validator));
+    }
+
+    void validate(const std::string& commandName) const override
+    {
+        auto commandIsSet = false;
+        for (auto& command : options_.commands()) {
+            command->validate();
+            if (command->config() && !command->isSubCommand())
+                commandIsSet = true;
+        }
+        for (auto& validator : validators_) {
+            if (commandIsSet && validator->optionType() != detail::OptionType::Command)
+                continue;
+            validator->validate(commandName);
+        }
+
+    }
+
+private:
+    void read(const std::vector<std::string>& cmdLine) override
+    {
+        if (!configError_.empty())
+            throw ConfigError{configError_};
+        using ParserType = typename detail::FormatCfg<formatType>::parser;
+        auto parser = ParserType{options_};
+        parser.parse(cmdLine);
+    }
+
 private:
     std::string versionInfo_;
     std::string customUsageInfo_;
@@ -399,6 +428,7 @@ private:
     detail::Options options_;
     std::string commandName_;
     UsageInfoFormat usageInfoFormat_;
+    std::vector<std::unique_ptr<detail::IValidator>> validators_;
     bool argListSet_ = false;
 };
 

@@ -2,6 +2,7 @@
 #include "flag.h"
 #include "iconfig.h"
 #include "formatcfg.h"
+#include "validator.h"
 
 namespace cmdlime::detail{
 

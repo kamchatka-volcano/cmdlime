@@ -21,6 +21,7 @@ public:
     virtual std::string usageInfoDetailed() const = 0;
     virtual void setUsageInfoFormat(const UsageInfoFormat&) = 0;
     virtual void setCommandName(const std::string& parentCommandName) = 0;
+    virtual void validate() const = 0;
 };
 
 }

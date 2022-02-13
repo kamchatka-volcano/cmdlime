@@ -98,6 +98,7 @@ private:
     {
         try{
             cfg_.read(cmdLine);
+            cfg_.validate({});
         }
         catch(const CommandError& e){
             *errorOutput_ << "Command '" + e.commandName() + "' error: " << e.what() << "\n";

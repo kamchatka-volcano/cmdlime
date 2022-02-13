@@ -2,6 +2,7 @@
 #include "arg.h"
 #include "iconfig.h"
 #include "formatcfg.h"
+#include "validator.h"
 
 namespace cmdlime::detail{
 
@@ -14,6 +15,7 @@ public:
                const std::string& type,
                T& argValue)
             : cfg_(cfg)
+            , argValue_(argValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
@@ -40,6 +42,12 @@ public:
         return *this;
     }
 
+    auto& operator<<(std::function<void(const T&)> validationFunc)
+    {
+        cfg_.addValidator(std::make_unique<Validator<T>>(*arg_, argValue_, std::move(validationFunc)));
+        return *this;
+    }
+
     operator T()
     {
         cfg_.addArg(std::move(arg_));
@@ -48,7 +56,9 @@ public:
 
 private:
     std::unique_ptr<Arg<T>> arg_;
+    T& argValue_;
     IConfig& cfg_;
+
 };
 
 template <typename T, typename TConfig>

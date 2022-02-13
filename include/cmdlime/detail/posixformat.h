@@ -48,13 +48,13 @@ class PosixParser : public Parser<formatType>
     }
 
     void process(const std::string& token) override
-    {       
-        if (str::startsWith(token, "-") && token.size() > 1)
-           processCommand(token);
-        else if (!foundParam_.empty()){
+    {
+        if (!foundParam_.empty()){
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
+        else if (str::startsWith(token, "-") && token.size() > 1)
+           processCommand(token);
         else{
             this->readArg(token);
             argumentEncountered_ = true;

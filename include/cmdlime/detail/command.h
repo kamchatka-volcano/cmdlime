@@ -45,6 +45,11 @@ public:
         return info_;
     }
 
+    OptionType type() const override
+    {
+        return isSubCommand() ? OptionType::Subcommand : OptionType::Command;
+    }
+
 private:
     void read(const std::vector<std::string>& commandLine) override
     {
@@ -110,6 +115,13 @@ private:
         commandName_ = parentCommandName.empty() ? info_.name() :
                        parentCommandName + " " + info_.name();
     }
+
+    void validate() const override
+    {
+        if (cfg_)
+            cfg_->validate(info_.name());
+    }
+
 
 private:
     OptionInfo info_;

@@ -51,11 +51,11 @@ struct FullConfigWithCommand : public Config{
 TEST(PosixConfig, AllSet)
 {
     auto cfg = FullConfig{};
-    cfg.read({"-r", "FOO", "-oBAR", "-i", "9", "-L","zero", "-L", "one",
+    cfg.readCommandLine({"-r", "FOO", "-oBAR", "-i", "-9", "-L","zero", "-L", "one",
               "-O", "1,2", "-f", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
-    EXPECT_EQ(cfg.optionalIntParam, 9);
+    EXPECT_EQ(cfg.optionalIntParam, -9);
     EXPECT_EQ(cfg.paramList, (std::vector<std::string>{"zero", "one"}));
     EXPECT_EQ(cfg.optionalParamList, (std::vector<int>{1, 2}));
     EXPECT_EQ(cfg.flag, true);
@@ -67,7 +67,7 @@ TEST(PosixConfig, AllSet)
 TEST(PosixConfig, AllSetInSubCommand)
 {
     auto cfg = FullConfig{};
-    cfg.read({"-r", "FOO", "-L","zero", "-L", "one",
+    cfg.readCommandLine({"-r", "FOO", "-L","zero", "-L", "one",
               "4.2", "1.1",
               "subcommand", "-r", "FOO", "-oBAR", "-i", "9", "-L","zero", "-L", "one",
               "-O", "1,2", "-f", "4.2", "1.1", "2.2", "3.3"});
@@ -101,7 +101,7 @@ TEST(PosixConfig, CombinedFlagsAndParams)
 
     {
     auto cfg = Cfg{};
-    cfg.read({"-fst", "-pfirst"});
+    cfg.readCommandLine({"-fst", "-pfirst"});
     EXPECT_EQ(cfg.firstFlag, true);
     EXPECT_EQ(cfg.secondFlag, true);
     EXPECT_EQ(cfg.thirdFlag, true);
@@ -110,7 +110,7 @@ TEST(PosixConfig, CombinedFlagsAndParams)
 
     {
     auto cfg = Cfg{};
-    cfg.read({"-tfspfirst"});
+    cfg.readCommandLine({"-tfspfirst"});
     EXPECT_EQ(cfg.firstFlag, true);
     EXPECT_EQ(cfg.secondFlag, true);
     EXPECT_EQ(cfg.thirdFlag, true);
@@ -119,7 +119,7 @@ TEST(PosixConfig, CombinedFlagsAndParams)
 
     {
     auto cfg = Cfg{};
-    cfg.read({"-fs","-tp" "first"});
+    cfg.readCommandLine({"-fs","-tp" "first"});
     EXPECT_EQ(cfg.firstFlag, true);
     EXPECT_EQ(cfg.secondFlag, true);
     EXPECT_EQ(cfg.thirdFlag, true);
@@ -128,7 +128,7 @@ TEST(PosixConfig, CombinedFlagsAndParams)
 
     {
     auto cfg = Cfg{};
-    cfg.read({"-fs", "-p", "first"});
+    cfg.readCommandLine({"-fs", "-p", "first"});
     EXPECT_EQ(cfg.firstFlag, true);
     EXPECT_EQ(cfg.secondFlag, true);
     EXPECT_EQ(cfg.thirdFlag, false);
@@ -146,7 +146,7 @@ TEST(PosixConfig, NumericParamsAndFlags)
     };
     {
         auto cfg = Cfg{};
-        cfg.read({"-1", "-2", "test", "-99"});
+        cfg.readCommandLine({"-1", "-2", "test", "-99"});
         EXPECT_EQ(cfg.flag, true);
         EXPECT_EQ(cfg.param, "test");
         EXPECT_EQ(cfg.paramSecond, "default");
@@ -154,7 +154,7 @@ TEST(PosixConfig, NumericParamsAndFlags)
     }
     {
         auto cfg = Cfg{};
-        cfg.read({"-2test", "-1", "-p", "second", "-99"});
+        cfg.readCommandLine({"-2test", "-1", "-p", "second", "-99"});
         EXPECT_EQ(cfg.flag, true);
         EXPECT_EQ(cfg.param, "test");
         EXPECT_EQ(cfg.paramSecond, "second");
@@ -162,7 +162,7 @@ TEST(PosixConfig, NumericParamsAndFlags)
     }
     {
         auto cfg = Cfg{};
-        cfg.read({"-12test", "-p", "second", "-99"});
+        cfg.readCommandLine({"-12test", "-p", "second", "-99"});
         EXPECT_EQ(cfg.flag, true);
         EXPECT_EQ(cfg.param, "test");
         EXPECT_EQ(cfg.paramSecond, "second");
@@ -173,7 +173,7 @@ TEST(PosixConfig, NumericParamsAndFlags)
 TEST(PosixConfig, MissingOptionals)
 {
     auto cfg = FullConfig{};
-    cfg.read({"-r", "FOO", "-L", "zero", "4.2", "1.1", "2.2", "3.3"});
+    cfg.readCommandLine({"-r", "FOO", "-L", "zero", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_EQ(cfg.optionalIntParam.has_value(), false);
@@ -189,7 +189,7 @@ TEST(PosixConfig, MissingParamAllSetInSubCommand)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"subcommand", "-r", "FOO", "-oBAR", "-i", "9", "-L","zero", "-L", "one",
+        [&cfg]{cfg.readCommandLine({"subcommand", "-r", "FOO", "-oBAR", "-i", "9", "-L","zero", "-L", "one",
                          "-O", "1,2", "-f", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-r' is missing."});
@@ -199,7 +199,7 @@ TEST(PosixConfig, MissingParamAllSetInSubCommand)
 TEST(PosixConfig, AllSetInCommand)
 {
     auto cfg = FullConfigWithCommand{};
-    cfg.read({"-r", "FOO", "-L","zero", "-L", "one","4.2", "1.1",
+    cfg.readCommandLine({"-r", "FOO", "-L","zero", "-L", "one","4.2", "1.1",
               "subcommand", "-r", "FOO", "-oBAR", "-i", "9", "-L","zero", "-L", "one",
               "-O", "1,2", "-f", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_TRUE(cfg.requiredParam.empty());
@@ -224,7 +224,7 @@ TEST(PosixConfig, AllSetInCommand)
 TEST(PosixConfig, MissingParamAllSetInCommand)
 {
     auto cfg = FullConfigWithCommand{};
-    cfg.read({"subcommand", "-r", "FOO", "-oBAR", "-i", "9", "-L","zero", "-L", "one",
+    cfg.readCommandLine({"subcommand", "-r", "FOO", "-oBAR", "-i", "9", "-L","zero", "-L", "one",
               "-O", "1,2", "-f", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_TRUE(cfg.requiredParam.empty());
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
@@ -248,7 +248,7 @@ TEST(PosixConfig, MissingParamAllSetInCommand)
 TEST(PosixConfig, MissingParamAllSetInNestedCommand)
 {
     auto cfg = FullConfigWithCommand{};
-    cfg.read({"subcommand", "nested", "-p","FOO"});
+    cfg.readCommandLine({"subcommand", "nested", "-p","FOO"});
     EXPECT_TRUE(cfg.requiredParam.empty());
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_FALSE(cfg.optionalIntParam.has_value());
@@ -283,7 +283,7 @@ struct FullConfigWithOptionalArgList : public Config{
 TEST(PosixConfig, MissingOptionalArgList)
 {
     auto cfg = FullConfigWithOptionalArgList{};
-    cfg.read({"-r", "FOO", "4.2"});
+    cfg.readCommandLine({"-r", "FOO", "4.2"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_EQ(cfg.optionalIntParam.has_value(), false);
@@ -296,7 +296,7 @@ TEST(PosixConfig, MissingParam)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-o", "FOO","-L","zero", "4.2", "1.1", "2.2", "3.3"});},
+        [&cfg]{cfg.readCommandLine({"-o", "FOO","-L","zero", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-r' is missing."});
         });
@@ -306,7 +306,7 @@ TEST(PosixConfig, MissingArg)
 {
     auto cfg = FullConfigWithOptionalArgList{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r", "FOO", "-o","BAR", "-i","9", "-f"});},
+        [&cfg]{cfg.readCommandLine({"-r", "FOO", "-o","BAR", "-i","9", "-f"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Positional argument 'arg' is missing."});
         });
@@ -316,7 +316,7 @@ TEST(PosixConfig, MissingArgList)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r", "FOO", "-o","BAR", "-i","9","-L","zero","-f", "4.2"});},
+        [&cfg]{cfg.readCommandLine({"-r", "FOO", "-o","BAR", "-i","9","-L","zero","-f", "4.2"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'arg-list' is missing."});
         });
@@ -326,7 +326,7 @@ TEST(PosixConfig, MissingParamList)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r","FOO", "-o","BAR", "-i","9","-f", "4.2", "1.1", "2.2", "3.3"});},
+        [&cfg]{cfg.readCommandLine({"-r","FOO", "-o","BAR", "-i","9","-f", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-L' is missing."});
         });
@@ -336,7 +336,7 @@ TEST(PosixConfig, UnexpectedParam)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r","FOO", "-t","TEST","-L","zero", "4.2", "1.1", "2.2", "3.3"});},
+        [&cfg]{cfg.readCommandLine({"-r","FOO", "-t","TEST","-L","zero", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-t'"});
         });
@@ -346,7 +346,7 @@ TEST(PosixConfig, UnexpectedFlag)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r", "FOO", "-t", "-L", "zero", "4.2", "1.1", "2.2", "3.3"});},
+        [&cfg]{cfg.readCommandLine({"-r", "FOO", "-t", "-L", "zero", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-t'"});
         });
@@ -359,7 +359,7 @@ TEST(PosixConfig, UnexpectedArg)
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-p","FOO", "4.2", "1"});},
+        [&cfg]{cfg.readCommandLine({"-p","FOO", "4.2", "1"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown positional argument '4.2'"});
         });
@@ -374,7 +374,7 @@ TEST(PosixConfig, WrongCommandsOrder)
 
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{ cfg.read({"0", "1","-o","1", "2", "--"});},
+        [&cfg]{ cfg.readCommandLine({"0", "1","-o","1", "2", "--"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Flags and parameters must precede arguments"});
         });
@@ -384,7 +384,7 @@ TEST(PosixConfig, WrongParamType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r", "FOO", "-o","BAR", "-i","nine", "-L","zero", "-f", "4.2", "1.1", "2.2", "3.3"});},
+        [&cfg]{cfg.readCommandLine({"-r", "FOO", "-o","BAR", "-i","nine", "-L","zero", "-f", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set parameter '-i' value from 'nine'"});
         });
@@ -394,7 +394,7 @@ TEST(PosixConfig, WrongParamListElementType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r","FOO", "-o", "BAR", "-L", "zero", "-O", "not-int", "-f", "4.2", "1.1", "2.2", "3.3"});},
+        [&cfg]{cfg.readCommandLine({"-r","FOO", "-o", "BAR", "-L", "zero", "-O", "not-int", "-f", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set parameter '-O' value from 'not-int'"});
         });
@@ -404,7 +404,7 @@ TEST(PosixConfig, WrongArgType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r", "FOO", "-o", "BAR", "-i","9","-L","zero", "-f", "fortytwo", "1.1", "2.2", "3.3"});},
+        [&cfg]{cfg.readCommandLine({"-r", "FOO", "-o", "BAR", "-i","9","-L","zero", "-f", "fortytwo", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set argument 'arg' value from 'fortytwo'"});
         });
@@ -414,7 +414,7 @@ TEST(PosixConfig, WrongArgListElementType)
 {
     auto cfg = FullConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-r", "FOO", "-o","BAR", "-i","9", "-L", "zero", "-f", "4.2", "1.1", "2.2", "three"});},
+        [&cfg]{cfg.readCommandLine({"-r", "FOO", "-o","BAR", "-i","9", "-L", "zero", "-f", "4.2", "1.1", "2.2", "three"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set argument list 'arg-list' element's value from 'three'"});
         });
@@ -428,12 +428,7 @@ TEST(PosixConfig, ParamEmptyValue)
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-p"});},
-        [](const cmdlime::ParsingError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-p' value can't be empty"});
-        });
-    assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-p", "-f"});},
+        [&cfg]{cfg.readCommandLine({"-p"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-p' value can't be empty"});
         });
@@ -446,7 +441,7 @@ TEST(PosixConfig, ParamListEmptyValue)
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-p"});},
+        [&cfg]{cfg.readCommandLine({"-p"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-p' value can't be empty"});
         });
@@ -459,7 +454,7 @@ TEST(PosixConfig, ArgEmptyValue)
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({""});},
+        [&cfg]{cfg.readCommandLine({""});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Arg 'arg' value can't be empty"});
         });
@@ -472,7 +467,7 @@ TEST(PosixConfig, ArgListEmptyValue)
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"foo", ""});},
+        [&cfg]{cfg.readCommandLine({"foo", ""});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Arg list 'args' element value can't be empty"});
         });
@@ -488,7 +483,7 @@ TEST(PosixConfig, ValuesWithWhitespace)
         CMDLIME_ARGLIST(argList, std::string) << cmdlime::Name("A");
     };
     auto cfg = Cfg{};
-    cfg.read({"-p", "Hello world", "-L", "foo bar", "foo bar", "forty two"});
+    cfg.readCommandLine({"-p", "Hello world", "-L", "foo bar", "foo bar", "forty two"});
     EXPECT_EQ(cfg.param, "Hello world");
     EXPECT_EQ(cfg.paramList, (std::vector<std::string>{"foo bar"}));
     EXPECT_EQ(cfg.arg, "foo bar");
@@ -502,7 +497,7 @@ TEST(PosixConfig, ParamWrongNameTooLong)
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ConfigError>(
-        [&cfg]{cfg.read({"-pname"});},
+        [&cfg]{cfg.readCommandLine({"-pname"});},
         [](const cmdlime::ConfigError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'prm' can't have more than one symbol"});
         });
@@ -515,7 +510,7 @@ TEST(PosixConfig, ParamWrongNameNonAlphanum)
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ConfigError>(
-        [&cfg]{cfg.read({"-pname"});},
+        [&cfg]{cfg.readCommandLine({"-pname"});},
         [](const cmdlime::ConfigError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name '$' must be an alphanumeric character"});
         });
@@ -529,7 +524,7 @@ TEST(PosixConfig, NegativeNumberToArg)
         CMDLIME_ARGLIST(argList, double);
     };
     auto cfg = Cfg{};
-    cfg.read({"-2", "-3", "4.5", "-6.7"});
+    cfg.readCommandLine({"-2", "-3", "4.5", "-6.7"});
     EXPECT_EQ(cfg.arg, -2);
     EXPECT_EQ(cfg.argStr, "-3");
     EXPECT_EQ(cfg.argList, (std::vector<double>{4.5, -6.7}));
@@ -542,7 +537,7 @@ TEST(PosixConfig, NegativeNumberWithoutArg)
     };
     auto cfg = Cfg{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-2"});},
+        [&cfg]{cfg.readCommandLine({"-2"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown positional argument '-2'"});
         });
@@ -557,7 +552,7 @@ TEST(PosixConfig, ArgsDelimiter)
     };
 
     auto cfg = Cfg{};
-    cfg.read({"-p", "11", "0", "--", "1", "-o", "2"});
+    cfg.readCommandLine({"-p", "11", "0", "--", "1", "-o", "2"});
     EXPECT_EQ(cfg.param, 11);
     EXPECT_EQ(cfg.optionalParam, 0);
     EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "-o", "2"}));
@@ -571,7 +566,7 @@ TEST(PosixConfig, ArgsDelimiterFront)
     };
 
     auto cfg = Cfg{};
-    cfg.read({"--", "0", "1", "-o", "1", "2"});
+    cfg.readCommandLine({"--", "0", "1", "-o", "1", "2"});
     EXPECT_EQ(cfg.optionalParam, 0);
     EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "-o", "1", "2"}));
 }
@@ -584,7 +579,7 @@ TEST(PosixConfig, ArgsDelimiterBack)
     };
 
     auto cfg = Cfg{};
-    cfg.read({"-o","1", "0", "1", "2", "--"});
+    cfg.readCommandLine({"-o","1", "0", "1", "2", "--"});
     EXPECT_EQ(cfg.optionalParam, 1);
     EXPECT_EQ(cfg.argList, (std::vector<std::string>{"0", "1", "2"}));
 }
@@ -602,7 +597,7 @@ TEST(PosixConfig, PascalNames)
         CMDLIME_ARGLIST(ArgList, float);
     };
     auto cfg = PascalConfig{};
-    cfg.read({"-r","FOO", "-o", "BAR", "-i","9", "-l", "zero", "-l","one",
+    cfg.readCommandLine({"-r","FOO", "-o", "BAR", "-i","9", "-l", "zero", "-l","one",
               "-m","1", "-m","2", "-f", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_EQ(cfg.RequiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.OptionalParam, std::string{"BAR"});
@@ -621,7 +616,7 @@ TEST(PosixConfig, CustomNamesMissingParam)
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({});},
+        [&cfg]{cfg.readCommandLine({});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-P' is missing."});
         });
@@ -635,7 +630,7 @@ TEST(PosixConfig, CustomNamesMissingParamList)
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"-P1"});},
+        [&cfg]{cfg.readCommandLine({"-P1"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-L' is missing."});
         });
@@ -649,7 +644,7 @@ TEST(PosixConfig, CustomNamesMissingArg)
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({});},
+        [&cfg]{cfg.readCommandLine({});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Positional argument 'a' is missing."});
         });
@@ -663,7 +658,7 @@ TEST(PosixConfig, CustomNamesMissingArgList)
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ParsingError>(
-        [&cfg]{cfg.read({"1.0"});},
+        [&cfg]{cfg.readCommandLine({"1.0"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'A' is missing."});
         });
@@ -677,7 +672,7 @@ TEST(PosixConfig, ConfigErrorRepeatingParamNames)
     };
     auto cfg = TestConfig{};
     assert_exception<cmdlime::ConfigError>(
-        [&cfg]{cfg.read({});},
+        [&cfg]{cfg.readCommandLine({});},
         [](const cmdlime::ConfigError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'p' is already used."});
         });
@@ -726,7 +721,7 @@ TEST(PosixConfig, WrongParamsWithExitFlag){
         CMDLIME_ARGLIST(argList, float);
     } cfg;
 
-    cfg.read({"-asd", "-asf", "-e"});
+    cfg.readCommandLine({"-asd", "-asf", "-e"});
     EXPECT_EQ(cfg.exitFlag, true);
 }
 

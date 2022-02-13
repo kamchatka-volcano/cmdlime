@@ -15,6 +15,7 @@ class IFlag;
 class IArg;
 class IArgList;
 class ICommand;
+class IValidator;
 
 class IConfig{
 public:
@@ -31,6 +32,8 @@ public:
     virtual void addArg(std::unique_ptr<IArg> arg) = 0;
     virtual void setArgList(std::unique_ptr<IArgList> argList) = 0;
     virtual void addCommand(std::unique_ptr<ICommand> command) = 0;
+    virtual void addValidator(std::unique_ptr<IValidator> validator) = 0;
+    virtual void validate(const std::string& commandName) const = 0;
     virtual const Options& options() const = 0;
 };
 
