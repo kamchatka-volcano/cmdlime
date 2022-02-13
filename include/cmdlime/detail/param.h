@@ -4,7 +4,6 @@
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
-#include <gsl/gsl>
 #include <sstream>
 #include <optional>
 #include <memory>

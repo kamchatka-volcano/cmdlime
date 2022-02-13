@@ -3,7 +3,7 @@
 #include "formatcfg.h"
 #include "nameutils.h"
 #include "utils.h"
-#include <sfun/string_utils.h>
+#include "string_utils.h"
 #include <cmdlime/errors.h>
 #include <algorithm>
 #include <sstream>
@@ -11,7 +11,7 @@
 #include <functional>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
+namespace str = string_utils;
 
 template <Format formatType>
 class DefaultParser : public Parser<formatType>

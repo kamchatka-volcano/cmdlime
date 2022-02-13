@@ -8,7 +8,6 @@
 #include "options.h"
 #include "formatcfg.h"
 #include <cmdlime/errors.h>
-#include <gsl/gsl>
 #include <utility>
 #include <vector>
 #include <deque>
@@ -62,7 +61,7 @@ public:
 
         std::transform(options_.args().begin(), options_.args().end(),
                        std::back_inserter(argsToRead_),
-                       [](auto& arg) { return arg.get(); });
+                       [](auto& arg) ->IArg& { return *arg; });
 
         if (readCommandsAndExitFlags(cmdLine))
             return;
@@ -208,12 +207,12 @@ protected:
             return;
 
         if (!argsToRead_.empty()){
-            auto arg = argsToRead_.front();
+            auto& arg = static_cast<IArg&>(argsToRead_.front());
             if (value.empty())
-                throw ParsingError{"Arg '" + arg->info().name() + "' value can't be empty"};
+                throw ParsingError{"Arg '" + arg.info().name() + "' value can't be empty"};
             argsToRead_.pop_front();
-            if (!arg->read(value))
-                throw ParsingError{"Couldn't set argument '" + arg->info().name() + "' value from '" + value + "'"};
+            if (!arg.read(value))
+                throw ParsingError{"Couldn't set argument '" + arg.info().name() + "' value from '" + value + "'"};
         }
         else if (options_.argList()){
             if (value.empty())
@@ -330,7 +329,7 @@ private:
     void checkUnreadArgs()
     {
         if(!argsToRead_.empty())
-            throw ParsingError{"Positional argument '" + argsToRead_.front()->info().name() + "' is missing."};
+            throw ParsingError{"Positional argument '" + argsToRead_.front().get().info().name() + "' is missing."};
     }
 
     void checkUnreadArgList()
@@ -366,7 +365,7 @@ protected:
 
 private:
     const Options& options_;
-    std::deque<not_null<IArg*>> argsToRead_;
+    std::deque<std::reference_wrapper<IArg>> argsToRead_;
     ICommand* foundCommand_ = nullptr;
 };
 

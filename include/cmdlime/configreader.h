@@ -4,12 +4,13 @@
 #include "baseconfig.h"
 #include "detail/configmacro.h"
 #include "detail/flag.h"
-#include <gsl/gsl>
 #include <iostream>
 #include <ostream>
 #include <optional>
 #include <map>
 #include <utility>
+#include <functional>
+
 
 namespace cmdlime{
 
@@ -31,7 +32,7 @@ public:
                  const UsageInfoFormat& usageInfoFormat = {},
                  ErrorOutputMode errorOutputMode = ErrorOutputMode::STDERR)
         : cfg_(cfg)
-        , errorOutput_(errorOutputMode == ErrorOutputMode::STDERR ? &std::cerr : &std::cout)
+        , errorOutput_(errorOutputMode == ErrorOutputMode::STDERR ? std::cerr : std::cout)
     {
         cfg_.setCommandName(programName);
         cfg_.setUsageInfoFormat(usageInfoFormat);
@@ -62,12 +63,12 @@ public:
 
     void setOutputStream(std::ostream& outStream)
     {
-        output_ = &outStream;
+        output_ = outStream;
     }
 
     void setErrorOutputStream(std::ostream& outStream)
     {
-        errorOutput_ = &outStream;
+        errorOutput_ = outStream;
     }
 
 private:
@@ -101,13 +102,13 @@ private:
             cfg_.validate({});
         }
         catch(const CommandError& e){
-            *errorOutput_ << "Command '" + e.commandName() + "' error: " << e.what() << "\n";
-            *output_ << e.commandUsageInfo() << std::endl;
+            errorOutput_.get() << "Command '" + e.commandName() + "' error: " << e.what() << "\n";
+            output_.get() << e.commandUsageInfo() << std::endl;
             return false;
         }
         catch(const Error& e){
-            *errorOutput_ << e.what() << "\n";
-            *output_ << cfg_.usageInfo() << std::endl;
+            errorOutput_.get() << e.what() << "\n";
+            output_.get() << cfg_.usageInfo() << std::endl;
             return false;
         }
         return true;
@@ -116,11 +117,11 @@ private:
     bool processFlagsAndExit()
     {
         if (help_){
-            *output_ << cfg_.usageInfoDetailed() << std::endl;
+            output_.get() << cfg_.usageInfoDetailed() << std::endl;
             return true;
         }
         if (version_){
-            *output_ << cfg_.versionInfo() << std::endl;
+            output_.get() << cfg_.versionInfo() << std::endl;
             return true;
         }
 
@@ -134,7 +135,7 @@ private:
     bool checkCommandHelpFlag(detail::ICommand& command)
     {
         if (command.isHelpFlagSet()){
-            *output_ << command.usageInfoDetailed() << std::endl;
+            output_.get() << command.usageInfoDetailed() << std::endl;
             return true;
         }
 
@@ -166,8 +167,8 @@ private:
 
 private:
     detail::IConfig& cfg_;
-    not_null<std::ostream*> errorOutput_;
-    not_null<std::ostream*> output_ = &std::cout;
+    std::reference_wrapper<std::ostream> errorOutput_;
+    std::reference_wrapper<std::ostream> output_ = std::cout;
     int exitCode_ = 0;
     bool help_ = false;
     bool version_ = false;

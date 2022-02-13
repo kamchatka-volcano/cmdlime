@@ -7,7 +7,6 @@
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/usageinfoformat.h>
-#include <gsl/gsl>
 #include <sstream>
 #include <functional>
 #include <memory>
@@ -28,9 +27,9 @@ public:
             Type type)
         : info_(name, {}, {})
         , type_(type)
-        , makeCfg_([&commandCfg]{
+        , makeCfg_([&commandCfg]() -> TConfig&{
             commandCfg.emplace();
-            return &commandCfg.value();
+            return commandCfg.value();
           })
     {
     }
@@ -54,7 +53,7 @@ private:
     void read(const std::vector<std::string>& commandLine) override
     {
         if (!cfg_){
-            cfg_ = makeCfg_();
+            cfg_ = &makeCfg_();
             cfg_->setCommandName(commandName_);
             cfg_->setUsageInfoFormat(commandUsageInfoFormat_);
             if (helpFlag_){
@@ -127,7 +126,7 @@ private:
     OptionInfo info_;
     Type type_;
     UsageInfoFormat commandUsageInfoFormat_;
-    std::function<not_null<IConfig*>()> makeCfg_;
+    std::function<IConfig&()> makeCfg_;
     std::string commandName_;
     std::unique_ptr<IFlag> helpFlag_;
     IConfig* cfg_ = nullptr;

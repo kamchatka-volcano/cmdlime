@@ -109,8 +109,8 @@ If you have a low tolerance for macros, it's possible to register structure fiel
         bool verbose     = flag<&Cfg::verbose>();
     } cfg;
 ```
-Internally these methods use a [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings.
-This relies on non-standard functionality of C++ compilers, so if you don't like it you can use **cmdlime**
+Internally these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings. By default, **cmdlime** ships without it and these methods aren't available, to use them, set `USE_NAMEOF` CMake variable to automatically download it, or install it on your system by yourself.   
+**nameof** relies on non-standard functionality of C++ compilers, so if you don't like it you can use **cmdlime**
 without it, by providing the names by yourself:
 
 ```c++
@@ -731,11 +731,6 @@ Afterwards, you can use find_package() command to make installed library availab
 find_package(cmdlime 0.10.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE cmdlime::cmdlime)   
 ```
-
-**cmdlime** depends on the following libraries: [gsl](https://github.com/microsoft/GSL), [nameof](https://github.com/Neargye/nameof), [sfun](https://github.com/kamchatka-volcano/sfun). By default, everything is downloaded and configured by CMake automatically, so you don't need to think about it.
-If any of these libraries is installed on your system, you can configure **cmdlime** to use this version instead of downloading it from the internet, by enabling these options: `USE_SYSTEM_GSL`, `USE_SYSTEM_NAMEOF`, `USE_SYSTEM_SFUN`.
-
-If you want to remove a dependency on the `nameof` library altogether, unset the option `USE_NAMEOF`.
 
 
 

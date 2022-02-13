@@ -1,6 +1,5 @@
 #pragma once
 #include "ioption.h"
-#include <gsl/pointers>
 #include <vector>
 #include <string>
 #include <memory>

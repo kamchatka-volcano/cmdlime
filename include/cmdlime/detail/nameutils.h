@@ -1,10 +1,10 @@
 #pragma once
-#include <sfun/string_utils.h>
+#include "string_utils.h"
 #include <string>
 #include <algorithm>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
+namespace str = string_utils;
 
 namespace util{
 inline std::string formatName(const std::string& name)
