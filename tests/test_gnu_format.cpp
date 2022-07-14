@@ -1026,6 +1026,21 @@ TEST(GNUConfig, WrongParamsWithExitFlag){
     EXPECT_EQ(cfg.exitFlag, true);
 }
 
+TEST(GNUConfig, InvalidParamsWithExitFlag){
+    struct ConfigWithExitFlag : public Config{
+        CMDLIME_PARAM(requiredParam, int)(0) << [](int val){ if (val < 1) throw cmdlime::ValidationError("Value must be greater than 0"); };
+        CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+        CMDLIME_FLAG(flag);
+        CMDLIME_EXITFLAG(exitFlag);
+        CMDLIME_ARG(arg, double);
+        CMDLIME_ARGLIST(argList, float);
+    } cfg;
+
+    cfg.readCommandLine({"-asd", "asf", "--exit-flag"});
+    EXPECT_EQ(cfg.exitFlag, true);
+}
+
+
 struct CustomType{
     std::string value;
 };

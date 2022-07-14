@@ -50,7 +50,7 @@ public:
     }
 
 private:
-    void read(const std::vector<std::string>& commandLine) override
+    ConfigReadResult read(const std::vector<std::string>& commandLine) override
     {
         if (!cfg_){
             cfg_ = &makeCfg_();
@@ -62,7 +62,7 @@ private:
                     command->enableHelpFlag();
             }
         }
-        cfg_->read(commandLine);
+        return cfg_->read(commandLine);
     }
 
     void enableHelpFlag() override

@@ -14,6 +14,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include <functional>
+#include <optional>
 
 namespace cmdlime::detail{
 using namespace gsl;
@@ -54,7 +55,7 @@ public:
     {}
     virtual ~Parser() = default;
 
-    void parse(const std::vector<std::string>& cmdLine)
+    ConfigReadResult parse(const std::vector<std::string>& cmdLine)
     {
         checkNames();
         argsToRead_.clear();
@@ -63,8 +64,9 @@ public:
                        std::back_inserter(argsToRead_),
                        [](auto& arg) ->IArg& { return *arg; });
 
-        if (readCommandsAndExitFlags(cmdLine))
-            return;
+        auto readResult = readCommandsAndExitFlags(cmdLine);
+        if (readResult)
+            return *readResult;
 
         preProcess();
         auto argsDelimiterEncountered = false;
@@ -91,6 +93,7 @@ public:
         checkUnreadParams();
         checkUnreadArgs();
         checkUnreadArgList();
+        return ConfigReadResult::Completed;
     }
 
 protected:
@@ -194,7 +197,7 @@ protected:
     }
 
     void readArg(const std::string& value)
-    {        
+    {
         if (readMode_ == ReadMode::All ||
             readMode_ == ReadMode::ExitFlagsAndCommands ||
             readMode_ == ReadMode::Commands){
@@ -260,10 +263,10 @@ private:
         return commandIt->get();
     }
 
-    void readCommand(ICommand* command, const std::vector<std::string>& cmdLine)
+    ConfigReadResult readCommand(ICommand* command, const std::vector<std::string>& cmdLine)
     {
         try{
-            command->read(cmdLine);
+            return command->read(cmdLine);
         }
         catch(const ConfigError& error){
             throw CommandConfigError(command->info().name(), command->usageInfo(), error);
@@ -273,7 +276,7 @@ private:
         }
     }
 
-    bool readCommandsAndExitFlags(const std::vector<std::string>& cmdLine)
+    std::optional<ConfigReadResult> readCommandsAndExitFlags(const std::vector<std::string>& cmdLine)
     {
         auto modeGuard = setScopeReadMode(ReadMode::ExitFlagsAndCommands);
 
@@ -281,25 +284,25 @@ private:
         for (auto i = 0u; i < cmdLine.size(); ++i){
             const auto& token = cmdLine.at(i);
             if (token == "--")
-                return false;
+                return {};
 
             process(token);
             if (foundCommand_){
                 if (foundCommand_->isSubCommand()){
                     foundCommand_ = nullptr;
-                    return false;
+                    return {};
                 }
                 else{
-                    readCommand(foundCommand_, {cmdLine.begin() + i + 1, cmdLine.end()});
+                    auto res = readCommand(foundCommand_, {cmdLine.begin() + i + 1, cmdLine.end()});
                     foundCommand_ = nullptr;
-                    return true;
+                    return res;
                 }
             }
         }
         if (isExitFlagSet())
-            return true;
+            return ConfigReadResult::StoppedOnExitFlag;
 
-        return false;
+        return {};
     }
 
     ReadModeScope setScopeReadMode(ReadMode value)
