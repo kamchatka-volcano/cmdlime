@@ -109,7 +109,7 @@ If you have a low tolerance for macros, it's possible to register structure fiel
         bool verbose     = flag<&Cfg::verbose>();
     } cfg;
 ```
-Internally these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings. By default, **cmdlime** ships without it and these methods aren't available, to use them, enable `USE_NAMEOF` CMake variable to automatically download and configure **nameof** library, or install it on your system by yourself.   
+Internally these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings. By default, **cmdlime** ships without it and these methods aren't available, to use them, enable `CMDLIME_USE_NAMEOF` CMake variable to automatically download and configure **nameof** library, or install it on your system by yourself.   
 **nameof** relies on non-standard functionality of C++ compilers, so if you don't like it you can use **cmdlime**
 without it, by providing the names by yourself:
 
