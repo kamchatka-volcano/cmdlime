@@ -44,6 +44,7 @@ struct SubcommandConfig: public Config{
     CMDLIME_PARAMLIST(paramList, std::string) << cmdlime::ShortName("L") << EnsureNotShorterThan{2};
     CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::ShortName("O") << EnsureNotShorterThan{2};
     CMDLIME_FLAG(flag);
+    CMDLIME_EXITFLAG(exitFlag);
     CMDLIME_ARG(arg, double) << EnsurePositive{};
     CMDLIME_ARGLIST(argList, float) << EnsureNotShorterThan{2};
     CMDLIME_COMMAND(nested, NestedSubcommandConfig)
@@ -205,6 +206,14 @@ TEST(TestValidator, InvalidCommand)
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command' is invalid: command required param must have a length shorter than 5."});
             });
+}
+
+TEST(TestValidator, InvalidCommandExitFlag)
+{
+    auto cfg = FullConfig{};
+    cfg.readCommandLine({"command", "--exit-flag"});
+    ASSERT_TRUE(cfg.command);
+    EXPECT_EQ(cfg.command->exitFlag, true);
 }
 
 TEST(TestValidator, InvalidCommandParam)

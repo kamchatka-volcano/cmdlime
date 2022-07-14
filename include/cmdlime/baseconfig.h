@@ -35,8 +35,8 @@ public:
 
     void readCommandLine(const std::vector<std::string>& cmdLine)
     {
-        read(cmdLine);
-        validate({});
+        if (read(cmdLine) != detail::ConfigReadResult::StoppedOnExitFlag)
+            validate({});
     }
 
     const std::string& versionInfo() const override
@@ -411,13 +411,13 @@ private:
     }
 
 private:
-    void read(const std::vector<std::string>& cmdLine) override
+    detail::ConfigReadResult read(const std::vector<std::string>& cmdLine) override
     {
         if (!configError_.empty())
             throw ConfigError{configError_};
         using ParserType = typename detail::FormatCfg<formatType>::parser;
         auto parser = ParserType{options_};
-        parser.parse(cmdLine);
+        return parser.parse(cmdLine);
     }
 
 private:

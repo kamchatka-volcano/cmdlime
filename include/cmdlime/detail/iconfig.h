@@ -17,10 +17,15 @@ class IArgList;
 class ICommand;
 class IValidator;
 
+enum ConfigReadResult{
+    Completed,
+    StoppedOnExitFlag
+};
+
 class IConfig{
 public:
     virtual ~IConfig() = default;
-    virtual void read(const std::vector<std::string>& cmdLine) = 0;
+    virtual ConfigReadResult read(const std::vector<std::string>& cmdLine) = 0;
     virtual const std::string& versionInfo() const = 0;
     virtual std::string usageInfo() const = 0;
     virtual std::string usageInfoDetailed() const = 0;
