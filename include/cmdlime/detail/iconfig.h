@@ -24,7 +24,13 @@ enum ConfigReadResult{
 
 class IConfig{
 public:
+    IConfig() = default;
     virtual ~IConfig() = default;
+    IConfig(const IConfig&) = delete;
+    IConfig& operator=(const IConfig&) = delete;
+    IConfig(IConfig&&) = delete;
+    IConfig& operator=(IConfig&&) = delete;
+
     virtual ConfigReadResult read(const std::vector<std::string>& cmdLine) = 0;
     virtual const std::string& versionInfo() const = 0;
     virtual std::string usageInfo() const = 0;

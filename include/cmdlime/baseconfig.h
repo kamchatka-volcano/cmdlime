@@ -93,117 +93,117 @@ public:
     }
 
 protected:
-    template<auto TMember>
+    template<auto member>
     auto param(const std::string& memberName, const std::string& memberTypeName)
     {
-        auto ptr = decltype(TMember){};
-        return param<TMember>(ptr, memberName, memberTypeName);
+        auto ptr = decltype(member){};
+        return param<member>(ptr, memberName, memberTypeName);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto paramList(const std::string& memberName, const std::string& memberTypeName)
     {
-        auto ptr = decltype(TMember){};
-        return paramList<TMember>(ptr, memberName, memberTypeName);
+        auto ptr = decltype(member){};
+        return paramList<member>(ptr, memberName, memberTypeName);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto flag(const std::string& memberName)
     {
-        auto ptr = decltype(TMember){};
-        return flag<TMember>(ptr, memberName);
+        auto ptr = decltype(member){};
+        return flag<member>(ptr, memberName);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto exitFlag(const std::string& memberName)
     {
-        auto ptr = decltype(TMember){};
-        return exitFlag<TMember>(ptr, memberName);
+        auto ptr = decltype(member){};
+        return exitFlag<member>(ptr, memberName);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto arg(const std::string& memberName, const std::string& memberTypeName)
     {
-        auto ptr = decltype(TMember){};
-        return arg<TMember>(ptr, memberName, memberTypeName);
+        auto ptr = decltype(member){};
+        return arg<member>(ptr, memberName, memberTypeName);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto argList(const std::string& memberName, const std::string& memberTypeName)
     {
-        auto ptr = decltype(TMember){};
-        return argList<TMember>(ptr, memberName, memberTypeName);
+        auto ptr = decltype(member){};
+        return argList<member>(ptr, memberName, memberTypeName);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto command(const std::string& memberName)
     {
-        auto ptr = decltype(TMember){};
-        return command<TMember>(ptr, memberName);
+        auto ptr = decltype(member){};
+        return command<member>(ptr, memberName);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto subCommand(const std::string& memberName)
     {
-        auto ptr = decltype(TMember){};
-        return subCommand<TMember>(ptr, memberName);
+        auto ptr = decltype(member){};
+        return subCommand<member>(ptr, memberName);
     }
 
 #ifdef CMDLIME_NAMEOF_AVAILABLE
-    template<auto TMember>
+    template<auto member>
     auto param()
     {
-        auto ptr = decltype(TMember){};
-        return param<TMember>(ptr);
+        auto ptr = decltype(member){};
+        return param<member>(ptr);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto paramList()
     {
-        auto ptr = decltype(TMember){};
-        return paramList<TMember>(ptr);
+        auto ptr = decltype(member){};
+        return paramList<member>(ptr);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto flag()
     {
-        auto ptr = decltype(TMember){};
-        return flag<TMember>(ptr);
+        auto ptr = decltype(member){};
+        return flag<member>(ptr);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto exitFlag()
     {
-        auto ptr = decltype(TMember){};
-        return exitFlag<TMember>(ptr);
+        auto ptr = decltype(member){};
+        return exitFlag<member>(ptr);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto arg()
     {
-        auto ptr = decltype(TMember){};
-        return arg<TMember>(ptr);
+        auto ptr = decltype(member){};
+        return arg<member>(ptr);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto argList()
     {
-        auto ptr = decltype(TMember){};
-        return argList<TMember>(ptr);
+        auto ptr = decltype(member){};
+        return argList<member>(ptr);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto command()
     {
-        auto ptr = decltype(TMember){};
-        return command<TMember>(ptr);
+        auto ptr = decltype(member){};
+        return command<member>(ptr);
     }
 
-    template<auto TMember>
+    template<auto member>
     auto subCommand()
     {
-        auto ptr = decltype(TMember){};
-        return subCommand<TMember>(ptr);
+        auto ptr = decltype(member){};
+        return subCommand<member>(ptr);
     }
 #endif
 
