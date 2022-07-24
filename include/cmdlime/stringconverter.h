@@ -11,7 +11,7 @@ template<typename T>
 struct StringConverter{
     static std::optional<std::string> toString(const T& value)
     {
-        if constexpr(detail::is_optional<T>::value){
+        if constexpr(detail::is_optional_v<T>){
             if (!value)
                 return {};
             auto stream = std::stringstream{};

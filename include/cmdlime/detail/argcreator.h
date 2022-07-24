@@ -1,27 +1,27 @@
 #pragma once
 #include "arg.h"
-#include "iconfig.h"
-#include "formatcfg.h"
+#include "iconfigreader.h"
+#include "nameformat.h"
 #include "validator.h"
 #include "gsl_assert.h"
 
 namespace cmdlime::detail{
 
-template<typename T, Format format>
+template<typename T>
 class ArgCreator{
-    using NameProvider = typename FormatCfg<format>::nameProvider;
 public:
-    ArgCreator(IConfig& cfg,
+    ArgCreator(ConfigReaderPtr cfgReader,
                const std::string& varName,
                const std::string& type,
                T& argValue)
-            : cfg_(cfg)
+            : cfgReader_(cfgReader)
             , argValue_(argValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        arg_ = std::make_unique<Arg<T>>(NameProvider::fullName(varName),
-                NameProvider::valueName(type),
+        arg_ = std::make_unique<Arg<T>>(
+                cfgReader_ ? NameFormat::fullName(cfgReader_->format(), varName) : varName,
+                cfgReader_ ? NameFormat::valueName(cfgReader_->format(), type) : type,
                 argValue);
     }
 
@@ -45,28 +45,30 @@ public:
 
     auto& operator<<(std::function<void(const T&)> validationFunc)
     {
-        cfg_.addValidator(std::make_unique<Validator<T>>(*arg_, argValue_, std::move(validationFunc)));
+        if (cfgReader_)
+            cfgReader_->addValidator(std::make_unique<Validator<T>>(*arg_, argValue_, std::move(validationFunc)));
         return *this;
     }
 
     operator T()
     {
-        cfg_.addArg(std::move(arg_));
+        if (cfgReader_)
+            cfgReader_->addArg(std::move(arg_));
         return T{};
     }
 
 private:
     std::unique_ptr<Arg<T>> arg_;
-    IConfig& cfg_;
+    ConfigReaderPtr cfgReader_;
     T& argValue_;
 };
 
-template <typename T, typename TConfig>
-auto makeArgCreator(TConfig& cfg, const std::string& varName,
-                                  const std::string& type,
-                                  const std::function<T&()>& argGetter)
+template <typename T>
+auto makeArgCreator(ConfigReaderPtr cfgReader, const std::string& varName,
+                    const std::string& type,
+                    const std::function<T&()>& argGetter)
 {
-    return ArgCreator<T, TConfig::format()>{cfg, varName, type, argGetter()};
+    return ArgCreator<T>{cfgReader, varName, type, argGetter()};
 }
 
 

@@ -1,29 +1,29 @@
 #pragma once
 #include "arglist.h"
-#include "iconfig.h"
-#include "formatcfg.h"
+#include "iconfigreader.h"
+#include "nameformat.h"
 #include "validator.h"
 #include "gsl_assert.h"
 
 namespace cmdlime::detail{
 
-template<typename T, Format format>
+template<typename T>
 class ArgListCreator{
-    using NameProvider = typename FormatCfg<format>::nameProvider;
 
 public:
-    ArgListCreator(IConfig& cfg,
+    ArgListCreator(ConfigReaderPtr cfgReader,
                    const std::string& varName,
                    const std::string& type,
                    std::vector<T>& argListValue)
-            : cfg_(cfg)
+            : cfgReader_(cfgReader)
             , argListValue_(argListValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        argList_ = std::make_unique<ArgList<T>>(NameProvider::fullName(varName),
-                                                NameProvider::valueName(type),
-                                                argListValue);
+        argList_ = std::make_unique<ArgList<T>>(
+                cfgReader_ ? NameFormat::fullName(cfgReader_->format(), varName) : varName,
+                cfgReader_ ? NameFormat::valueName(cfgReader_->format(), type) : type,
+                argListValue);
     }
 
     auto& operator<<(const std::string& info)
@@ -46,7 +46,8 @@ public:
 
     auto& operator <<(std::function<void(const std::vector<T>&)> validationFunc)
     {
-        cfg_.addValidator(std::make_unique<Validator<std::vector<T>>>(*argList_, argListValue_, std::move(validationFunc)));
+        if (cfgReader_)
+            cfgReader_->addValidator(std::make_unique<Validator<std::vector<T>>>(*argList_, argListValue_, std::move(validationFunc)));
         return *this;
     }
 
@@ -59,24 +60,25 @@ public:
 
     operator std::vector<T>()
     {
-        cfg_.setArgList(std::move(argList_));
+        if (cfgReader_)
+            cfgReader_->setArgList(std::move(argList_));
         return defaultValue_;
     }
 
 private:
     std::unique_ptr<ArgList<T>> argList_;
     std::vector<T> defaultValue_;
-    IConfig& cfg_;
+    ConfigReaderPtr cfgReader_;
     std::vector<T>& argListValue_;
 };
 
-template <typename T, typename TConfig>
-auto makeArgListCreator(TConfig& cfg,
+template <typename T>
+auto makeArgListCreator(ConfigReaderPtr cfgReader,
                         const std::string& varName,
                         const std::string& type,
                         const std::function<std::vector<T>&()>& argListGetter)
 {
-    return ArgListCreator<T, TConfig::format()>{cfg, varName, type, argListGetter()};
+    return ArgListCreator<T>{cfgReader, varName, type, argListGetter()};
 }
 
 }

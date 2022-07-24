@@ -35,6 +35,6 @@ private:
 using Name = CustomName<detail::CustomNameType::Name>;
 using ShortName = CustomName<detail::CustomNameType::ShortName>;
 using ValueName = CustomName<detail::CustomNameType::ValueName>;
-class WithoutShortName{};
+struct WithoutShortName{};
 
 }

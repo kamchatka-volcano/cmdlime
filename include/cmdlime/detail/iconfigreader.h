@@ -1,4 +1,5 @@
 #pragma once
+#include "configreaderptr.h"
 #include <vector>
 #include <string>
 #include <memory>
@@ -22,14 +23,14 @@ enum ConfigReadResult{
     StoppedOnExitFlag
 };
 
-class IConfig{
+class IConfigReader{
 public:
-    IConfig() = default;
-    virtual ~IConfig() = default;
-    IConfig(const IConfig&) = delete;
-    IConfig& operator=(const IConfig&) = delete;
-    IConfig(IConfig&&) = delete;
-    IConfig& operator=(IConfig&&) = delete;
+    IConfigReader() = default;
+    virtual ~IConfigReader() = default;
+    IConfigReader(const IConfigReader&) = delete;
+    IConfigReader& operator=(const IConfigReader&) = delete;
+    IConfigReader(IConfigReader&&) = delete;
+    IConfigReader& operator=(IConfigReader&&) = delete;
 
     virtual ConfigReadResult read(const std::vector<std::string>& cmdLine) = 0;
     virtual const std::string& versionInfo() const = 0;
@@ -46,6 +47,15 @@ public:
     virtual void addValidator(std::unique_ptr<IValidator> validator) = 0;
     virtual void validate(const std::string& commandName) const = 0;
     virtual const Options& options() const = 0;
+    virtual Format format() const = 0;
+    virtual ConfigReaderPtr makeNestedReader(const std::string& name) = 0;
+    virtual void swapContents(ConfigReaderPtr) = 0;
+
+protected:
+    ConfigReaderPtr makePtr()
+    {
+        return this;
+    }
 };
 
 }

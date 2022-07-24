@@ -1,12 +1,13 @@
 #include <gtest/gtest.h>
-#include <cmdlime/gnuconfig.h>
+#include <cmdlime/config.h>
+#include <cmdlime/configreader.h>
 #include "assert_exception.h"
 #include <optional>
 
 namespace test_validator{
 
 
-using Config = cmdlime::GNUConfig;
+using Config = cmdlime::Config;
 
 struct EnsureNotShorterThan{
     EnsureNotShorterThan(int size)
@@ -106,9 +107,9 @@ struct FullConfig : public Config{
 
 TEST(TestValidator, AllSet)
 {
-    auto cfg = FullConfig{};
-    cfg.readCommandLine({"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                         "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
+    auto cfg = cfgReader.read<FullConfig>({"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                                           "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
     EXPECT_EQ(cfg.optionalIntParam, 9);
@@ -116,16 +117,17 @@ TEST(TestValidator, AllSet)
     EXPECT_EQ(cfg.optionalParamList, (std::vector<int>{1, 2}));
     EXPECT_EQ(cfg.arg, 4.2);
     EXPECT_EQ(cfg.argList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
-    EXPECT_FALSE(cfg.command.has_value());
-    EXPECT_FALSE(cfg.subcommand.has_value());
+    EXPECT_FALSE(cfg.command);
+    EXPECT_FALSE(cfg.subcommand);
 }
 
 TEST(TestValidator, InvalidParam)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"-r", "F", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>({"-r", "F", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                                            "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter 'required-param' is invalid: length can't be less than 2."});
             });
@@ -133,10 +135,11 @@ TEST(TestValidator, InvalidParam)
 
 TEST(TestValidator, InvalidOptionalParam)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"-r", "FOO", "-oB", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>({"-r", "FOO", "-oB", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                                            "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter 'optional-param' is invalid: length can't be less than 2."});
             });
@@ -144,10 +147,12 @@ TEST(TestValidator, InvalidOptionalParam)
 
 TEST(TestValidator, InvalidOptionalIntParam)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"-r", "FOO", "-oBAR", "--optional-int-param", "-9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"-r", "FOO", "-oBAR", "--optional-int-param", "-9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter 'optional-int-param' is invalid: value can't be negative."});
             });
@@ -155,10 +160,11 @@ TEST(TestValidator, InvalidOptionalIntParam)
 
 TEST(TestValidator, InvalidParamList)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero",
-                                        "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>({"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L", "zero",
+                                            "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter list 'param-list' is invalid: size can't be less than 2."});
             });
@@ -166,10 +172,12 @@ TEST(TestValidator, InvalidParamList)
 
 TEST(TestValidator, InvalidOptionalParamList)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter list 'optional-param-list' is invalid: size can't be less than 2."});
             });
@@ -177,10 +185,12 @@ TEST(TestValidator, InvalidOptionalParamList)
 
 TEST(TestValidator, InvalidArg)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "-4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1,2", "-4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Argument 'arg' is invalid: value can't be negative."});
             });
@@ -188,10 +198,12 @@ TEST(TestValidator, InvalidArg)
 
 TEST(TestValidator, InvalidArgList)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "4.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1,2", "4.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Argument list 'arg-list' is invalid: size can't be less than 2."});
             });
@@ -199,10 +211,12 @@ TEST(TestValidator, InvalidArgList)
 
 TEST(TestValidator, InvalidCommand)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "-r", "F00BAR", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"command", "-r", "F00BAR", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command' is invalid: command required param must have a length shorter than 5."});
             });
@@ -210,18 +224,20 @@ TEST(TestValidator, InvalidCommand)
 
 TEST(TestValidator, InvalidCommandExitFlag)
 {
-    auto cfg = FullConfig{};
-    cfg.readCommandLine({"command", "--exit-flag"});
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
+    auto cfg = cfgReader.read<FullConfig>({"command", "--exit-flag"});
     ASSERT_TRUE(cfg.command);
     EXPECT_EQ(cfg.command->exitFlag, true);
 }
 
 TEST(TestValidator, InvalidCommandParam)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "-r", "F", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"command", "-r", "F", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command's parameter 'required-param' is invalid: size can't be less than 2."});
             });
@@ -229,10 +245,12 @@ TEST(TestValidator, InvalidCommandParam)
 
 TEST(TestValidator, InvalidCommandOptionalParam)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "-r", "FOO", "-oB", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"command", "-r", "FOO", "-oB", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command's parameter 'optional-param' is invalid: size can't be less than 2."});
             });
@@ -240,10 +258,12 @@ TEST(TestValidator, InvalidCommandOptionalParam)
 
 TEST(TestValidator, InvalidCommandOptionalIntParam)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "-r", "FOO", "-oBAR", "--optional-int-param", "-9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"command", "-r", "FOO", "-oBAR", "--optional-int-param", "-9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command's parameter 'optional-int-param' is invalid: value can't be negative."});
             });
@@ -251,10 +271,11 @@ TEST(TestValidator, InvalidCommandOptionalIntParam)
 
 TEST(TestValidator, InvalidCommandParamList)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero",
-                                        "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>({"command", "-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L", "zero",
+                                            "--optional-param-list=1,2", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command's parameter list 'param-list' is invalid: size can't be less than 2."});
             });
@@ -262,10 +283,12 @@ TEST(TestValidator, InvalidCommandParamList)
 
 TEST(TestValidator, InvalidCommandOptionalParamList)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1", "4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"command", "-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1", "4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command's parameter list 'optional-param-list' is invalid: size can't be less than 2."});
             });
@@ -273,10 +296,12 @@ TEST(TestValidator, InvalidCommandOptionalParamList)
 
 TEST(TestValidator, InvalidCommandArg)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "-4.2", "1.1", "2.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"command", "-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1,2", "-4.2", "1.1", "2.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command's argument 'arg' is invalid: value can't be negative."});
             });
@@ -284,10 +309,12 @@ TEST(TestValidator, InvalidCommandArg)
 
 TEST(TestValidator, InvalidCommandArgList)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L","zero", "-L", "one",
-                                        "--optional-param-list=1,2", "4.2", "3.3"});},
+            [&]{
+                cfgReader.read<FullConfig>(
+                        {"command", "-r", "FOO", "-oBAR", "--optional-int-param", "9", "-L", "zero", "-L", "one",
+                         "--optional-param-list=1,2", "4.2", "3.3"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command's argument list 'arg-list' is invalid: size can't be less than 2."});
             });
@@ -295,9 +322,9 @@ TEST(TestValidator, InvalidCommandArgList)
 
 TEST(TestValidator, InvalidNestedCommand)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "nested", "--param", "F00BAR"});},
+            [&]{ cfgReader.read<FullConfig>({"command", "nested", "--param", "F00BAR"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'command's command 'nested' is invalid: command param must have a length shorter than 5."});
             });
@@ -305,9 +332,9 @@ TEST(TestValidator, InvalidNestedCommand)
 
 TEST(TestValidator, InvalidNestedCommandParam)
 {
-    auto cfg = FullConfig{};
+    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
-            [&cfg]{cfg.readCommandLine({"command", "nested", "--param", "F"});},
+            [&]{ cfgReader.read<FullConfig>({"command", "nested", "--param", "F"});},
             [](const cmdlime::ParsingError& error){
                 EXPECT_EQ(std::string{error.what()}, std::string{"Command 'nested's parameter 'param' is invalid: size can't be less than 2."});
             });

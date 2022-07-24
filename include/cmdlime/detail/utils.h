@@ -1,4 +1,5 @@
 #pragma once
+#include "initializedoptional.h"
 #include "nameof_import.h"
 #include <string>
 #include <sstream>
@@ -25,17 +26,12 @@ inline bool isNumber(const std::string& str)
     return check(int64_t{}) || check(double{});
 }
 
-template<typename T, typename = void>
-struct is_optional : std::false_type {};
-
-template<typename T>
-struct is_optional<std::optional<T> > : std::true_type {};
 
 #ifdef CMDLIME_NAMEOF_AVAILABLE
-template<typename T>
+template<typename TCfg>
 inline std::string nameOfType()
 {
-    using type = std::remove_const_t<std::remove_reference_t<T>>;
+    using type = std::remove_const_t<std::remove_reference_t<TCfg>>;
     auto result = [&]{
         if constexpr(is_optional<type>::value)
             return std::string{nameof::nameof_short_type<typename type::value_type>()};
@@ -56,5 +52,14 @@ inline std::tuple<std::string, std::string> getMemberPtrNameAndType(TParent* par
     return std::make_tuple(memberName, nameOfType<decltype(memberValue)>());
 }
 #endif
+
+template<typename T, typename = void>
+struct is_optional : std::false_type {};
+
+template<typename T>
+struct is_optional<std::optional<T>> : std::true_type {};
+
+template <typename T>
+inline constexpr auto is_optional_v = is_optional<T>::value;
 
 }

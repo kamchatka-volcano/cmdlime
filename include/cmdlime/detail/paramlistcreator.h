@@ -1,29 +1,28 @@
 #pragma once
 #include "paramlist.h"
-#include "iconfig.h"
-#include "formatcfg.h"
+#include "iconfigreader.h"
+#include "nameformat.h"
 #include "validator.h"
 #include "gsl_assert.h"
 
 namespace cmdlime::detail {
 
-template<typename T, Format format>
+template<typename T>
 class ParamListCreator{
-    using NameProvider = typename FormatCfg<format>::nameProvider;
-
 public:
-    ParamListCreator(IConfig& cfg,
+    ParamListCreator(ConfigReaderPtr cfgReader,
                      const std::string& varName,
                      const std::string& type,
                      std::vector<T>& paramListValue)
-            : cfg_(cfg)
+            : cfgReader_(cfgReader)
             , paramListValue_(paramListValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        paramList_ = std::make_unique<ParamList<T>>(NameProvider::name(varName),
-                NameProvider::shortName(varName),
-                NameProvider::valueName(type),
+        paramList_ = std::make_unique<ParamList<T>>(
+                cfgReader_ ? NameFormat::name(cfgReader_->format(), varName) : varName,
+                cfgReader_ ? NameFormat::shortName(cfgReader_->format(), varName) : varName,
+                cfgReader_ ? NameFormat::valueName(cfgReader_->format(), type) : type,
                 paramListValue);
     }
 
@@ -41,16 +40,16 @@ public:
 
     auto& operator<<(const ShortName& customName)
     {
-        static_assert(FormatCfg<format>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
+//        static_assert(FormatCfg<format>::shortNamesEnabled,
+//                      "Current command line format doesn't support short names");
         paramList_->info().resetShortName(customName.value());
         return *this;
     }
 
     auto& operator<<(const WithoutShortName&)
     {
-        static_assert(FormatCfg<format>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
+//        static_assert(FormatCfg<format>::shortNamesEnabled,
+//                      "Current command line format doesn't support short names");
         paramList_->info().resetShortName({});
         return *this;
     }
@@ -63,7 +62,9 @@ public:
 
     auto& operator<<(std::function<void(const std::vector<T>&)> validationFunc)
     {
-        cfg_.addValidator(std::make_unique<Validator<std::vector<T>>>(*paramList_, paramListValue_, std::move(validationFunc)));
+        if (cfgReader_)
+            cfgReader_->addValidator(
+                    std::make_unique<Validator<std::vector<T>>>(*paramList_, paramListValue_, std::move(validationFunc)));
         return *this;
     }
 
@@ -77,24 +78,25 @@ public:
 
     operator std::vector<T>()
     {
-        cfg_.addParamList(std::move(paramList_));
+        if (cfgReader_)
+            cfgReader_->addParamList(std::move(paramList_));
         return defaultValue_;
     }
 
 private:
     std::unique_ptr<ParamList<T>> paramList_;
     std::vector<T> defaultValue_;
-    IConfig& cfg_;
+    ConfigReaderPtr cfgReader_;
     std::vector<T>& paramListValue_;
 };
 
-template <typename T, typename TConfig>
-auto makeParamListCreator(TConfig& cfg,
+template <typename T>
+auto makeParamListCreator(ConfigReaderPtr cfgReader,
                           const std::string& varName,
                           const std::string& type,
                           const std::function<std::vector<T>&()>& paramListGetter)
 {
-return ParamListCreator<T, TConfig::format()>{cfg, varName, type, paramListGetter()};
+return ParamListCreator<T>{cfgReader, varName, type, paramListGetter()};
 }
 
 

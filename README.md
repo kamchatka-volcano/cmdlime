@@ -666,7 +666,7 @@ int main(int argc, char** argv)
     } cfg;
 
     auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.readCommandLine(argc, argv))
+    if (!reader.read(argc, argv))
         return reader.exitCode();
 
     if (cfg.history.has_value()){

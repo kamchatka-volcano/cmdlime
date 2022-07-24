@@ -1,28 +1,28 @@
 #pragma once
 #include "param.h"
-#include "iconfig.h"
-#include "formatcfg.h"
+#include "iconfigreader.h"
+#include "nameformat.h"
 #include "validator.h"
 #include "gsl_assert.h"
 
 namespace cmdlime::detail {
 
-template<typename T, Format format>
+template<typename T>
 class ParamCreator{
-    using NameProvider = typename FormatCfg<format>::nameProvider;
 public:
-    ParamCreator(IConfig& cfg,
+    ParamCreator(ConfigReaderPtr cfgReader,
                  const std::string& varName,
                  const std::string& type,
                  T& paramValue)
-        : cfg_(cfg)
+        : cfgReader_(cfgReader)
         , paramValue_(paramValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        param_ = std::make_unique<Param<T>>(NameProvider::name(varName),
-                NameProvider::shortName(varName),
-                NameProvider::valueName(type),
+        param_ = std::make_unique<Param<T>>(
+                cfgReader_ ? NameFormat::name(cfgReader->format(), varName) : varName,
+                cfgReader_ ? NameFormat::shortName(cfgReader->format(), varName) : varName,
+                cfgReader_ ? NameFormat::valueName(cfgReader->format(), type) : varName,
                 paramValue);
     }
 
@@ -40,16 +40,16 @@ public:
 
     auto& operator<<(const ShortName& customName)
     {
-        static_assert(FormatCfg<format>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
+//        static_assert(FormatCfg<format>::shortNamesEnabled,
+//                      "Current command line format doesn't support short names");
         param_->info().resetShortName(customName.value());
         return *this;
     }
 
     auto& operator<<(const WithoutShortName&)
     {
-        static_assert(FormatCfg<format>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
+//        static_assert(FormatCfg<format>::shortNamesEnabled,
+//                      "Current command line format doesn't support short names");
         param_->info().resetShortName({});
         return *this;
     }
@@ -62,7 +62,8 @@ public:
 
     auto& operator<<(std::function<void(const T&)> validationFunc)
     {
-        cfg_.addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validationFunc)));
+        if (cfgReader_)
+            cfgReader_->addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validationFunc)));
         return *this;
     }
 
@@ -75,24 +76,25 @@ public:
 
     operator T()
     {
-        cfg_.addParam(std::move(param_));
+        if (cfgReader_)
+            cfgReader_->addParam(std::move(param_));
         return defaultValue_;
     }
 
 private:
     std::unique_ptr<Param<T>> param_;
     T defaultValue_;
-    IConfig& cfg_;
+    ConfigReaderPtr cfgReader_;
     T& paramValue_;
 };
 
-template <typename T, typename TConfig>
-auto makeParamCreator(TConfig& cfg,
+template <typename T>
+auto makeParamCreator(ConfigReaderPtr cfgReader,
                       const std::string& varName,
                       const std::string& type,
                       const std::function<T&()>& paramGetter)
 {
-    return ParamCreator<T, TConfig::format()>{cfg, varName, type, paramGetter()};
+    return ParamCreator<T>{cfgReader, varName, type, paramGetter()};
 }
 
 

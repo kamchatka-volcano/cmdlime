@@ -2,8 +2,10 @@
 #include "icommand.h"
 #include "optioninfo.h"
 #include "flag.h"
-#include "iconfig.h"
+#include "iconfigreader.h"
 #include "options.h"
+#include "nameformat.h"
+#include "initializedoptional.h"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/usageinfoformat.h>
@@ -23,14 +25,13 @@ public:
     };
 
     Command(const std::string& name,
-            std::optional<TConfig>& commandCfg,
+            InitializedOptional<TConfig>& commandCfg,
+            ConfigReaderPtr cfgReader,
             Type type)
         : info_(name, {}, {})
         , type_(type)
-        , makeCfg_([&commandCfg]() -> TConfig&{
-            commandCfg.emplace();
-            return commandCfg.value();
-          })
+        , cfg_(commandCfg)
+        , cfgReader_{cfgReader}
     {
     }
 
@@ -52,23 +53,29 @@ public:
 private:
     ConfigReadResult read(const std::vector<std::string>& commandLine) override
     {
-        if (!cfg_){
-            cfg_ = &makeCfg_();
-            cfg_->setCommandName(commandName_);
-            cfg_->setUsageInfoFormat(commandUsageInfoFormat_);
-            if (helpFlag_){
-                cfg_->addFlag(std::move(helpFlag_));
-                for (auto& command : cfg_->options().commands())
-                    command->enableHelpFlag();
-            }
+        cfg_.emplace();
+        if (!cfgReader_)
+            return ConfigReadResult::Completed;
+
+        cfgReader_->setCommandName(commandName_);
+        cfgReader_->setUsageInfoFormat(commandUsageInfoFormat_);
+        if (helpFlag_){
+            cfgReader_->addFlag(std::move(helpFlag_));
+            for (auto& command : cfgReader_->options().commands())
+                command->enableHelpFlag();
         }
-        return cfg_->read(commandLine);
+
+        return cfgReader_->read(commandLine);
+    }
+
+    ConfigReaderPtr configReader() const override
+    {
+        return cfgReader_;
     }
 
     void enableHelpFlag() override
     {
-        using NameProvider = typename detail::FormatCfg<TConfig::format()>::nameProvider;
-        helpFlag_ = std::make_unique<detail::Flag>(NameProvider::name("help"),
+        helpFlag_ = std::make_unique<detail::Flag>(NameFormat::name(cfgReader_->format(), "help"),
                                                    std::string{},
                                                    helpFlagValue_,
                                                    detail::Flag::Type::Exit);
@@ -85,23 +92,23 @@ private:
         return type_ == Type::SubCommand;
     }
 
-    IConfig* config() const override
+    bool hasValue() const override
     {
         return cfg_;
     }
 
     std::string usageInfo() const override
     {
-        if (!cfg_)
+        if (!cfgReader_)
             return {};
-        return cfg_->usageInfo();
+        return cfgReader_->usageInfo();
     }
 
     std::string usageInfoDetailed() const override
     {
-        if (!cfg_)
+        if (!cfgReader_)
             return {};
-        return cfg_->usageInfoDetailed();
+        return cfgReader_->usageInfoDetailed();
     }
 
     void setUsageInfoFormat(const UsageInfoFormat& format) override
@@ -117,8 +124,8 @@ private:
 
     void validate() const override
     {
-        if (cfg_)
-            cfg_->validate(info_.name());
+        if (cfgReader_ && cfg_)
+            cfgReader_->validate(info_.name());
     }
 
 
@@ -126,10 +133,10 @@ private:
     OptionInfo info_;
     Type type_;
     UsageInfoFormat commandUsageInfoFormat_;
-    std::function<IConfig&()> makeCfg_;
+    InitializedOptional<TConfig>& cfg_;
+    ConfigReaderPtr cfgReader_;
     std::string commandName_;
     std::unique_ptr<IFlag> helpFlag_;
-    IConfig* cfg_ = nullptr;
     bool helpFlagValue_ = false;
 };
 
