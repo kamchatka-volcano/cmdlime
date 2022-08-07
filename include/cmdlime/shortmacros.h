@@ -1,5 +1,5 @@
 #pragma once
-#include "detail/configmacro.h"
+#include "detail/configmacros.h"
 
 #define PARAM CMDLIME_PARAM
 #define PARAMLIST CMDLIME_PARAMLIST

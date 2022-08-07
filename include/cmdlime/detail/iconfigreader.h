@@ -48,6 +48,7 @@ public:
     virtual void validate(const std::string& commandName) const = 0;
     virtual const Options& options() const = 0;
     virtual Format format() const = 0;
+    virtual bool shortNamesEnabled() const = 0;
     virtual ConfigReaderPtr makeNestedReader(const std::string& name) = 0;
     virtual void swapContents(ConfigReaderPtr) = 0;
 

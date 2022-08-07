@@ -72,13 +72,4 @@ private:
     std::vector<T>& argListValue_;
 };
 
-template <typename T>
-auto makeArgListCreator(ConfigReaderPtr cfgReader,
-                        const std::string& varName,
-                        const std::string& type,
-                        const std::function<std::vector<T>&()>& argListGetter)
-{
-    return ArgListCreator<T>{cfgReader, varName, type, argListGetter()};
-}
-
 }

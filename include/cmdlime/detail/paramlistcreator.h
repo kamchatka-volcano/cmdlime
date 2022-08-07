@@ -40,17 +40,15 @@ public:
 
     auto& operator<<(const ShortName& customName)
     {
-//        static_assert(FormatCfg<format>::shortNamesEnabled,
-//                      "Current command line format doesn't support short names");
-        paramList_->info().resetShortName(customName.value());
+        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+            paramList_->info().resetShortName(customName.value());
         return *this;
     }
 
     auto& operator<<(const WithoutShortName&)
     {
-//        static_assert(FormatCfg<format>::shortNamesEnabled,
-//                      "Current command line format doesn't support short names");
-        paramList_->info().resetShortName({});
+        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+            paramList_->info().resetShortName({});
         return *this;
     }
 
@@ -89,15 +87,5 @@ private:
     ConfigReaderPtr cfgReader_;
     std::vector<T>& paramListValue_;
 };
-
-template <typename T>
-auto makeParamListCreator(ConfigReaderPtr cfgReader,
-                          const std::string& varName,
-                          const std::string& type,
-                          const std::function<std::vector<T>&()>& paramListGetter)
-{
-return ParamListCreator<T>{cfgReader, varName, type, paramListGetter()};
-}
-
 
 }

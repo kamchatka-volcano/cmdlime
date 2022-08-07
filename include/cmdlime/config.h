@@ -2,7 +2,7 @@
 #include "format.h"
 #include "errors.h"
 #include "usageinfoformat.h"
-#include "detail/configmacro.h"
+#include "detail/configmacros.h"
 #include "detail/paramcreator.h"
 #include "detail/paramlistcreator.h"
 #include "detail/flagcreator.h"
@@ -295,7 +295,6 @@ private:
 private:
     detail::ConfigReaderPtr cfgReader_;
     friend class detail::IConfigReader;
-
 };
 
 template<typename T>

@@ -40,17 +40,15 @@ public:
 
     auto& operator<<(const ShortName& customName)
     {
-//        static_assert(FormatCfg<format>::shortNamesEnabled,
-//                      "Current command line format doesn't support short names");
-        param_->info().resetShortName(customName.value());
+        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+            param_->info().resetShortName(customName.value());
         return *this;
     }
 
     auto& operator<<(const WithoutShortName&)
     {
-//        static_assert(FormatCfg<format>::shortNamesEnabled,
-//                      "Current command line format doesn't support short names");
-        param_->info().resetShortName({});
+        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+            param_->info().resetShortName({});
         return *this;
     }
 
@@ -87,15 +85,5 @@ private:
     ConfigReaderPtr cfgReader_;
     T& paramValue_;
 };
-
-template <typename T>
-auto makeParamCreator(ConfigReaderPtr cfgReader,
-                      const std::string& varName,
-                      const std::string& type,
-                      const std::function<T&()>& paramGetter)
-{
-    return ParamCreator<T>{cfgReader, varName, type, paramGetter()};
-}
-
 
 }

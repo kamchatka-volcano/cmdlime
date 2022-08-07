@@ -38,17 +38,15 @@ public:
 
     FlagCreator& operator<<(const ShortName& customName)
     {
-//        static_assert(FormatCfg<format>::shortNamesEnabled,
-//                      "Current command line format doesn't support short names");
-        flag_->info().resetShortName(customName.value());
+        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+            flag_->info().resetShortName(customName.value());
         return *this;
     }
 
     FlagCreator& operator<<(const WithoutShortName&)
     {
-//        static_assert(FormatCfg<format>::shortNamesEnabled,
-//                      "Current command line format doesn't support short names");
-        flag_->info().resetShortName({});
+        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+            flag_->info().resetShortName({});
         return *this;
     }
 
@@ -63,13 +61,5 @@ private:
     std::unique_ptr<Flag> flag_;
     ConfigReaderPtr cfgReader_;
 };
-
-inline auto makeFlagCreator(ConfigReaderPtr cfgReader,
-                     const std::string& varName,
-                     const std::function<bool&()>& flagGetter,
-                     Flag::Type flagType = Flag::Type::Normal)
-{
-    return FlagCreator{cfgReader, varName, flagGetter(), flagType};
-}
 
 }

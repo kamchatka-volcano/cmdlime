@@ -63,13 +63,4 @@ private:
     T& argValue_;
 };
 
-template <typename T>
-auto makeArgCreator(ConfigReaderPtr cfgReader, const std::string& varName,
-                    const std::string& type,
-                    const std::function<T&()>& argGetter)
-{
-    return ArgCreator<T>{cfgReader, varName, type, argGetter()};
-}
-
-
 }

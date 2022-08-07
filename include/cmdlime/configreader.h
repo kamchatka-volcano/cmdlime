@@ -3,8 +3,9 @@
 #include "errors.h"
 #include "usageinfoformat.h"
 #include "detail/flag.h"
-#include "detail/configmacro.h"
+#include "detail/configmacros.h"
 #include "detail/nameformat.h"
+#include "detail/formatcfg.h"
 #include <iostream>
 #include <optional>
 #include <map>
@@ -14,7 +15,7 @@
 
 namespace cmdlime{
 
-template<Format formatType>
+template<Format formatType = Format::GNU>
 class ConfigReader : public detail::IConfigReader{
 public:
     ConfigReader(const std::string& programName = {},
@@ -22,11 +23,6 @@ public:
     {
         setCommandName(programName);
         setUsageInfoFormat(usageInfoFormat);
-    }
-
-    Format format() const override
-    {
-        return formatType;
     }
 
     template<typename TCfg>
@@ -134,6 +130,7 @@ public:
         errorOutput_ = outStream;
     }
 
+private:
     void addParam(std::unique_ptr<detail::IParam> param) override
     {
         options_.addParam(std::move(param));
@@ -199,10 +196,18 @@ public:
                 continue;
             validator->validate(commandName);
         }
-
     }
 
-private:
+    Format format() const override
+    {
+        return formatType;
+    }
+
+    bool shortNamesEnabled() const override
+    {
+        return detail::FormatCfg<formatType>::shortNamesEnabled;
+    }
+
     detail::ConfigReadResult read(const std::vector<std::string>& cmdLine) override
     {
         if (!configError_.empty())
@@ -265,7 +270,7 @@ private:
     TCfg makeCfg()
     {
         clear();
-        auto cfg = TCfg{makePtr()};
+        auto cfg = TCfg{{makePtr()}};
         setCommandName(commandName_);
         setUsageInfoFormat(usageInfoFormat_);
         return cfg;
