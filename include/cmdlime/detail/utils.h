@@ -4,8 +4,15 @@
 #include <string>
 #include <sstream>
 #include <optional>
+#include <gsl/assert>
 
 namespace cmdlime::detail{
+
+[[noreturn]]
+inline void ensureNotReachable()
+{
+    Ensures(false);
+}
 
 inline std::string capitalize(const std::string& input)
 {

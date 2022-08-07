@@ -3,15 +3,15 @@
 #include "formatcfg.h"
 #include "nameutils.h"
 #include "utils.h"
-#include "string_utils.h"
 #include <cmdlime/errors.h>
+#include <sfun/string_utils.h>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <functional>
 
 namespace cmdlime::detail{
-namespace str = string_utils;
+namespace str = sfun::string_utils;
 
 template <Format formatType>
 class DefaultParser : public Parser<formatType>
@@ -24,7 +24,7 @@ class DefaultParser : public Parser<formatType>
     }
 
     void process(const std::string& token) override
-    {        
+    {
         if (str::startsWith(token, "--") && token.size() > 2){
             const auto flagName = str::after(token, "--");
             this->readFlag(flagName);
@@ -39,7 +39,7 @@ class DefaultParser : public Parser<formatType>
                 throw ParsingError{"Wrong parameter format: " + token + ". Parameter must have a form of -name=value"};
 
             const auto paramName = str::before(str::after(token, "-"), "=");
-            const auto paramValue = str::after(token, "=");
+            const auto paramValue = std::string{str::after(token, "=")};
             this->readParam(paramName, paramValue);
         }
         else
@@ -56,7 +56,7 @@ class DefaultParser : public Parser<formatType>
                 if (nonAlphaNumCharIt != var.name().end())
                     throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters"};
             }
-        };        
+        };
         this->forEachParamInfo([check](const OptionInfo& var){
             check(var, "Parameter");
         });

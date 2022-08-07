@@ -1,17 +1,17 @@
 #pragma once
 #include "iparamlist.h"
 #include "optioninfo.h"
-#include "string_utils.h"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
+#include <sfun/string_utils.h>
 #include <vector>
 #include <sstream>
 #include <functional>
 #include <memory>
 
 namespace cmdlime::detail{
-namespace str = string_utils;
+namespace str = sfun::string_utils;
 
 template <typename T>
 class ParamList : public IParamList{
@@ -56,7 +56,7 @@ private:
 
         const auto dataParts = str::split(data, ",");
         for (const auto& part : dataParts){
-            auto paramVal = convertFromString<T>(part);
+            auto paramVal = convertFromString<T>(std::string{part});
             if (!paramVal)
                 return false;
             paramListValue_.emplace_back(*paramVal);

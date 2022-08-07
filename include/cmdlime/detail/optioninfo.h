@@ -1,5 +1,5 @@
 #pragma once
-#include "gsl_assert.h"
+#include <gsl/assert>
 #include <string>
 #include <sstream>
 #include <utility>
@@ -24,7 +24,7 @@ public:
     void resetName(const std::string& name)
     {
         Expects(!name.empty());
-        name_ = name;        
+        name_ = name;
     }
 
     void resetValueName(const std::string& name)

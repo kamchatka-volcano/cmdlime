@@ -3,8 +3,8 @@
 #include "nameutils.h"
 #include "utils.h"
 #include "formatcfg.h"
-#include "string_utils.h"
 #include <cmdlime/errors.h>
+#include <sfun/string_utils.h>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -12,7 +12,7 @@
 #include <optional>
 
 namespace cmdlime::detail{
-namespace str = string_utils;
+namespace str = sfun::string_utils;
 
 template <Format formatType>
 class GNUParser : public Parser<formatType>
@@ -47,9 +47,9 @@ class GNUParser : public Parser<formatType>
             throw ParsingError{"Parameter '" + foundParamPrefix_ + foundParam_ + "' value can't be empty"};
     }
 
-    void processCommand(std::string command)
+    void processCommand(const std::string& commandStr)
     {
-        command = str::after(command, "--");
+        auto command = str::after(commandStr, "--");
         auto paramValue = std::optional<std::string>{};
         if (command.find('=') != std::string::npos){
             paramValue = str::after(command, "=");
@@ -70,7 +70,7 @@ class GNUParser : public Parser<formatType>
         else if (this->findFlag(command, FindMode::Name))
             this->readFlag(command);
         else if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands)
-            throw ParsingError{"Encountered unknown parameter or flag '--" + command + "'"};
+            throw ParsingError{"Encountered unknown parameter or flag '--" + std::string{command} + "'"};
     }
 
     void processShortCommand(std::string command)
@@ -165,7 +165,7 @@ class GNUParser : public Parser<formatType>
         checkShortNames();
     }
 
-    bool isParamOrFlag(const std::string& str)
+    bool isParamOrFlag(std::string_view str)
     {
         if (str.empty())
             return false;
@@ -290,7 +290,7 @@ public:
     static std::string flagPrefix()
     {
         return "--";
-    }    
+    }
 
     static std::string argUsageName(const IArg& arg)
     {

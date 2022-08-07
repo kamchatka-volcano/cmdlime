@@ -3,7 +3,7 @@
 #include "iconfigreader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "gsl_assert.h"
+#include <gsl/assert>
 
 namespace cmdlime::detail {
 

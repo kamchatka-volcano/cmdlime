@@ -3,8 +3,8 @@
 #include "iconfigreader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "gsl_assert.h"
 #include "initializedoptional.h"
+#include <gsl/assert>
 
 namespace cmdlime{
 class Config;

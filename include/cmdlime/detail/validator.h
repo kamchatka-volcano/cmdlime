@@ -19,10 +19,8 @@ inline std::string validatorOptionTypeName(OptionType optionType)
         case OptionType::ExitFlag: return "exit flag";
         case OptionType::Param: return "parameter";
         case OptionType::ParamList: return "parameter list";
-        default:
-            using optionTypeIsHandled = std::false_type;
-            Ensures(optionTypeIsHandled{});
     }
+    ensureNotReachable();
 }
 
 template<typename T>

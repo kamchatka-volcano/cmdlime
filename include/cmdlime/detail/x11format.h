@@ -3,8 +3,8 @@
 #include "nameutils.h"
 #include "utils.h"
 #include "formatcfg.h"
-#include "string_utils.h"
 #include <cmdlime/errors.h>
+#include <sfun/string_utils.h>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -12,7 +12,7 @@
 #include <cassert>
 
 namespace cmdlime::detail{
-namespace str = string_utils;
+namespace str = sfun::string_utils;
 
 template <Format formatType>
 class X11Parser : public Parser<formatType>
@@ -57,7 +57,7 @@ class X11Parser : public Parser<formatType>
             throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
     }
 
-    bool isParamOrFlag(const std::string& cmd)
+    bool isParamOrFlag(std::string_view cmd)
     {
         if (cmd.empty())
             return false;

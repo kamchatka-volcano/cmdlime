@@ -8,7 +8,6 @@ else()
     set(CMDLIME_SUBPROJECT ON)
 endif()
 
-
 option(CMDLIME_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
 if (CMDLIME_USE_NAMEOF)
     find_package(nameof 0.10.1 QUIET)
@@ -18,10 +17,22 @@ if (CMDLIME_USE_NAMEOF)
     endif()
 endif()
 
+find_package(sfun 2.0.0 QUIET)
+if (NOT sfun_FOUND)
+    message("Configuration info: sfun library wasn't found on your system, downloading it from the GitHub repository")
+    include (external/sfun)
+endif()
+
+find_package(GSL 4.0.0 QUIET)
+if (NOT GSL_FOUND)
+    message("Configuration info: sfun library wasn't found on your system, downloading it from the GitHub repository")
+    include (external/gsl)
+endif()
 
 add_library(cmdlime INTERFACE)
 add_library(cmdlime::cmdlime ALIAS cmdlime)
 target_compile_features(cmdlime INTERFACE cxx_std_17)
+
 if (CMDLIME_USE_NAMEOF)
     target_link_libraries(cmdlime INTERFACE nameof::nameof)
 endif()
@@ -31,6 +42,21 @@ target_include_directories(
     INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+target_include_directories(
+    cmdlime
+    INTERFACE
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cmdlime/detail/external>
+)
+target_include_directories(
+    cmdlime
+    INTERFACE
+    $<BUILD_INTERFACE:${sfun_SOURCE_DIR}/include/>
+)
+target_include_directories(
+    cmdlime
+    INTERFACE
+    $<BUILD_INTERFACE:${gsl_SOURCE_DIR}/include/>
 )
 
 option(ENABLE_TESTS "Enable tests" OFF)
@@ -43,7 +69,8 @@ option(INSTALL_CMDLIME "Install cmdlime library unconditionally" OFF)
 if (NOT CMDLIME_SUBPROJECT OR INSTALL_CMDLIME)
     include(GNUInstallDirs)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/cmdlime DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
+    install(DIRECTORY ${sfun_SOURCE_DIR}/include/sfun DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cmdlime/detail/external)
+    install(DIRECTORY ${gsl_SOURCE_DIR}/include/gsl DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cmdlime/detail/external)
     set(CMDLIME_PACK_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/cmdlime)
 
     install(TARGETS cmdlime

@@ -8,8 +8,8 @@
 #include "optioninfo.h"
 #include "options.h"
 #include "formatcfg.h"
-#include "string_utils.h"
 #include <cmdlime/usageinfoformat.h>
+#include <sfun/string_utils.h>
 #include <utility>
 #include <vector>
 #include <memory>
@@ -18,7 +18,7 @@
 
 namespace cmdlime::detail{
 using namespace gsl;
-namespace str = string_utils;
+namespace str = sfun::string_utils;
 
 inline std::string adjustedToLineBreak(std::string line, std::string& text)
 {
@@ -106,7 +106,7 @@ public:
     {
         return minimizedUsageInfo() +
                argsInfo() +
-               paramsInfo() +               
+               paramsInfo() +
                paramListsInfo() +
                optionsInfo() +
                optionalParamListsInfo() +
@@ -320,7 +320,7 @@ private:
     }
 
     int maxOptionNameLength()
-    {        
+    {
         auto length = 0;
         auto updateLength = [&length](std::string name)
         {
@@ -370,7 +370,7 @@ private:
         return stream.str();
     }
 
-private:    
+private:
     std::string commandName_;
     std::vector<std::reference_wrapper<IParam>> params_;
     std::vector<std::reference_wrapper<IParam>> optionalParams_;

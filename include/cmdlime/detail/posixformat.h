@@ -3,15 +3,15 @@
 #include "nameutils.h"
 #include "utils.h"
 #include "formatcfg.h"
-#include "string_utils.h"
 #include <cmdlime/errors.h>
+#include <sfun/string_utils.h>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <functional>
 
 namespace cmdlime::detail{
-namespace str = string_utils;
+namespace str = sfun::string_utils;
 
 template <Format formatType>
 class PosixParser : public Parser<formatType>
@@ -22,7 +22,7 @@ class PosixParser : public Parser<formatType>
     {
         auto possibleNumberArg = command;
         command = str::after(command, "-");
-        if (isParamOrFlag(command)){            
+        if (isParamOrFlag(command)){
             if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands){
                 if (!foundParam_.empty())
                     throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
