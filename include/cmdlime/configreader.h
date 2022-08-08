@@ -48,6 +48,13 @@ public:
     }
 
     template<typename TCfg>
+    int exec(int argc, char** argv, std::function<int(int, char**, const TCfg&)> func)
+    {
+         auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
+         return exec<TCfg>(cmdLine, [=](const TCfg& cfg){func(argc, argv, cfg);});
+    }
+
+    template<typename TCfg>
     int exec(const std::vector<std::string>& cmdLine, std::function<int(const TCfg&)> func)
     {
         auto cfg = makeCfg<TCfg>();

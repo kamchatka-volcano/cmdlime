@@ -37,7 +37,7 @@ struct StringConverter{
             return value;
         };
 
-        if constexpr(std::is_convertible_v<T, std::string>){
+        if constexpr(std::is_convertible_v<detail::remove_optional_t<T>, std::string>){
             return data;
         }
         else if constexpr(detail::is_optional<T>::value){

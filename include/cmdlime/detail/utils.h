@@ -69,4 +69,17 @@ struct is_optional<std::optional<T>> : std::true_type {};
 template <typename T>
 inline constexpr auto is_optional_v = is_optional<T>::value;
 
+template<typename T, typename = void>
+struct remove_optional{
+    using type = T;
+};
+
+template<typename T>
+struct remove_optional<std::optional<T>>{
+    using type = T;
+};
+
+template <typename T>
+using remove_optional_t = typename remove_optional<T>::type;
+
 }

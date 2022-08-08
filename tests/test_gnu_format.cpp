@@ -33,6 +33,7 @@ struct SubcommandConfig: public Config{
 struct FullConfig : public Config{
     CMDLIME_PARAM(requiredParam, std::string);
     CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
+    CMDLIME_PARAM(optionalParam2, std::optional<std::string>) << cmdlime::WithoutShortName{};
     CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::ShortName("i");
     CMDLIME_PARAMLIST(prmList, std::string) << cmdlime::ShortName("L");
     CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
@@ -48,6 +49,7 @@ struct FullConfig : public Config{
 struct FullConfigWithoutMacro : public Config{
     std::string requiredParam           = param<&T::requiredParam>();
     std::string optionalParam           = param<&T::optionalParam>()("defaultValue");
+    std::optional<std::string> optionalParam2 = param<&T::optionalParam2>() << cmdlime::WithoutShortName{};
     std::optional<int> optionalIntParam = param<&T::optionalIntParam>()() << cmdlime::ShortName("i");
     std::vector<std::string> prmList    = paramList<&T::prmList>() << cmdlime::ShortName("L");
     std::vector<int> optionalPrmList    = paramList<&T::optionalPrmList>()(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
@@ -64,6 +66,7 @@ private:
 struct FullConfigWithoutMacro : public Config{
     std::string requiredParam           = param<&T::requiredParam>("requiredParam", "string");
     std::string optionalParam           = param<&T::optionalParam>("optionalParam", "string")("defaultValue");
+    std::optional<std::string> optionalParam2 = param<&T::optionalParam2>("optionalParam2", "string") << cmdlime::WithoutShortName{};
     std::optional<int> optionalIntParam = param<&T::optionalIntParam>("optionalIntParam", "int")() << cmdlime::ShortName("i");
     std::vector<std::string> prmList    = paramList<&T::prmList>("prmList", "string") << cmdlime::ShortName("L");
     std::vector<int> optionalPrmList    = paramList<&T::optionalPrmList>("optionalPrmList", "int")(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
@@ -82,10 +85,12 @@ TEST(GNUConfig, AllSet)
 {
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     auto cfg = cfgReader.read<FullConfig>(
-            {"-r", "FOO", "-oBAR", "--optional-int-param", "-9", "-L", "zero", "-L", "one",
+            {"-r", "FOO", "-oBAR", "--optional-param2", "Hello world", "--optional-int-param", "-9", "-L", "zero", "-L", "one",
              "--optional-param-list=1,2", "-f", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
+    ASSERT_TRUE(cfg.optionalParam2.has_value());
+    EXPECT_EQ(*cfg.optionalParam2, "Hello world");
     EXPECT_EQ(cfg.optionalIntParam, -9);
     EXPECT_EQ(cfg.prmList, (std::vector<std::string>{"zero", "one"}));
     EXPECT_EQ(cfg.optionalParamList, (std::vector<int>{1, 2}));
@@ -977,7 +982,7 @@ TEST(GNUConfig, UsageInfo)
     cfgReader.setProgramName("testproc");
     auto expectedInfo = std::string{
     "Usage: testproc [commands] <argument> --required-param <string> --prm-list <string>... "
-    "[--optional-param <string>] [--optional-int-param <int>] [--optional-param-list <int>...] [--flg] [--second-flag] <argument-list...>\n"
+    "[--optional-param <string>] [--optional-param2 <string>] [--optional-int-param <int>] [--optional-param-list <int>...] [--flg] [--second-flag] <argument-list...>\n"
     };
     EXPECT_EQ(cfgReader.usageInfo<FullConfig>(), expectedInfo);
 }
@@ -988,7 +993,7 @@ TEST(GNUConfig, UsageInfoWithoutMacro)
     cfgReader.setProgramName("testproc");
     auto expectedInfo = std::string{
             "Usage: testproc [commands] <a> --required-param <string> --prm-list <string>... "
-            "[--optional-param <string>] [--optional-int-param <int>] [--optional-prm-list <int>...] [--flg] <a-list...>\n"
+            "[--optional-param <string>] [--optional-param2 <string>] [--optional-int-param <int>] [--optional-prm-list <int>...] [--flg] <a-list...>\n"
     };
     EXPECT_EQ(cfgReader.usageInfo<FullConfigWithoutMacro>(), expectedInfo);
 }
@@ -1006,6 +1011,7 @@ TEST(GNUConfig, DetailedUsageInfo)
     "   -r, --required-param <string>      \n"
     "   -L, --prm-list <string>            multi-value\n"
     "   -o, --optional-param <string>      optional, default: defaultValue\n"
+    "       --optional-param2 <string>     optional\n"
     "   -i, --optional-int-param <int>     optional\n"
     "   -O, --optional-param-list <int>    multi-value, optional, default: {99, \n"
     "                                        100}\n"
@@ -1031,6 +1037,7 @@ TEST(GNUConfig, DetailedUsageInfoWithoutMacro)
             "   -r, --required-param <string>      \n"
             "   -L, --prm-list <string>            multi-value\n"
             "   -o, --optional-param <string>      optional, default: defaultValue\n"
+            "       --optional-param2 <string>     optional\n"
             "   -i, --optional-int-param <int>     optional\n"
             "   -O, --optional-prm-list <int>      multi-value, optional, default: {99, \n"
             "                                        100}\n"

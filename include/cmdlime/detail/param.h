@@ -1,6 +1,7 @@
 #pragma once
 #include "iparam.h"
 #include "optioninfo.h"
+#include "utils.h"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
@@ -20,7 +21,7 @@ public:
           T& paramValue)
         : info_(std::move(name), std::move(shortName), std::move(type))
         , paramValue_(paramValue)
-    {       
+    {
     }
 
     void setDefaultValue(const T& value)
@@ -58,11 +59,15 @@ private:
 
     bool hasValue() const override
     {
+        if constexpr (is_optional_v<T>)
+            return true;
         return hasValue_;
     }
 
     bool isOptional() const override
     {
+        if constexpr (is_optional_v<T>)
+            return true;
         return defaultValue_.has_value();
     }
 
