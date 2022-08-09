@@ -18,4 +18,4 @@ struct FormatCfg<Format::X11>;
 template<>
 struct FormatCfg<Format::GNU>;
 
-} // namespace cmdlime::detail
+}

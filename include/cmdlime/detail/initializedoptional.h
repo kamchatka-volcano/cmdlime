@@ -3,7 +3,6 @@
 #include <stdexcept>
 #include <optional>
 
-
 namespace cmdlime::detail{
 
 template<typename T>

@@ -9,7 +9,6 @@
 #include <sstream>
 #include <iomanip>
 #include <functional>
-#include <cassert>
 
 namespace cmdlime::detail{
 namespace str = sfun::string_utils;
@@ -69,10 +68,10 @@ class X11Parser : public Parser<formatType>
     void checkNames()
     {
         auto check = [](const OptionInfo& var, const std::string& varType){
-            if (!std::isalpha(var.name().front()))
+            if (!str::isalpha(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
             if (var.name().size() > 1){
-                auto nonSupportedCharIt = std::find_if(var.name().begin() + 1, var.name().end(), [](char ch){return !std::isalnum(ch) && ch != '-';});
+                auto nonSupportedCharIt = std::find_if(var.name().begin() + 1, var.name().end(), [](char ch){return !str::isalnum(ch) && ch != '-';});
                 if (nonSupportedCharIt != var.name().end())
                     throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters and hyphens"};
             }

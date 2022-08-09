@@ -1,11 +1,13 @@
 #pragma once
 #include "config.h"
 #include "errors.h"
+#include "format.h"
 #include "usageinfoformat.h"
 #include "detail/flag.h"
 #include "detail/configmacros.h"
 #include "detail/nameformat.h"
 #include "detail/formatcfg.h"
+#include "detail/usageinfocreator.h"
 #include <iostream>
 #include <optional>
 #include <map>
@@ -37,6 +39,7 @@ public:
         auto cfg = makeCfg<TCfg>();
         if (read(cmdLine) != detail::ConfigReadResult::StoppedOnExitFlag)
             validate({});
+        resetConfigReader(cfg);
         return cfg;
     }
 
@@ -51,7 +54,7 @@ public:
     int exec(int argc, char** argv, std::function<int(int, char**, const TCfg&)> func)
     {
          auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
-         return exec<TCfg>(cmdLine, [=](const TCfg& cfg){func(argc, argv, cfg);});
+         return exec<TCfg>(cmdLine, [=](const TCfg& cfg){ return func(argc, argv, cfg);});
     }
 
     template<typename TCfg>
@@ -78,6 +81,7 @@ public:
         if (processDefaultFlags())
             return 0;
 
+        resetConfigReader(cfg);
         return func(cfg);
     }
 

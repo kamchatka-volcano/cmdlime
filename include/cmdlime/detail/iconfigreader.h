@@ -1,5 +1,6 @@
 #pragma once
 #include "configreaderptr.h"
+#include <cmdlime/format.h>
 #include <vector>
 #include <string>
 #include <memory>
@@ -56,6 +57,12 @@ protected:
     ConfigReaderPtr makePtr()
     {
         return this;
+    }
+
+    template<typename TCfg>
+    void resetConfigReader(TCfg& cfg)
+    {
+        cfg.cfgReader_ = ConfigReaderPtr{};
     }
 };
 

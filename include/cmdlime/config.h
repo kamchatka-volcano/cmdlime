@@ -1,7 +1,5 @@
 #pragma once
-#include "format.h"
-#include "errors.h"
-#include "usageinfoformat.h"
+#include "customnames.h"
 #include "detail/configmacros.h"
 #include "detail/paramcreator.h"
 #include "detail/paramlistcreator.h"
@@ -10,9 +8,6 @@
 #include "detail/arglistcreator.h"
 #include "detail/commandcreator.h"
 #include "detail/iconfigreader.h"
-#include "detail/options.h"
-#include "detail/usageinfocreator.h"
-#include "detail/utils.h"
 #include "detail/nameof_import.h"
 #include "detail/ivalidator.h"
 #include <optional>

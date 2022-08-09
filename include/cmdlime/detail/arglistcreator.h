@@ -12,6 +12,7 @@ namespace cmdlime::detail{
 template<typename TArgList>
 class ArgListCreator{
     static_assert(is_dynamic_sequence_container_v<TArgList>, "Argument list field must be a sequence container");
+
 public:
     ArgListCreator(ConfigReaderPtr cfgReader,
                    const std::string& varName,
