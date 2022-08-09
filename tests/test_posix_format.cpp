@@ -16,8 +16,8 @@ struct SubcommandConfig: public Config{
     CMDLIME_PARAM(requiredParam, std::string);
     CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
     CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::Name("i");
-    CMDLIME_PARAMLIST(prmList, std::string) << cmdlime::Name("L");
-    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::Name("O");
+    CMDLIME_PARAMLIST(prmList, std::vector<std::string>) << cmdlime::Name("L");
+    CMDLIME_PARAMLIST(optionalParamList, std::vector<int>)(std::vector<int>{99, 100}) << cmdlime::Name("O");
     CMDLIME_FLAG(flg);
     CMDLIME_ARG(argument, double);
     CMDLIME_ARGLIST(argumentList, float);
@@ -28,8 +28,8 @@ struct FullConfig : public Config{
     CMDLIME_PARAM(requiredParam, std::string);
     CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
     CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::Name("i");
-    CMDLIME_PARAMLIST(prmList, std::string) << cmdlime::Name("L");
-    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::Name("O");
+    CMDLIME_PARAMLIST(prmList, std::vector<std::string>) << cmdlime::Name("L");
+    CMDLIME_PARAMLIST(optionalParamList, std::vector<int>)(std::vector<int>{99, 100}) << cmdlime::Name("O");
     CMDLIME_FLAG(flg);
     CMDLIME_ARG(argument, double);
     CMDLIME_ARGLIST(argumentList, float);
@@ -40,8 +40,8 @@ struct FullConfigWithCommand : public Config{
     CMDLIME_PARAM(requiredParam, std::string);
     CMDLIME_PARAM(optionalParam, std::string)("defaultValue");
     CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::Name("i");
-    CMDLIME_PARAMLIST(prmList, std::string) << cmdlime::Name("L");
-    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::Name("O");
+    CMDLIME_PARAMLIST(prmList, std::vector<std::string>) << cmdlime::Name("L");
+    CMDLIME_PARAMLIST(optionalParamList, std::vector<int>)(std::vector<int>{99, 100}) << cmdlime::Name("O");
     CMDLIME_FLAG(flg);
     CMDLIME_ARG(argument, double);
     CMDLIME_ARGLIST(argumentList, float);
@@ -446,7 +446,7 @@ TEST(PosixConfig, ParamEmptyValue)
 TEST(PosixConfig, ParamListEmptyValue)
 {
     struct Cfg : public Config{
-        CMDLIME_PARAMLIST(params, std::string);
+        CMDLIME_PARAMLIST(params, std::vector<std::string>);
     };
     auto cfgReader = cmdlime::POSIXConfigReader{};
     assert_exception<cmdlime::ParsingError>(
@@ -487,7 +487,7 @@ TEST(PosixConfig, ValuesWithWhitespace)
 {
     struct Cfg : public Config{
         CMDLIME_PARAM(prm, std::string);
-        CMDLIME_PARAMLIST(prmList, std::string) << cmdlime::Name("L");
+        CMDLIME_PARAMLIST(prmList, std::vector<std::string>) << cmdlime::Name("L");
         CMDLIME_ARG(argument, std::string);
         CMDLIME_ARGLIST(argumentList, std::string) << cmdlime::Name("A");
     };
@@ -599,8 +599,8 @@ TEST(PosixConfig, PascalNames)
         CMDLIME_PARAM(RequiredParam, std::string);
         CMDLIME_PARAM(OptionalParam, std::string)("defaultValue");
         CMDLIME_PARAM(IntParamOptional, std::optional<int>)();
-        CMDLIME_PARAMLIST(ListOfParam, std::string);
-        CMDLIME_PARAMLIST(MyListOfParamOptional, int)(std::vector<int>{99, 100});
+        CMDLIME_PARAMLIST(ListOfParam, std::vector<std::string>);
+        CMDLIME_PARAMLIST(MyListOfParamOptional, std::vector<int>)(std::vector<int>{99, 100});
         CMDLIME_FLAG(Flag);
         CMDLIME_ARG(argument, double);
         CMDLIME_ARGLIST(argumentList, float);
@@ -635,7 +635,7 @@ TEST(PosixConfig, CustomNamesMissingParamList)
 {
     struct TestConfig : public Config{
         CMDLIME_PARAM(prm, double) << cmdlime::Name{"P"};
-        CMDLIME_PARAMLIST(prmList, float) << cmdlime::Name{"L"};
+        CMDLIME_PARAMLIST(prmList, std::vector<float>) << cmdlime::Name{"L"};
     };
     auto cfgReader = cmdlime::POSIXConfigReader{};
     assert_exception<cmdlime::ParsingError>(

@@ -41,8 +41,8 @@ struct SubcommandConfig: public Config{
     CMDLIME_PARAM(requiredParam, std::string) << EnsureNotShorterThan{2};
     CMDLIME_PARAM(optionalParam, std::string)("defaultValue") << EnsureNotShorterThan{2};
     CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::ShortName("i") << EnsurePositive{};
-    CMDLIME_PARAMLIST(prmList, std::string) << cmdlime::ShortName("L") << EnsureNotShorterThan{2};
-    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::ShortName("O") << EnsureNotShorterThan{2};
+    CMDLIME_PARAMLIST(prmList, std::vector<std::string>) << cmdlime::ShortName("L") << EnsureNotShorterThan{2};
+    CMDLIME_PARAMLIST(optionalParamList, std::vector<int>)(std::vector<int>{99, 100}) << cmdlime::ShortName("O") << EnsureNotShorterThan{2};
     CMDLIME_FLAG(flg);
     CMDLIME_EXITFLAG(exitFlg);
     CMDLIME_ARG(argument, double) << EnsurePositive{};
@@ -72,12 +72,12 @@ struct FullConfig : public Config{
                 throw cmdlime::ValidationError{"value can't be negative."};
         };
 
-    CMDLIME_PARAMLIST(prmList, std::string) << cmdlime::ShortName("L")
+    CMDLIME_PARAMLIST(prmList, std::vector<std::string>) << cmdlime::ShortName("L")
         << [](auto param) {
             if (param.size() < 2)
                 throw cmdlime::ValidationError{"size can't be less than 2."};
         };
-    CMDLIME_PARAMLIST(optionalParamList, int)(std::vector<int>{99, 100}) << cmdlime::ShortName("O")
+    CMDLIME_PARAMLIST(optionalParamList, std::vector<int>)(std::vector<int>{99, 100}) << cmdlime::ShortName("O")
             << [](auto param) {
                 if (param.size() < 2)
                     throw cmdlime::ValidationError{"size can't be less than 2."};

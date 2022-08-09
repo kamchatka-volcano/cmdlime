@@ -3,23 +3,27 @@
 #include "iconfigreader.h"
 #include "nameformat.h"
 #include "validator.h"
+#include <sfun/traits.h>
 #include <gsl/assert>
 
 namespace cmdlime::detail {
+using namespace sfun::traits;
 
-template<typename T>
+template<typename TParamList>
 class ParamListCreator{
+    static_assert(is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
+
 public:
     ParamListCreator(ConfigReaderPtr cfgReader,
                      const std::string& varName,
                      const std::string& type,
-                     std::vector<T>& paramListValue)
+                     TParamList& paramListValue)
             : cfgReader_(cfgReader)
             , paramListValue_(paramListValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        paramList_ = std::make_unique<ParamList<T>>(
+        paramList_ = std::make_unique<ParamList<TParamList>>(
                 cfgReader_ ? NameFormat::name(cfgReader_->format(), varName) : varName,
                 cfgReader_ ? NameFormat::shortName(cfgReader_->format(), varName) : varName,
                 cfgReader_ ? NameFormat::valueName(cfgReader_->format(), type) : type,
@@ -58,23 +62,23 @@ public:
         return *this;
     }
 
-    auto& operator<<(std::function<void(const std::vector<T>&)> validationFunc)
+    auto& operator<<(std::function<void(const TParamList&)> validationFunc)
     {
         if (cfgReader_)
             cfgReader_->addValidator(
-                    std::make_unique<Validator<std::vector<T>>>(*paramList_, paramListValue_, std::move(validationFunc)));
+                    std::make_unique<Validator<TParamList>>(*paramList_, paramListValue_, std::move(validationFunc)));
         return *this;
     }
 
 
-    auto& operator()(std::vector<T> defaultValue = {})
+    auto& operator()(TParamList defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
         paramList_->setDefaultValue(defaultValue_);
         return *this;
     }
 
-    operator std::vector<T>()
+    operator TParamList()
     {
         if (cfgReader_)
             cfgReader_->addParamList(std::move(paramList_));
@@ -82,10 +86,10 @@ public:
     }
 
 private:
-    std::unique_ptr<ParamList<T>> paramList_;
-    std::vector<T> defaultValue_;
+    std::unique_ptr<ParamList<TParamList>> paramList_;
+    TParamList defaultValue_;
     ConfigReaderPtr cfgReader_;
-    std::vector<T>& paramListValue_;
+    TParamList& paramListValue_;
 };
 
 }

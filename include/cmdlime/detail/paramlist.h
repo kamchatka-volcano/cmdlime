@@ -13,19 +13,21 @@
 namespace cmdlime::detail{
 namespace str = sfun::string_utils;
 
-template <typename T>
+template <typename TParamList>
 class ParamList : public IParamList{
+    static_assert(is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
+
 public:
     ParamList(std::string name,
               std::string shortName,
               std::string type,
-              std::vector<T>& paramListValue)
+              TParamList& paramListValue)
         : info_(std::move(name), std::move(shortName), std::move(type))
         , paramListValue_(paramListValue)
     {
     }
 
-    void setDefaultValue(const std::vector<T>& value)
+    void setDefaultValue(const TParamList& value)
     {
         hasValue_ = true;
         defaultValue_ = value;
@@ -56,7 +58,7 @@ private:
 
         const auto dataParts = str::split(data, ",");
         for (const auto& part : dataParts){
-            auto paramVal = convertFromString<T>(std::string{part});
+            auto paramVal = convertFromString<typename TParamList::value_type>(std::string{part});
             if (!paramVal)
                 return false;
             paramListValue_.emplace_back(*paramVal);
@@ -102,9 +104,9 @@ private:
 
 private:
     OptionInfo info_;
-    std::vector<T>& paramListValue_;
+    TParamList& paramListValue_;
     bool hasValue_ = false;
-    std::optional<std::vector<T>> defaultValue_;
+    std::optional<TParamList> defaultValue_;
     bool isDefaultValueOverwritten_ = false;
 };
 

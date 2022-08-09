@@ -8,7 +8,7 @@
 #include <optional>
 
 #define CMDLIME_PARAM(name, type) type name = param<&std::remove_pointer_t<decltype(this)>::name>(#name, #type)
-#define CMDLIME_PARAMLIST(name, type) std::vector<type> name = paramList<&std::remove_pointer_t<decltype(this)>::name>(#name, #type)
+#define CMDLIME_PARAMLIST(name, type) type name = paramList<&std::remove_pointer_t<decltype(this)>::name>(#name, #type)
 #define CMDLIME_FLAG(name) bool name = flag<&std::remove_pointer_t<decltype(this)>::name>(#name)
 #define CMDLIME_EXITFLAG(name) bool name = exitFlag<&std::remove_pointer_t<decltype(this)>::name>(#name)
 #define CMDLIME_ARG(name, type) type name = arg<&std::remove_pointer_t<decltype(this)>::name>(#name, #type)

@@ -171,13 +171,13 @@ private:
 
     }
 
-    template <auto member, typename T, typename TCfg>
-    auto paramList(std::vector<T> TCfg::*)
+    template <auto member, typename TParamList, typename TCfg>
+    auto paramList(TParamList TCfg::*)
     {
         auto cfg = static_cast<TCfg*>(this);
         auto [memberName, _] = detail::getMemberPtrNameAndType<member>(cfg);
-        const auto memberTypeName = detail::nameOfType<T>();
-        return detail::ParamListCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
+        const auto memberTypeName = detail::nameOfType<TParamList>();
+        return detail::ParamListCreator<TParamList>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
     template <auto member, typename TCfg>
@@ -237,11 +237,11 @@ private:
         return detail::ParamCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
-    template <auto member, typename T, typename TCfg>
-    auto paramList(std::vector<T> TCfg::*, const std::string& memberName, const std::string& memberTypeName)
+    template <auto member, typename TParamList, typename TCfg>
+    auto paramList(TParamList TCfg::*, const std::string& memberName, const std::string& memberTypeName)
     {
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ParamListCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
+        return detail::ParamListCreator<TParamList>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
     template <auto member, typename TCfg>
