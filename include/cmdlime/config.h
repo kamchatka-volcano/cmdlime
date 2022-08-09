@@ -162,22 +162,22 @@ protected:
 
 private:
 #ifdef CMDLIME_NAMEOF_AVAILABLE
-    template <auto member, typename TCfg, typename TCfg>
-    auto param(TCfg TCfg::*)
+    template <auto member, typename T, typename TCfg>
+    auto param(T TCfg::*)
     {
         auto cfg = static_cast<TCfg*>(this);
         auto [memberName, memberTypeName] = detail::getMemberPtrNameAndType<member>(cfg);
-        return detail::ParamCreator<TCfg>{cfgReader(), memberName, memberTypeName, cfg->*member};
+        return detail::ParamCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
 
     }
 
-    template <auto member, typename TCfg, typename TCfg>
-    auto paramList(std::vector<TCfg> TCfg::*)
+    template <auto member, typename T, typename TCfg>
+    auto paramList(std::vector<T> TCfg::*)
     {
         auto cfg = static_cast<TCfg*>(this);
         auto [memberName, _] = detail::getMemberPtrNameAndType<member>(cfg);
-        const auto memberTypeName = detail::nameOfType<TCfg>();
-        return detail::ParamListCreator<TCfg>{cfgReader(), memberName, memberTypeName, cfg->*member};
+        const auto memberTypeName = detail::nameOfType<T>();
+        return detail::ParamListCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
     template <auto member, typename TCfg>
@@ -196,41 +196,37 @@ private:
         return detail::FlagCreator{cfgReader(), memberName, cfg->*member, detail::Flag::Type::Exit};
     }
 
-    template <auto member, typename TCfg, typename TCfg>
-    auto arg(TCfg TCfg::*)
+    template <auto member, typename T, typename TCfg>
+    auto arg(T TCfg::*)
     {
         auto cfg = static_cast<TCfg*>(this);
         auto [memberName, memberTypeName] = detail::getMemberPtrNameAndType<member>(cfg);
-        return detail::ArgCreator<TCfg>{cfgReader(), memberName, memberTypeName, cfg->*member};
+        return detail::ArgCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
-    template <auto member, typename TCfg, typename TCfg>
-    auto argList(std::vector<TCfg> TCfg::*)
+    template <auto member, typename T, typename TCfg>
+    auto argList(std::vector<T> TCfg::*)
     {
         auto cfg = static_cast<TCfg*>(this);
         auto [memberName, _] = detail::getMemberPtrNameAndType<member>(cfg);
-        const auto memberTypeName = detail::nameOfType<TCfg>();
-        return detail::ArgListCreator<TCfg>{cfgReader(), memberName, memberTypeName, cfg->*member};
+        const auto memberTypeName = detail::nameOfType<T>();
+        return detail::ArgListCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
-    template <auto member, typename TCfg, typename TCfg>
-    auto command(detail::InitializedOptional<TCfg> TCfg::*)
+    template <auto member, typename T, typename TCfg>
+    auto command(detail::InitializedOptional<T> TCfg::*)
     {
-//        static_assert(std::is_base_of_v<BaseConfig<TCfg::format()>, TCfg>,
-//                      "Command's type must be a subclass of BaseConfig<Format> and have the same format as its parent config.");
         auto cfg = static_cast<TCfg*>(this);
         auto [memberName, _] = detail::getMemberPtrNameAndType<member>(cfg);
-        return detail::CommandCreator<TCfg>{cfgReader(), memberName, cfg->*member};
+        return detail::CommandCreator<T>{cfgReader(), memberName, cfg->*member};
     }
 
-    template <auto member, typename TCfg, typename TCfg>
-    auto subCommand(detail::InitializedOptional<TCfg> TCfg::*)
+    template <auto member, typename T, typename TCfg>
+    auto subCommand(detail::InitializedOptional<T> TCfg::*)
     {
-//        static_assert(std::is_base_of_v<BaseConfig<TCfg::format()>, TCfg>,
-//                      "Command's type must be a subclass of BaseConfig<Format> and have the same format as its parent config.");
         auto cfg = static_cast<TCfg*>(this);
         auto [memberName, _] = detail::getMemberPtrNameAndType<member>(cfg);
-        return detail::CommandCreator<TCfg>{cfgReader(), memberName, cfg->*member, detail::Command<TCfg>::Type::SubCommand};
+        return detail::CommandCreator<T>{cfgReader(), memberName, cfg->*member, detail::Command<T>::Type::SubCommand};
     }
 #endif
 

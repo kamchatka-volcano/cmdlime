@@ -1,6 +1,7 @@
 #pragma once
 #include "initializedoptional.h"
 #include "nameof_import.h"
+#include "utils.h"
 #include <string>
 #include <sstream>
 #include <optional>
@@ -33,6 +34,27 @@ inline bool isNumber(const std::string& str)
     return check(int64_t{}) || check(double{});
 }
 
+template<typename T, typename = void>
+struct is_optional : std::false_type {};
+
+template<typename T>
+struct is_optional<std::optional<T>> : std::true_type {};
+
+template <typename T>
+inline constexpr auto is_optional_v = is_optional<T>::value;
+
+template<typename T, typename = void>
+struct remove_optional{
+    using type = T;
+};
+
+template<typename T>
+struct remove_optional<std::optional<T>>{
+    using type = T;
+};
+
+template <typename T>
+using remove_optional_t = typename remove_optional<T>::type;
 
 #ifdef CMDLIME_NAMEOF_AVAILABLE
 template<typename TCfg>
@@ -59,27 +81,5 @@ inline std::tuple<std::string, std::string> getMemberPtrNameAndType(TParent* par
     return std::make_tuple(memberName, nameOfType<decltype(memberValue)>());
 }
 #endif
-
-template<typename T, typename = void>
-struct is_optional : std::false_type {};
-
-template<typename T>
-struct is_optional<std::optional<T>> : std::true_type {};
-
-template <typename T>
-inline constexpr auto is_optional_v = is_optional<T>::value;
-
-template<typename T, typename = void>
-struct remove_optional{
-    using type = T;
-};
-
-template<typename T>
-struct remove_optional<std::optional<T>>{
-    using type = T;
-};
-
-template <typename T>
-using remove_optional_t = typename remove_optional<T>::type;
 
 }
