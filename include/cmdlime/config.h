@@ -204,13 +204,13 @@ private:
         return detail::ArgCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
-    template <auto member, typename T, typename TCfg>
-    auto argList(std::vector<T> TCfg::*)
+    template <auto member, typename TArgList, typename TCfg>
+    auto argList(TArgList TCfg::*)
     {
         auto cfg = static_cast<TCfg*>(this);
         auto [memberName, _] = detail::getMemberPtrNameAndType<member>(cfg);
-        const auto memberTypeName = detail::nameOfType<T>();
-        return detail::ArgListCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
+        const auto memberTypeName = detail::nameOfType<TArgList>();
+        return detail::ArgListCreator<TArgList>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
     template <auto member, typename T, typename TCfg>
@@ -266,11 +266,11 @@ private:
         return detail::ArgCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
-    template <auto member, typename T, typename TCfg>
-    auto argList(std::vector<T> TCfg::*, const std::string& memberName, const std::string& memberTypeName)
+    template <auto member, typename TArgList, typename TCfg>
+    auto argList(TArgList TCfg::*, const std::string& memberName, const std::string& memberTypeName)
     {
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ArgListCreator<T>{cfgReader(), memberName, memberTypeName, cfg->*member};
+        return detail::ArgListCreator<TArgList>{cfgReader(), memberName, memberTypeName, cfg->*member};
     }
 
     template <auto member, typename T, typename TCfg>

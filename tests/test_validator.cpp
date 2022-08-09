@@ -46,7 +46,7 @@ struct SubcommandConfig: public Config{
     CMDLIME_FLAG(flg);
     CMDLIME_EXITFLAG(exitFlg);
     CMDLIME_ARG(argument, double) << EnsurePositive{};
-    CMDLIME_ARGLIST(argumentList, float) << EnsureNotShorterThan{2};
+    CMDLIME_ARGLIST(argumentList, std::vector<float>) << EnsureNotShorterThan{2};
     CMDLIME_COMMAND(nested, NestedSubcommandConfig)
         << [](auto& command) {
             if (command && command->prm.size() >= 5)
@@ -87,7 +87,7 @@ struct FullConfig : public Config{
             if (param < 0)
                 throw cmdlime::ValidationError{"value can't be negative."};
         };
-    CMDLIME_ARGLIST(argumentList, float)
+    CMDLIME_ARGLIST(argumentList, std::vector<float>)
         << [](auto param) {
             if (param.size() < 2)
                 throw cmdlime::ValidationError{"size can't be less than 2."};

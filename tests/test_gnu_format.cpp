@@ -26,7 +26,7 @@ struct SubcommandConfig: public Config{
     CMDLIME_PARAMLIST(optionalParamList, std::vector<int>)(std::vector<int>{99, 100}) << cmdlime::ShortName("O");
     CMDLIME_FLAG(flg);
     CMDLIME_ARG(argument, double);
-    CMDLIME_ARGLIST(argumentList, float);
+    CMDLIME_ARGLIST(argumentList, std::vector<float>);
     CMDLIME_COMMAND(nested, NestedSubcommandConfig);
 };
 
@@ -41,7 +41,7 @@ struct FullConfig : public Config{
     CMDLIME_FLAG(flg);
     CMDLIME_FLAG(secondFlag) << cmdlime::WithoutShortName();
     CMDLIME_ARG(argument, double);
-    CMDLIME_ARGLIST(argumentList, float);
+    CMDLIME_ARGLIST(argumentList, std::vector<float>);
     CMDLIME_COMMAND(cmd, SubcommandConfig);
     CMDLIME_SUBCOMMAND(subcommand, SubcommandConfig);
 };
@@ -380,7 +380,7 @@ struct FullConfigWithOptionalArgList : public Config{
     CMDLIME_PARAM(optionalIntParam, std::optional<int>)() << cmdlime::ShortName("i");
     CMDLIME_FLAG(flg) << cmdlime::ShortName("f");
     CMDLIME_ARG(argument, double);
-    CMDLIME_ARGLIST(argumentList, float)({1.f, 2.f});
+    CMDLIME_ARGLIST(argumentList, std::vector<float>)({1.f, 2.f});
 };
 
 TEST(GNUConfig, MissingOptionalArgList)
@@ -622,7 +622,7 @@ TEST(GNUConfig, ArgEmptyValue)
 TEST(GNUConfig, ArgListEmptyValue)
 {
     struct Cfg : public Config{
-        CMDLIME_ARGLIST(args, std::string);
+        CMDLIME_ARGLIST(args, std::vector<std::string>);
     };
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
@@ -639,7 +639,7 @@ TEST(GNUConfig, ValuesWithWhitespace)
         CMDLIME_PARAM(prm, std::string) << cmdlime::ShortName("p");
         CMDLIME_PARAMLIST(prmList, std::list<std::string>) << cmdlime::ShortName("L");
         CMDLIME_ARG(argument, std::string);
-        CMDLIME_ARGLIST(argumentList, std::string);
+        CMDLIME_ARGLIST(argumentList, std::list<std::string>);
     };
     {
         auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
@@ -647,7 +647,7 @@ TEST(GNUConfig, ValuesWithWhitespace)
         EXPECT_EQ(cfg.prm, "Hello world");
         EXPECT_EQ(cfg.prmList, (std::list<std::string>{"foo bar"}));
         EXPECT_EQ(cfg.argument, "foo bar");
-        EXPECT_EQ(cfg.argumentList, (std::vector<std::string>{"forty two"}));
+        EXPECT_EQ(cfg.argumentList, (std::list<std::string>{"forty two"}));
     }
     {
         auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
@@ -655,7 +655,7 @@ TEST(GNUConfig, ValuesWithWhitespace)
         EXPECT_EQ(cfg.prm, "Hello world");
         EXPECT_EQ(cfg.prmList, (std::list<std::string>{"foo bar"}));
         EXPECT_EQ(cfg.argument, "foo bar");
-        EXPECT_EQ(cfg.argumentList, (std::vector<std::string>{"forty two"}));
+        EXPECT_EQ(cfg.argumentList, (std::list<std::string>{"forty two"}));
     }
 }
 
@@ -716,7 +716,7 @@ TEST(GNUConfig, NegativeNumberToArg)
     struct Cfg : public Config{
         CMDLIME_ARG(argument, int);
         CMDLIME_ARG(argumentStr, std::string);
-        CMDLIME_ARGLIST(argumentList, double);
+        CMDLIME_ARGLIST(argumentList, std::vector<double>);
     };
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     auto cfg = cfgReader.read<Cfg>({"-2", "-3", "4.5", "-6.7"});
@@ -743,7 +743,7 @@ TEST(GNUConfig, ArgsDelimiter)
     struct Cfg : public Config{
         CMDLIME_PARAM(prm, int) << cmdlime::ShortName("p");
         CMDLIME_PARAM(optionalParam, int)(0) << cmdlime::ShortName("o");
-        CMDLIME_ARGLIST(argumentList, std::string);
+        CMDLIME_ARGLIST(argumentList, std::vector<std::string>);
     };
 
     {
@@ -766,7 +766,7 @@ TEST(GNUConfig, ArgsDelimiterFront)
 {
     struct Cfg : public Config{
         CMDLIME_PARAM(optionalParam, int)(0) << cmdlime::ShortName("o");
-        CMDLIME_ARGLIST(argumentList, std::string);
+        CMDLIME_ARGLIST(argumentList, std::vector<std::string>);
     };
 
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
@@ -779,7 +779,7 @@ TEST(GNUConfig, ArgsDelimiterBack)
 {
     struct Cfg : public Config{
         CMDLIME_PARAM(optionalParam, int)(0) << cmdlime::ShortName("o");
-        CMDLIME_ARGLIST(argumentList, std::string);
+        CMDLIME_ARGLIST(argumentList, std::vector<std::string>);
     };
 
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
@@ -798,7 +798,7 @@ TEST(GNUConfig, PascalNames)
         CMDLIME_PARAMLIST(MyListOfParamOptional, std::vector<int>)(std::vector<int>{99, 100});
         CMDLIME_FLAG(flg);
         CMDLIME_ARG(argument, double);
-        CMDLIME_ARGLIST(argumentList, float);
+        CMDLIME_ARGLIST(argumentList, std::vector<float>);
     };
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     auto cfg = cfgReader.read<PascalConfig>(
@@ -827,7 +827,7 @@ TEST(GNUConfig, CustomNamesWithoutShortName)
         CMDLIME_FLAG(flg) << cmdlime::WithoutShortName{};
         CMDLIME_FLAG(secondFlag);
         CMDLIME_ARG(argument, double);
-        CMDLIME_ARGLIST(argumentList, float);
+        CMDLIME_ARGLIST(argumentList, std::vector<float>);
     };
 
     {
@@ -924,7 +924,7 @@ TEST(GNUConfig, CustomNamesMissingArg)
 {
     struct TestConfig : public Config{
         CMDLIME_ARG(argument, double) << cmdlime::Name{"Argument"};
-        CMDLIME_ARGLIST(argumentList, float) << cmdlime::Name{"ArgList"};
+        CMDLIME_ARGLIST(argumentList, std::vector<float>) << cmdlime::Name{"ArgList"};
     };
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
@@ -938,7 +938,7 @@ TEST(GNUConfig, CustomNamesMissingArgList)
 {
     struct TestConfig : public Config{
         CMDLIME_ARG(argument, double) << cmdlime::Name{"Argument"};
-        CMDLIME_ARGLIST(argumentList, float) << cmdlime::Name{"ArgList"};
+        CMDLIME_ARGLIST(argumentList, std::vector<float>) << cmdlime::Name{"ArgList"};
     };
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
     assert_exception<cmdlime::ParsingError>(
@@ -1058,7 +1058,7 @@ TEST(GNUConfig, WrongParamsWithExitFlag){
         CMDLIME_FLAG(flg);
         CMDLIME_EXITFLAG(exitFlg);
         CMDLIME_ARG(argument, double);
-        CMDLIME_ARGLIST(argumentList, float);
+        CMDLIME_ARGLIST(argumentList, std::vector<float>);
     };
 
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
@@ -1073,7 +1073,7 @@ TEST(GNUConfig, InvalidParamsWithExitFlag){
         CMDLIME_FLAG(flg);
         CMDLIME_EXITFLAG(exitFlg);
         CMDLIME_ARG(argument, double);
-        CMDLIME_ARGLIST(argumentList, float);
+        CMDLIME_ARGLIST(argumentList, std::vector<float>);
     };
 
     auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::GNU>{};
@@ -1090,7 +1090,7 @@ struct CustomTypeConfig: public Config{
     CMDLIME_PARAM(prm, CustomType);
     CMDLIME_PARAMLIST(prmList, std::vector<CustomType>) << cmdlime::ShortName{"l"};
     CMDLIME_ARG(argument, CustomType);
-    CMDLIME_ARGLIST(argumentList, CustomType);
+    CMDLIME_ARGLIST(argumentList, std::vector<CustomType>);
 };
 
 struct CustomTypeInt{
@@ -1101,7 +1101,7 @@ struct CustomTypeIntConfig: public Config{
     CMDLIME_PARAM(prm, CustomTypeInt);
     CMDLIME_PARAMLIST(prmList, std::vector<CustomTypeInt>) << cmdlime::ShortName{"l"};
     CMDLIME_ARG(argument, CustomTypeInt);
-    CMDLIME_ARGLIST(argumentList, CustomTypeInt);
+    CMDLIME_ARGLIST(argumentList, std::vector<CustomTypeInt>);
 };
 
 
