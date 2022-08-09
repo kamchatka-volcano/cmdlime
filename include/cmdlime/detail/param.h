@@ -1,16 +1,17 @@
 #pragma once
 #include "iparam.h"
 #include "optioninfo.h"
-#include "utils.h"
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
+#include <sfun/traits.h>
 #include <sstream>
 #include <optional>
 #include <memory>
 #include <functional>
 
 namespace cmdlime::detail{
+using namespace sfun::traits;
 
 template<typename T>
 class Param : public IParam{
