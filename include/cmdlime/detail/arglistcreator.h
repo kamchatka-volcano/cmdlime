@@ -1,6 +1,6 @@
 #pragma once
 #include "arglist.h"
-#include "iconfigreader.h"
+#include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
 #include <sfun/traits.h>
@@ -14,18 +14,18 @@ class ArgListCreator{
     static_assert(is_dynamic_sequence_container_v<TArgList>, "Argument list field must be a sequence container");
 
 public:
-    ArgListCreator(ConfigReaderPtr cfgReader,
+    ArgListCreator(CommandLineReaderPtr reader,
                    const std::string& varName,
                    const std::string& type,
                    TArgList& argListValue)
-            : cfgReader_(cfgReader)
+            : reader_(reader)
             , argListValue_(argListValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
         argList_ = std::make_unique<ArgList<TArgList>>(
-                cfgReader_ ? NameFormat::fullName(cfgReader_->format(), varName) : varName,
-                cfgReader_ ? NameFormat::valueName(cfgReader_->format(), type) : type,
+                reader_ ? NameFormat::fullName(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
                 argListValue);
     }
 
@@ -49,8 +49,8 @@ public:
 
     auto& operator <<(std::function<void(const TArgList&)> validationFunc)
     {
-        if (cfgReader_)
-            cfgReader_->addValidator(std::make_unique<Validator<TArgList>>(*argList_, argListValue_, std::move(validationFunc)));
+        if (reader_)
+            reader_->addValidator(std::make_unique<Validator<TArgList>>(*argList_, argListValue_, std::move(validationFunc)));
         return *this;
     }
 
@@ -63,15 +63,15 @@ public:
 
     operator TArgList()
     {
-        if (cfgReader_)
-            cfgReader_->setArgList(std::move(argList_));
+        if (reader_)
+            reader_->setArgList(std::move(argList_));
         return defaultValue_;
     }
 
 private:
     std::unique_ptr<ArgList<TArgList>> argList_;
     TArgList defaultValue_;
-    ConfigReaderPtr cfgReader_;
+    CommandLineReaderPtr reader_;
     TArgList& argListValue_;
 };
 

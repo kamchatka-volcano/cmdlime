@@ -19,21 +19,21 @@ class IArgList;
 class ICommand;
 class IValidator;
 
-enum ConfigReadResult{
+enum CommandLineReadResult{
     Completed,
     StoppedOnExitFlag
 };
 
-class IConfigReader{
+class ICommandLineReader{
 public:
-    IConfigReader() = default;
-    virtual ~IConfigReader() = default;
-    IConfigReader(const IConfigReader&) = delete;
-    IConfigReader& operator=(const IConfigReader&) = delete;
-    IConfigReader(IConfigReader&&) = delete;
-    IConfigReader& operator=(IConfigReader&&) = delete;
+    ICommandLineReader() = default;
+    virtual ~ICommandLineReader() = default;
+    ICommandLineReader(const ICommandLineReader&) = delete;
+    ICommandLineReader& operator=(const ICommandLineReader&) = delete;
+    ICommandLineReader(ICommandLineReader&&) = delete;
+    ICommandLineReader& operator=(ICommandLineReader&&) = delete;
 
-    virtual ConfigReadResult read(const std::vector<std::string>& cmdLine) = 0;
+    virtual CommandLineReadResult read(const std::vector<std::string>& cmdLine) = 0;
     virtual const std::string& versionInfo() const = 0;
     virtual std::string usageInfo() const = 0;
     virtual std::string usageInfoDetailed() const = 0;
@@ -50,19 +50,19 @@ public:
     virtual const Options& options() const = 0;
     virtual Format format() const = 0;
     virtual bool shortNamesEnabled() const = 0;
-    virtual ConfigReaderPtr makeNestedReader(const std::string& name) = 0;
-    virtual void swapContents(ConfigReaderPtr) = 0;
+    virtual CommandLineReaderPtr makeNestedReader(const std::string& name) = 0;
+    virtual void swapContents(CommandLineReaderPtr) = 0;
 
 protected:
-    ConfigReaderPtr makePtr()
+    CommandLineReaderPtr makePtr()
     {
         return this;
     }
 
     template<typename TCfg>
-    void resetConfigReader(TCfg& cfg)
+    void resetCommandLineReader(TCfg& cfg)
     {
-        cfg.cfgReader_ = ConfigReaderPtr{};
+        cfg.reader_ = CommandLineReaderPtr{};
     }
 };
 

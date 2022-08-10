@@ -55,7 +55,7 @@ public:
     {}
     virtual ~Parser() = default;
 
-    ConfigReadResult parse(const std::vector<std::string>& cmdLine)
+    CommandLineReadResult parse(const std::vector<std::string>& cmdLine)
     {
         checkNames();
         argsToRead_.clear();
@@ -93,7 +93,7 @@ public:
         checkUnreadParams();
         checkUnreadArgs();
         checkUnreadArgList();
-        return ConfigReadResult::Completed;
+        return CommandLineReadResult::Completed;
     }
 
 protected:
@@ -263,7 +263,7 @@ private:
         return commandIt->get();
     }
 
-    ConfigReadResult readCommand(ICommand* command, const std::vector<std::string>& cmdLine)
+    CommandLineReadResult readCommand(ICommand* command, const std::vector<std::string>& cmdLine)
     {
         try{
             return command->read(cmdLine);
@@ -276,7 +276,7 @@ private:
         }
     }
 
-    std::optional<ConfigReadResult> readCommandsAndExitFlags(const std::vector<std::string>& cmdLine)
+    std::optional<CommandLineReadResult> readCommandsAndExitFlags(const std::vector<std::string>& cmdLine)
     {
         auto modeGuard = setScopeReadMode(ReadMode::ExitFlagsAndCommands);
 
@@ -300,7 +300,7 @@ private:
             }
         }
         if (isExitFlagSet())
-            return ConfigReadResult::StoppedOnExitFlag;
+            return CommandLineReadResult::StoppedOnExitFlag;
 
         return {};
     }

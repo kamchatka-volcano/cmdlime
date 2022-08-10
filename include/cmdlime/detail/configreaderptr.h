@@ -1,36 +1,36 @@
 #pragma once
 
 namespace cmdlime::detail {
-class IConfigReader;
+class ICommandLineReader;
 
 
-class ConfigReaderPtr {
-    friend class IConfigReader;
+class CommandLineReaderPtr {
+    friend class ICommandLineReader;
 
 private:
-    ConfigReaderPtr(IConfigReader* reader)
+    CommandLineReaderPtr(ICommandLineReader* reader)
         : reader_{reader}
     {}
 
 public:
-    ConfigReaderPtr() = default;
+    CommandLineReaderPtr() = default;
 
-    const IConfigReader* operator->() const
+    const ICommandLineReader* operator->() const
     {
         return reader_;
     }
 
-    IConfigReader* operator->()
+    ICommandLineReader* operator->()
     {
         return reader_;
     }
 
-    const IConfigReader& operator*() const
+    const ICommandLineReader& operator*() const
     {
         return *reader_;
     }
 
-    IConfigReader& operator*()
+    ICommandLineReader& operator*()
     {
         return *reader_;
     }
@@ -41,7 +41,7 @@ public:
     }
 
 private:
-    IConfigReader* reader_ = nullptr;
+    ICommandLineReader* reader_ = nullptr;
 };
 
 }

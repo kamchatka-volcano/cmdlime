@@ -18,7 +18,7 @@ int main(int argc, char** argv)
         CMDLIME_FLAG(verbose);
     } cfg;
 
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
+    auto reader = cmdlime::CommandLineReader{cfg, "person-finder"};
     if (!reader.read(argc, argv))
         return reader.exitCode();
 
@@ -41,7 +41,7 @@ Please note, that in this example, `--name` is a parameter, `--verbose` is a fla
 *    [Usage](#usage)
      * [Declaring the config structure](#declaring-the-config-structure)
      * [Avoiding macros](#avoiding-macros)
-     * [Using ConfigReader](#using-configreader) 
+     * [Using CommandLineReader](#using-configreader) 
      * [Custom names](#custom-names)
      * [Auto-generated usage info](#auto-generated-usage-info)
      * [Supported formats](#supported-formats)
@@ -125,9 +125,9 @@ Config structures declared using the macros-free methods are fully compatible wi
 Examples use registration with macros as it's the least verbose method. 
 
 
-### Using ConfigReader
+### Using CommandLineReader
 
-`ConfigReader` - is a helper class hiding the error handling boilerplate and adding`--help` and `--version` flags processing to your config.  
+`CommandLineReader` - is a helper class hiding the error handling boilerplate and adding`--help` and `--version` flags processing to your config.  
 `--help` flag shows a detailed help message, that otherwise can be accessed through the `Config::usageInfoDetailed()` method.  
 `--version` flag is enabled only if version info is set in the config with the `Config::setVersionInfo` method.  
 Let's modify `person-finder` and see how it works.
@@ -137,7 +137,7 @@ Let's modify `person-finder` and see how it works.
 ///
 ...
     cfg.setVersionInfo("person-finder 1.0");
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
+    auto reader = cmdlime::CommandLineReader{cfg, "person-finder"};
     if (!reader.read(argc, argv))
         return reader.exitCode();
 ...
@@ -158,7 +158,7 @@ Flags:
        --version              show version info and exit
 ```
 
-As mentioned before, `ConfigReader` is just a helper class, so if you like typing a lot, it's possible to implement the same program without using it:
+As mentioned before, `CommandLineReader` is just a helper class, so if you like typing a lot, it's possible to implement the same program without using it:
 ```C++
 ///examples/ex04.cpp
 ///
@@ -219,7 +219,7 @@ struct Cfg : public cmdlime::Config{
 } cfg;
 
 ```
-Here's the fixed config. Turning off the short name generation for flag `--version` resolves the name conflict. When you rely on `ConfigReader` for handling of `--help` and `--version` flags, it creates them without short names. At this point, we should do this as well, and all following examples will be based on our original version of `person-finder` program that uses `ConfigReader`.
+Here's the fixed config. Turning off the short name generation for flag `--version` resolves the name conflict. When you rely on `CommandLineReader` for handling of `--help` and `--version` flags, it creates them without short names. At this point, we should do this as well, and all following examples will be based on our original version of `person-finder` program that uses `CommandLineReader`.
 
 
 You can use the following objects to customize names generation:  
@@ -492,7 +492,7 @@ int main(int argc, char** argv)
 
 
     cfg.setVersionInfo("person-finder 1.0");
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
+    auto reader = cmdlime::CommandLineReader{cfg, "person-finder"};
     if (!reader.read(argc, argv))
         return reader.exitCode();
 
@@ -534,7 +534,7 @@ int main(int argc, char** argv)
         CMDLIME_SUBCOMMAND(record, RecordCfg)   << "record search result";
     } cfg;
 
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
+    auto reader = cmdlime::CommandLineReader{cfg, "person-finder"};
     if (!reader.read(argc, argv))
         return reader.exitCode();
     std::cout << "Looking for person " << cfg.name << " " << cfg.surname << " in the region with zip code: " << cfg.zipCode << std::endl;
@@ -584,7 +584,7 @@ int main(int argc, char** argv)
         CMDLIME_COMMAND(history, HistoryCfg)  << "show search history";
     } cfg;
 
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
+    auto reader = cmdlime::CommandLineReader{cfg, "person-finder"};
     if (!reader.read(argc, argv))
         return reader.exitCode();
 
@@ -665,7 +665,7 @@ int main(int argc, char** argv)
         CMDLIME_COMMAND(history, HistoryCfg)  << "show search history";
     } cfg;
 
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
+    auto reader = cmdlime::CommandLineReader{cfg, "person-finder"};
     if (!reader.read(argc, argv))
         return reader.exitCode();
 

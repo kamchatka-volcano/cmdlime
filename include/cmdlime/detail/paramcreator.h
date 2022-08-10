@@ -1,6 +1,6 @@
 #pragma once
 #include "param.h"
-#include "iconfigreader.h"
+#include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
 #include <gsl/assert>
@@ -10,19 +10,19 @@ namespace cmdlime::detail {
 template<typename T>
 class ParamCreator{
 public:
-    ParamCreator(ConfigReaderPtr cfgReader,
+    ParamCreator(CommandLineReaderPtr reader,
                  const std::string& varName,
                  const std::string& type,
                  T& paramValue)
-        : cfgReader_(cfgReader)
+        : reader_(reader)
         , paramValue_(paramValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
         param_ = std::make_unique<Param<T>>(
-                cfgReader_ ? NameFormat::name(cfgReader->format(), varName) : varName,
-                cfgReader_ ? NameFormat::shortName(cfgReader->format(), varName) : varName,
-                cfgReader_ ? NameFormat::valueName(cfgReader->format(), type) : varName,
+                reader_ ? NameFormat::name(reader->format(), varName) : varName,
+                reader_ ? NameFormat::shortName(reader->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader->format(), type) : varName,
                 paramValue);
     }
 
@@ -40,14 +40,14 @@ public:
 
     auto& operator<<(const ShortName& customName)
     {
-        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+        if (reader_ && reader_->shortNamesEnabled())
             param_->info().resetShortName(customName.value());
         return *this;
     }
 
     auto& operator<<(const WithoutShortName&)
     {
-        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+        if (reader_ && reader_->shortNamesEnabled())
             param_->info().resetShortName({});
         return *this;
     }
@@ -60,8 +60,8 @@ public:
 
     auto& operator<<(std::function<void(const T&)> validationFunc)
     {
-        if (cfgReader_)
-            cfgReader_->addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validationFunc)));
+        if (reader_)
+            reader_->addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validationFunc)));
         return *this;
     }
 
@@ -74,15 +74,15 @@ public:
 
     operator T()
     {
-        if (cfgReader_)
-            cfgReader_->addParam(std::move(param_));
+        if (reader_)
+            reader_->addParam(std::move(param_));
         return defaultValue_;
     }
 
 private:
     std::unique_ptr<Param<T>> param_;
     T defaultValue_;
-    ConfigReaderPtr cfgReader_;
+    CommandLineReaderPtr reader_;
     T& paramValue_;
 };
 

@@ -18,10 +18,10 @@
 namespace cmdlime{
 
 template<Format formatType = Format::GNU>
-class ConfigReader : public detail::IConfigReader{
+class CommandLineReader : public detail::ICommandLineReader{
 public:
-    ConfigReader(const std::string& programName = {},
-                 const UsageInfoFormat& usageInfoFormat = {})
+    CommandLineReader(const std::string& programName = {},
+                      const UsageInfoFormat& usageInfoFormat = {})
     {
         setCommandName(programName);
         setUsageInfoFormat(usageInfoFormat);
@@ -37,9 +37,9 @@ public:
     TCfg read(const std::vector<std::string>& cmdLine)
     {
         auto cfg = makeCfg<TCfg>();
-        if (read(cmdLine) != detail::ConfigReadResult::StoppedOnExitFlag)
+        if (read(cmdLine) != detail::CommandLineReadResult::StoppedOnExitFlag)
             validate({});
-        resetConfigReader(cfg);
+        resetCommandLineReader(cfg);
         return cfg;
     }
 
@@ -64,7 +64,7 @@ public:
         addDefaultFlags();
 
         try {
-            if (read(cmdLine) != detail::ConfigReadResult::StoppedOnExitFlag)
+            if (read(cmdLine) != detail::CommandLineReadResult::StoppedOnExitFlag)
                 validate({});
         }
         catch(const CommandError& e){
@@ -81,7 +81,7 @@ public:
         if (processDefaultFlags())
             return 0;
 
-        resetConfigReader(cfg);
+        resetCommandLineReader(cfg);
         return func(cfg);
     }
 
@@ -219,7 +219,7 @@ private:
         return detail::FormatCfg<formatType>::shortNamesEnabled;
     }
 
-    detail::ConfigReadResult read(const std::vector<std::string>& cmdLine) override
+    detail::CommandLineReadResult read(const std::vector<std::string>& cmdLine) override
     {
         if (!configError_.empty())
             throw ConfigError{configError_};
@@ -228,15 +228,15 @@ private:
         return parser.parse(cmdLine);
     }
 
-    detail::ConfigReaderPtr makeNestedReader(const std::string& name) override
+    detail::CommandLineReaderPtr makeNestedReader(const std::string& name) override
     {
-        nestedReaders_.emplace(name, std::make_unique<ConfigReader<formatType>>());
+        nestedReaders_.emplace(name, std::make_unique<CommandLineReader<formatType>>());
         return nestedReaders_[name]->makePtr();
     }
 
-    void swapContents(detail::ConfigReaderPtr otherReader) override
+    void swapContents(detail::CommandLineReaderPtr otherReader) override
     {
-        auto& reader = static_cast<ConfigReader<formatType>&>(*otherReader);
+        auto& reader = static_cast<CommandLineReader<formatType>&>(*otherReader);
         std::swap(versionInfo_, reader.versionInfo_);
         std::swap(customUsageInfo_, reader.customUsageInfo_);
         std::swap(customUsageInfoDetailed_, reader.customUsageInfoDetailed_);
@@ -358,12 +358,12 @@ private:
     bool help_ = false;
     bool version_ = false;
 
-    std::map<std::string, std::unique_ptr<ConfigReader<formatType>>> nestedReaders_;
+    std::map<std::string, std::unique_ptr<CommandLineReader<formatType>>> nestedReaders_;
 };
 
-using GNUConfigReader = ConfigReader<Format::GNU>;
-using X11ConfigReader = ConfigReader<Format::X11>;
-using POSIXConfigReader = ConfigReader<Format::POSIX>;
-using SimpleConfigReader = ConfigReader<Format::POSIX>;
+using GNUCommandLineReader = CommandLineReader<Format::GNU>;
+using X11CommandLineReader = CommandLineReader<Format::X11>;
+using POSIXCommandLineReader = CommandLineReader<Format::POSIX>;
+using SimpleCommandLineReader = CommandLineReader<Format::Simple>;
 
 }

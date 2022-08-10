@@ -1,6 +1,6 @@
 #pragma once
 #include "paramlist.h"
-#include "iconfigreader.h"
+#include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
 #include <sfun/traits.h>
@@ -14,19 +14,19 @@ class ParamListCreator{
     static_assert(is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
 
 public:
-    ParamListCreator(ConfigReaderPtr cfgReader,
+    ParamListCreator(CommandLineReaderPtr reader,
                      const std::string& varName,
                      const std::string& type,
                      TParamList& paramListValue)
-            : cfgReader_(cfgReader)
+            : reader_(reader)
             , paramListValue_(paramListValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
         paramList_ = std::make_unique<ParamList<TParamList>>(
-                cfgReader_ ? NameFormat::name(cfgReader_->format(), varName) : varName,
-                cfgReader_ ? NameFormat::shortName(cfgReader_->format(), varName) : varName,
-                cfgReader_ ? NameFormat::valueName(cfgReader_->format(), type) : type,
+                reader_ ? NameFormat::name(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::shortName(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
                 paramListValue);
     }
 
@@ -44,14 +44,14 @@ public:
 
     auto& operator<<(const ShortName& customName)
     {
-        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+        if (reader_ && reader_->shortNamesEnabled())
             paramList_->info().resetShortName(customName.value());
         return *this;
     }
 
     auto& operator<<(const WithoutShortName&)
     {
-        if (cfgReader_ && cfgReader_->shortNamesEnabled())
+        if (reader_ && reader_->shortNamesEnabled())
             paramList_->info().resetShortName({});
         return *this;
     }
@@ -64,8 +64,8 @@ public:
 
     auto& operator<<(std::function<void(const TParamList&)> validationFunc)
     {
-        if (cfgReader_)
-            cfgReader_->addValidator(
+        if (reader_)
+            reader_->addValidator(
                     std::make_unique<Validator<TParamList>>(*paramList_, paramListValue_, std::move(validationFunc)));
         return *this;
     }
@@ -80,15 +80,15 @@ public:
 
     operator TParamList()
     {
-        if (cfgReader_)
-            cfgReader_->addParamList(std::move(paramList_));
+        if (reader_)
+            reader_->addParamList(std::move(paramList_));
         return defaultValue_;
     }
 
 private:
     std::unique_ptr<ParamList<TParamList>> paramList_;
     TParamList defaultValue_;
-    ConfigReaderPtr cfgReader_;
+    CommandLineReaderPtr reader_;
     TParamList& paramListValue_;
 };
 

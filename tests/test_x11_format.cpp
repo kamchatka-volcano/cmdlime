@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <cmdlime/config.h>
-#include <cmdlime/configreader.h>
+#include <cmdlime/commandlinereader.h>
 #include "assert_exception.h"
 #include <optional>
 
@@ -50,8 +50,8 @@ struct FullConfigWithCommand : public Config{
 
 TEST(X11Config, AllSet)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<FullConfig>(
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<FullConfig>(
             {"-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "-9", "-prmlist", "zero",
              "-prmlist", "one",
              "-optionalparamlist", "1,2", "-flg", "4.2", "1.1", "2.2", "3.3"});
@@ -68,8 +68,8 @@ TEST(X11Config, AllSet)
 
 TEST(X11Config, AllSetInSubCommand)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<FullConfig>(
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<FullConfig>(
             {"-requiredparam", "FOO", "-prmlist", "zero", "-prmlist", "one", "4.2", "1.1",
              "subcommand", "-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-prmlist",
              "zero", "-prmlist", "one",
@@ -95,8 +95,8 @@ TEST(X11Config, AllSetInSubCommand)
 
 TEST(X11Config, MissingOptionals)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<FullConfig>({"-requiredparam", "FOO", "-prmlist", "zero", "4.2", "1.1", "2.2", "3.3"});
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<FullConfig>({"-requiredparam", "FOO", "-prmlist", "zero", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_EQ(cfg.optionalIntParam.has_value(), false);
@@ -109,9 +109,9 @@ TEST(X11Config, MissingOptionals)
 
 TEST(X11Config, MissingParamAllSetInSubCommand)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"subcommand", "-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-prmlist",
                  "zero", "-prmlist", "one",
                  "-optionalparamlist", "1,2", "-flg", "4.2", "1.1", "2.2", "3.3"});},
@@ -122,8 +122,8 @@ TEST(X11Config, MissingParamAllSetInSubCommand)
 
 TEST(X11Config, AllSetInCommand)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<FullConfigWithCommand>(
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<FullConfigWithCommand>(
             {"-requiredparam", "FOO", "-prmlist", "zero", "-prmlist", "one", "4.2", "1.1",
              "subcommand", "-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-prmlist",
              "zero", "-prmlist", "one",
@@ -149,8 +149,8 @@ TEST(X11Config, AllSetInCommand)
 
 TEST(X11Config, MissingParamAllSetInCommand)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<FullConfigWithCommand>(
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<FullConfigWithCommand>(
             {"subcommand", "-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-prmlist",
              "zero", "-prmlist", "one",
              "-optionalparamlist", "1,2", "-flg", "4.2", "1.1", "2.2", "3.3"});
@@ -175,8 +175,8 @@ TEST(X11Config, MissingParamAllSetInCommand)
 
 TEST(X11Config, MissingParamAllSetInNestedCommand)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<FullConfigWithCommand>({"subcommand", "nested", "-prm", "FOO"});
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<FullConfigWithCommand>({"subcommand", "nested", "-prm", "FOO"});
     EXPECT_TRUE(cfg.requiredParam.empty());
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_FALSE(cfg.optionalIntParam.has_value());
@@ -209,8 +209,8 @@ struct FullConfigWithOptionalArgList : public Config{
 
 TEST(X11Config, MissingOptionalArgList)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<FullConfigWithOptionalArgList>({"-requiredparam", "FOO", "4.2"});
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<FullConfigWithOptionalArgList>({"-requiredparam", "FOO", "4.2"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_EQ(cfg.optionalIntParam.has_value(), false);
@@ -221,9 +221,9 @@ TEST(X11Config, MissingOptionalArgList)
 
 TEST(X11Config, MissingParam)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"-optionalparam", "FOO", "-prmlist", "zero", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-requiredparam' is missing."});
@@ -232,9 +232,9 @@ TEST(X11Config, MissingParam)
 
 TEST(X11Config, MissingArg)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfigWithOptionalArgList>(
+        [&]{auto cfg = reader.read<FullConfigWithOptionalArgList>(
                 {"-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-flg"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Positional argument 'argument' is missing."});
@@ -243,9 +243,9 @@ TEST(X11Config, MissingArg)
 
 TEST(X11Config, MissingArgList)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-prmlist", "zero",
                  "-flg", "4.2"});},
         [](const cmdlime::ParsingError& error){
@@ -255,9 +255,9 @@ TEST(X11Config, MissingArgList)
 
 TEST(X11Config, MissingParamList)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-flg", "4.2", "1.1",
                  "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
@@ -267,9 +267,9 @@ TEST(X11Config, MissingParamList)
 
 TEST(X11Config, UnexpectedParam)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"-requiredparam", "FOO", "-testparam", "TEST", "-prmlist", "zero", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-testparam'"});
@@ -278,9 +278,9 @@ TEST(X11Config, UnexpectedParam)
 
 TEST(X11Config, UnexpectedFlag)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"-requiredparam", "FOO", "-testflag", "-prmlist", "zero", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter or flag '-testflag'"});
@@ -292,9 +292,9 @@ TEST(X11Config, UnexpectedArg)
     struct Cfg : public Config{
         CMDLIME_PARAM(prm, std::string);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<Cfg>({"-prm", "FOO", "4.2", "1"});},
+        [&]{auto cfg = reader.read<Cfg>({"-prm", "FOO", "4.2", "1"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown positional argument '4.2'"});
         });
@@ -303,9 +303,9 @@ TEST(X11Config, UnexpectedArg)
 
 TEST(X11Config, WrongParamType)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "nine", "-prmlist", "zero",
                  "-flg", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
@@ -315,9 +315,9 @@ TEST(X11Config, WrongParamType)
 
 TEST(X11Config, WrongParamListElementType)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"-requiredparam", "FOO", "-optionalparam", "BAR", "-prmlist", "zero", "-optionalparamlist",
                  "not-int", "-flg", "4.2", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
@@ -327,9 +327,9 @@ TEST(X11Config, WrongParamListElementType)
 
 TEST(X11Config, WrongArgType)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-prmlist", "zero",
                  "-flg", "fortytwo", "1.1", "2.2", "3.3"});},
         [](const cmdlime::ParsingError& error){
@@ -339,9 +339,9 @@ TEST(X11Config, WrongArgType)
 
 TEST(X11Config, WrongArgListElementType)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<FullConfig>(
+        [&]{auto cfg = reader.read<FullConfig>(
                 {"-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-prmlist", "zero",
                  "-flg", "4.2", "1.1", "2.2", "three"});},
         [](const cmdlime::ParsingError& error){
@@ -354,9 +354,9 @@ TEST(X11Config, ParamWrongNameNonAlphaFirstChar)
     struct Cfg : public Config{
         CMDLIME_PARAM(prm, std::string) << cmdlime::Name("!param");
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ConfigError>(
-        [&]{auto cfg = cfgReader.read<Cfg>({"-param", "name"});},
+        [&]{auto cfg = reader.read<Cfg>({"-param", "name"});},
         [](const cmdlime::ConfigError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name '!param' must start with an alphabet character"});
         });
@@ -367,9 +367,9 @@ TEST(X11Config, ParamWrongNameNonAlphanum)
     struct Cfg : public Config{
         CMDLIME_PARAM(prm, std::string) << cmdlime::Name("p$r$m");
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ConfigError>(
-        [&]{auto cfg = cfgReader.read<Cfg>({"-param", "name"});},
+        [&]{auto cfg = reader.read<Cfg>({"-param", "name"});},
         [](const cmdlime::ConfigError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'p$r$m' must consist of alphanumeric characters and hyphens"});
         });
@@ -380,9 +380,9 @@ TEST(X11Config, ParamEmptyValue)
     struct Cfg : public Config{
         CMDLIME_PARAM(prm, std::string);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<Cfg>({"-prm"});},
+        [&]{auto cfg = reader.read<Cfg>({"-prm"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-prm' value can't be empty"});
         });
@@ -393,9 +393,9 @@ TEST(X11Config, ParamListEmptyValue)
     struct Cfg : public Config{
         CMDLIME_PARAMLIST(params, std::vector<std::string>);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<Cfg>({"-params", ""});},
+        [&]{auto cfg = reader.read<Cfg>({"-params", ""});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-params' value can't be empty"});
         });
@@ -406,9 +406,9 @@ TEST(X11Config, ArgEmptyValue)
     struct Cfg : public Config{
         CMDLIME_ARG(argument, std::string);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<Cfg>({""});},
+        [&]{auto cfg = reader.read<Cfg>({""});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Arg 'argument' value can't be empty"});
         });
@@ -419,9 +419,9 @@ TEST(X11Config, ArgListEmptyValue)
     struct Cfg : public Config{
         CMDLIME_ARGLIST(args, std::vector<std::string>);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{auto cfg = cfgReader.read<Cfg>({"foo", ""});},
+        [&]{auto cfg = reader.read<Cfg>({"foo", ""});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Arg list 'args' element value can't be empty"});
         });
@@ -436,8 +436,8 @@ TEST(X11Config, ValuesWithWhitespace)
         CMDLIME_ARG(argument, std::string);
         CMDLIME_ARGLIST(argumentList, std::vector<std::string>);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<Cfg>({"-prm", "Hello world", "-prmlist", "foo bar", "foo bar", "forty two"});
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<Cfg>({"-prm", "Hello world", "-prmlist", "foo bar", "foo bar", "forty two"});
     EXPECT_EQ(cfg.prm, "Hello world");
     EXPECT_EQ(cfg.prmList, (std::vector<std::string>{"foo bar"}));
     EXPECT_EQ(cfg.argument, "foo bar");
@@ -451,8 +451,8 @@ TEST(X11Config, NegativeNumberToArg)
         CMDLIME_ARG(argumentStr, std::string);
         CMDLIME_ARGLIST(argumentList, std::vector<double>);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<Cfg>({"-2", "-3", "4.5", "-6.7"});
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<Cfg>({"-2", "-3", "4.5", "-6.7"});
     EXPECT_EQ(cfg.argument, -2);
     EXPECT_EQ(cfg.argumentStr, "-3");
     EXPECT_EQ(cfg.argumentList, (std::vector<double>{4.5, -6.7}));
@@ -463,9 +463,9 @@ TEST(X11Config, NegativeNumberWithoutArg)
     struct Cfg : public Config{
         CMDLIME_PARAM(prm, int);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{ cfgReader.read<Cfg>({"-2"});},
+        [&]{ reader.read<Cfg>({"-2"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown positional argument '-2'"});
         });
@@ -479,8 +479,8 @@ TEST(X11Config, ArgsDelimiter)
         CMDLIME_ARGLIST(argumentList, std::vector<std::string>);
     };
 
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<Cfg>({"0", "-prm", "11", "--", "1", "-optionalparam", "2"});
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<Cfg>({"0", "-prm", "11", "--", "1", "-optionalparam", "2"});
     EXPECT_EQ(cfg.prm, 11);
     EXPECT_EQ(cfg.optionalParam, 0);
     EXPECT_EQ(cfg.argumentList, (std::vector<std::string>{"0", "1", "-optionalparam", "2"}));
@@ -493,8 +493,8 @@ TEST(X11Config, ArgsDelimiterFront)
         CMDLIME_ARGLIST(argumentList, std::vector<std::string>);
     };
 
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<Cfg>({"--", "0", "1", "-optionalparam", "1", "2"});
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<Cfg>({"--", "0", "1", "-optionalparam", "1", "2"});
     EXPECT_EQ(cfg.optionalParam, 0);
     EXPECT_EQ(cfg.argumentList, (std::vector<std::string>{"0", "1", "-optionalparam","1", "2"}));
 }
@@ -506,8 +506,8 @@ TEST(X11Config, ArgsDelimiterBack)
         CMDLIME_ARGLIST(argumentList, std::vector<std::string>);
     };
 
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<Cfg>({"0", "1", "-optionalparam", "1", "2", "--"});
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<Cfg>({"0", "1", "-optionalparam", "1", "2", "--"});
     EXPECT_EQ(cfg.optionalParam, 1);
     EXPECT_EQ(cfg.argumentList, (std::vector<std::string>{"0", "1", "2"}));
 }
@@ -524,8 +524,8 @@ TEST(X11Config, PascalNames)
         CMDLIME_ARG(argument, double);
         CMDLIME_ARGLIST(argumentList, std::vector<float>);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<PascalConfig>(
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<PascalConfig>(
             {"-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-prmlist", "zero",
              "-prmlist", "one",
              "-optionalparamlist", "1", "-optionalparamlist", "2", "-flag", "4.2", "1.1", "2.2", "3.3"});
@@ -551,8 +551,8 @@ TEST(X11Config, SnakeNames)
         CMDLIME_ARG(argument_, double);
         CMDLIME_ARGLIST(arg_list_, std::vector<float>);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<PascalConfig>(
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<PascalConfig>(
             {"-requiredparam", "FOO", "-optionalparam", "BAR", "-optionalintparam", "9", "-paramlist", "zero",
              "-paramlist", "one",
              "-optionalparamlist", "1", "-optionalparamlist", "2", "-flag", "4.2", "1.1", "2.2", "3.3"});
@@ -576,8 +576,8 @@ TEST(X11Config, CustomNames)
         CMDLIME_ARG(argument, double) << cmdlime::Name{"customArg"};
         CMDLIME_ARGLIST(argumentList, std::vector<float>) << cmdlime::Name{"customArgList"};
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<TestConfig>(
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<TestConfig>(
             {"-customRequiredParam", "FOO", "-customOptionalParam", "BAR", "-customOptionalIntParam", "9",
              "-customFlag", "4.2", "1.1", "2.2", "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
@@ -594,9 +594,9 @@ TEST(X11Config, CustomNamesMissingParam)
         CMDLIME_PARAM(prm, double) << cmdlime::Name{"customParam"};
         CMDLIME_PARAMLIST(prmList, std::vector<float>) << cmdlime::Name{"customArgList"};
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{ cfgReader.read<TestConfig>({});},
+        [&]{ reader.read<TestConfig>({});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-customParam' is missing."});
         });
@@ -608,9 +608,9 @@ TEST(X11Config, CustomNamesMissingParamList)
         CMDLIME_PARAM(prm, double) << cmdlime::Name{"customParam"};
         CMDLIME_PARAMLIST(prmList, std::vector<float>) << cmdlime::Name{"customParamList"};
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{ cfgReader.read<TestConfig>({"-customParam", "1"});},
+        [&]{ reader.read<TestConfig>({"-customParam", "1"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-customParamList' is missing."});
         });
@@ -622,9 +622,9 @@ TEST(X11Config, CustomNamesMissingArg)
         CMDLIME_ARG(argument, double) << cmdlime::Name{"customArg"};
         CMDLIME_ARGLIST(argumentList, std::vector<float>) << cmdlime::Name{"customArgList"};
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{ cfgReader.read<TestConfig>({});},
+        [&]{ reader.read<TestConfig>({});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Positional argument 'customArg' is missing."});
         });
@@ -636,9 +636,9 @@ TEST(X11Config, CustomNamesMissingArgList)
         CMDLIME_ARG(argument, double) << cmdlime::Name{"customArg"};
         CMDLIME_ARGLIST(argumentList, std::vector<float>) << cmdlime::Name{"customArgList"};
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ParsingError>(
-        [&]{ cfgReader.read<TestConfig>({"1.0"});},
+        [&]{ reader.read<TestConfig>({"1.0"});},
         [](const cmdlime::ParsingError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'customArgList' is missing."});
         });
@@ -650,9 +650,9 @@ TEST(X11Config, ConfigErrorRepeatingParamNames)
         CMDLIME_PARAM(Prm, double)();
         CMDLIME_PARAM(prm, int)();
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ConfigError>(
-        [&]{ cfgReader.read<TestConfig>({});},
+        [&]{ reader.read<TestConfig>({});},
         [](const cmdlime::ConfigError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'prm' is already used."});
         });
@@ -664,9 +664,9 @@ TEST(X11Config, ConfigErrorRepeatingFlagNames)
         CMDLIME_FLAG(Flg);
         CMDLIME_FLAG(flg);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
     assert_exception<cmdlime::ConfigError>(
-        [&]{ cfgReader.read<TestConfig>({});},
+        [&]{ reader.read<TestConfig>({});},
         [](const cmdlime::ConfigError& error){
             EXPECT_EQ(std::string{error.what()}, std::string{"Flag's name 'flg' is already used."});
         });
@@ -674,19 +674,19 @@ TEST(X11Config, ConfigErrorRepeatingFlagNames)
 
 TEST(X11Config, UsageInfo)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    cfgReader.setProgramName("testproc");
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    reader.setProgramName("testproc");
     auto expectedInfo = std::string{
     "Usage: testproc [commands] <argument> -requiredparam <string> -prmlist <string>... "
     "[-optionalparam <string>] [-optionalintparam <int>] [-optionalparamlist <int>...] [-flg] <argumentlist...>\n"
     };
-    EXPECT_EQ(cfgReader.usageInfo<FullConfig>(), expectedInfo);
+    EXPECT_EQ(reader.usageInfo<FullConfig>(), expectedInfo);
 }
 
 TEST(X11Config, DetailedUsageInfo)
 {
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    cfgReader.setProgramName("testproc");
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    reader.setProgramName("testproc");
     auto expectedDetailedInfo = std::string{
     "Usage: testproc [commands] <argument> -requiredparam <string> -prmlist <string>... [params] [flags] <argumentlist...>\n"
     "Arguments:\n"
@@ -702,7 +702,7 @@ TEST(X11Config, DetailedUsageInfo)
     "   -flg                        \n"
     "Commands:\n"
     "    subcommand [options]       \n"};
-    EXPECT_EQ(cfgReader.usageInfoDetailed<FullConfig>(), expectedDetailedInfo);
+    EXPECT_EQ(reader.usageInfoDetailed<FullConfig>(), expectedDetailedInfo);
 }
 
 TEST(X11Config, CustomValueNames)
@@ -714,8 +714,8 @@ TEST(X11Config, CustomValueNames)
         CMDLIME_ARGLIST(argumentList, std::vector<float>) << cmdlime::ValueName{"FLOATS"};
     };
 
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    cfgReader.setProgramName("testproc");
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    reader.setProgramName("testproc");
     auto expectedInfo = std::string{
     "Usage: testproc <argument> -prm <STRING> [params] <argumentlist...>\n"
     "Arguments:\n"
@@ -725,7 +725,7 @@ TEST(X11Config, CustomValueNames)
     "   -prm <STRING>                \n"
     "   -prmlist <INTS>              multi-value, optional, default: {}\n"
     };
-    EXPECT_EQ(cfgReader.usageInfoDetailed<TestConfig>(), expectedInfo);
+    EXPECT_EQ(reader.usageInfoDetailed<TestConfig>(), expectedInfo);
 }
 
 TEST(X11Config, WrongParamsWithExitFlag){
@@ -737,8 +737,8 @@ TEST(X11Config, WrongParamsWithExitFlag){
         CMDLIME_ARG(argument, double);
         CMDLIME_ARGLIST(argumentList, std::vector<float>);
     };
-    auto cfgReader = cmdlime::ConfigReader<cmdlime::Format::X11>{};
-    auto cfg = cfgReader.read<ConfigWithExitFlag>({"asd", "asf", "-exitflg"});
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::X11>{};
+    auto cfg = reader.read<ConfigWithExitFlag>({"asd", "asf", "-exitflg"});
     EXPECT_EQ(cfg.exitFlg, true);
 }
 
