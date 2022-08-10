@@ -465,7 +465,7 @@ TEST(PosixConfig, ArgEmptyValue)
     assert_exception<cmdlime::ParsingError>(
         [&]{auto cfg = reader.read<Cfg>({""});},
         [](const cmdlime::ParsingError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Arg 'argument' value can't be empty"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Argument 'argument' value can't be empty"});
         });
 }
 
@@ -478,7 +478,7 @@ TEST(PosixConfig, ArgListEmptyValue)
     assert_exception<cmdlime::ParsingError>(
         [&]{auto cfg = reader.read<Cfg>({"foo", ""});},
         [](const cmdlime::ParsingError& error){
-            EXPECT_EQ(std::string{error.what()}, std::string{"Arg list 'args' element value can't be empty"});
+            EXPECT_EQ(std::string{error.what()}, std::string{"Argument list 'args' element value can't be empty"});
         });
 }
 

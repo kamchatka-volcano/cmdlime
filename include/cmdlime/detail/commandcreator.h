@@ -15,7 +15,7 @@ namespace cmdlime::detail{
 template<typename TCfg>
 class CommandCreator{
     static_assert(std::is_base_of_v<Config, TCfg>,
-                  "TCfg must be a subclass of figcone::Config.");
+                  "TCfg must be a subclass of cmdlime::Config.");
 public:
     CommandCreator(CommandLineReaderPtr reader,
                    const std::string& varName,

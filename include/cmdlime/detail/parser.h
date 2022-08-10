@@ -212,14 +212,14 @@ protected:
         if (!argsToRead_.empty()){
             auto& arg = static_cast<IArg&>(argsToRead_.front());
             if (value.empty())
-                throw ParsingError{"Arg '" + arg.info().name() + "' value can't be empty"};
+                throw ParsingError{"Argument '" + arg.info().name() + "' value can't be empty"};
             argsToRead_.pop_front();
             if (!arg.read(value))
                 throw ParsingError{"Couldn't set argument '" + arg.info().name() + "' value from '" + value + "'"};
         }
         else if (options_.argList()){
             if (value.empty())
-                throw ParsingError{"Arg list '" + options_.argList()->info().name() + "' element value can't be empty"};
+                throw ParsingError{"Argument list '" + options_.argList()->info().name() + "' element value can't be empty"};
             if (!options_.argList()->read(value))
                 throw ParsingError{"Couldn't set argument list '" + options_.argList()->info().name() + "' element's value from '" + value + "'"};
         }
