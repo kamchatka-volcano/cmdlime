@@ -54,6 +54,11 @@ if (ENABLE_TESTS AND NOT CMDLIME_SUBPROJECT)
     add_subdirectory(tests)
 endif()
 
+option(ENABLE_EXAMPLES "Enable examples" OFF)
+if (ENABLE_EXAMPLES AND NOT CMDLIME_SUBPROJECT)
+    add_subdirectory(examples)
+endif()
+
 option(INSTALL_CMDLIME "Install cmdlime library unconditionally" OFF)
 if (NOT CMDLIME_SUBPROJECT OR INSTALL_CMDLIME)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/cmdlime    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

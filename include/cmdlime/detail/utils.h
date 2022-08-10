@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <optional>
+#include <tuple>
 
 namespace cmdlime::detail{
 
