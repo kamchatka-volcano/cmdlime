@@ -21,7 +21,9 @@ template<Format formatType = Format::GNU>
 class CommandLineReader : public detail::ICommandLineReader{
 public:
     CommandLineReader(const std::string& programName = {},
+                      std::string versionInfo = {},
                       const UsageInfoFormat& usageInfoFormat = {})
+        : versionInfo_{std::move(versionInfo)}
     {
         setCommandName(programName);
         setUsageInfoFormat(usageInfoFormat);

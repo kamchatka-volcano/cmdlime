@@ -885,7 +885,7 @@ TEST(SimpleConfig, ExecHelpUsageInfoFormat)
     format.columnsSpacing = 2;
     format.nameIndentation = 0;
     format.terminalWidth = 50;
-    auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc", format};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc", {}, format};
     auto output = std::stringstream{};
     reader.setOutputStream(output);
     EXPECT_EQ(reader.exec<FullConfig>({"--help"}, [](const FullConfig&) { return 0; }), 0);
@@ -944,7 +944,7 @@ TEST(SimpleConfig, ExecCommandHelpUsageInfoFormat)
     format.columnsSpacing = 2;
     format.nameIndentation = 0;
     format.terminalWidth = 50;
-    auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc", format};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc", {}, format};
     auto output = std::stringstream{};
     reader.setOutputStream(output);
     EXPECT_EQ(reader.exec<FullConfigWithCommand>({"subcommand", "--help"}, [](const auto&) { return 0; }), 0);
@@ -996,7 +996,7 @@ TEST(SimpleConfig, ExecNestedCommandHelpUsageInfoFormat)
     format.columnsSpacing = 2;
     format.nameIndentation = 0;
     format.terminalWidth = 50;
-    auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc", format};
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc", {}, format};
     auto output = std::stringstream{};
     reader.setOutputStream(output);
     auto expectedDetailedInfo = std::string{
