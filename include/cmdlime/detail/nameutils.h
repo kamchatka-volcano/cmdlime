@@ -1,11 +1,11 @@
 #pragma once
-#include "string_utils.h"
+#include <sfun/string_utils.h>
 #include <string>
 #include <algorithm>
 #include <type_traits>
 
 namespace cmdlime::detail{
-namespace str = string_utils;
+namespace str = sfun::string_utils;
 
 namespace util{
 
@@ -86,7 +86,7 @@ inline std::string typeNameWithoutNamespace(const std::string& type)
 inline std::string templateType(const std::string& type)
 {
     if (type.find('<') != std::string::npos)
-        return str::before(str::after(type, "<"), ">");
+        return std::string{str::before(str::after(type, "<"), ">")};
     return type;
 }
 

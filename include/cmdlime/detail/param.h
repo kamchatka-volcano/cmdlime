@@ -4,12 +4,14 @@
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
+#include <sfun/traits.h>
 #include <sstream>
 #include <optional>
 #include <memory>
 #include <functional>
 
 namespace cmdlime::detail{
+using namespace sfun::traits;
 
 template<typename T>
 class Param : public IParam{
@@ -20,7 +22,7 @@ public:
           T& paramValue)
         : info_(std::move(name), std::move(shortName), std::move(type))
         , paramValue_(paramValue)
-    {       
+    {
     }
 
     void setDefaultValue(const T& value)
@@ -58,11 +60,15 @@ private:
 
     bool hasValue() const override
     {
+        if constexpr (is_optional_v<T>)
+            return true;
         return hasValue_;
     }
 
     bool isOptional() const override
     {
+        if constexpr (is_optional_v<T>)
+            return true;
         return defaultValue_.has_value();
     }
 

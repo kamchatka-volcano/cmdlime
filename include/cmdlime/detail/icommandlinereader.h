@@ -1,4 +1,6 @@
 #pragma once
+#include "configreaderptr.h"
+#include <cmdlime/format.h>
 #include <vector>
 #include <string>
 #include <memory>
@@ -17,21 +19,21 @@ class IArgList;
 class ICommand;
 class IValidator;
 
-enum ConfigReadResult{
+enum CommandLineReadResult{
     Completed,
     StoppedOnExitFlag
 };
 
-class IConfig{
+class ICommandLineReader{
 public:
-    IConfig() = default;
-    virtual ~IConfig() = default;
-    IConfig(const IConfig&) = delete;
-    IConfig& operator=(const IConfig&) = delete;
-    IConfig(IConfig&&) = delete;
-    IConfig& operator=(IConfig&&) = delete;
+    ICommandLineReader() = default;
+    virtual ~ICommandLineReader() = default;
+    ICommandLineReader(const ICommandLineReader&) = delete;
+    ICommandLineReader& operator=(const ICommandLineReader&) = delete;
+    ICommandLineReader(ICommandLineReader&&) = delete;
+    ICommandLineReader& operator=(ICommandLineReader&&) = delete;
 
-    virtual ConfigReadResult read(const std::vector<std::string>& cmdLine) = 0;
+    virtual CommandLineReadResult read(const std::vector<std::string>& cmdLine) = 0;
     virtual const std::string& versionInfo() const = 0;
     virtual std::string usageInfo() const = 0;
     virtual std::string usageInfoDetailed() const = 0;
@@ -46,6 +48,21 @@ public:
     virtual void addValidator(std::unique_ptr<IValidator> validator) = 0;
     virtual void validate(const std::string& commandName) const = 0;
     virtual const Options& options() const = 0;
+    virtual Format format() const = 0;
+    virtual bool shortNamesEnabled() const = 0;
+    virtual CommandLineReaderPtr makeNestedReader(const std::string& name) = 0;
+
+protected:
+    CommandLineReaderPtr makePtr()
+    {
+        return this;
+    }
+
+    template<typename TCfg>
+    void resetCommandLineReader(TCfg& cfg)
+    {
+        cfg.reader_ = CommandLineReaderPtr{};
+    }
 };
 
 }

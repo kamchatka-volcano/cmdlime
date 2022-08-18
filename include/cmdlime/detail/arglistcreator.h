@@ -1,29 +1,32 @@
 #pragma once
 #include "arglist.h"
-#include "iconfig.h"
-#include "formatcfg.h"
+#include "icommandlinereader.h"
+#include "nameformat.h"
 #include "validator.h"
-#include "gsl_assert.h"
+#include <sfun/traits.h>
+#include <gsl/assert>
+
 
 namespace cmdlime::detail{
 
-template<typename T, Format format>
+template<typename TArgList>
 class ArgListCreator{
-    using NameProvider = typename FormatCfg<format>::nameProvider;
+    static_assert(is_dynamic_sequence_container_v<TArgList>, "Argument list field must be a sequence container");
 
 public:
-    ArgListCreator(IConfig& cfg,
+    ArgListCreator(CommandLineReaderPtr reader,
                    const std::string& varName,
                    const std::string& type,
-                   std::vector<T>& argListValue)
-            : cfg_(cfg)
+                   TArgList& argListValue)
+            : reader_(reader)
             , argListValue_(argListValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        argList_ = std::make_unique<ArgList<T>>(NameProvider::fullName(varName),
-                                                NameProvider::valueName(type),
-                                                argListValue);
+        argList_ = std::make_unique<ArgList<TArgList>>(
+                reader_ ? NameFormat::fullName(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
+                argListValue);
     }
 
     auto& operator<<(const std::string& info)
@@ -44,39 +47,32 @@ public:
         return *this;
     }
 
-    auto& operator <<(std::function<void(const std::vector<T>&)> validationFunc)
+    auto& operator <<(std::function<void(const TArgList&)> validationFunc)
     {
-        cfg_.addValidator(std::make_unique<Validator<std::vector<T>>>(*argList_, argListValue_, std::move(validationFunc)));
+        if (reader_)
+            reader_->addValidator(std::make_unique<Validator<TArgList>>(*argList_, argListValue_, std::move(validationFunc)));
         return *this;
     }
 
-    auto& operator()(std::vector<T> defaultValue = {})
+    auto& operator()(TArgList defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
         argList_->setDefaultValue(defaultValue_);
         return *this;
     }
 
-    operator std::vector<T>()
+    operator TArgList()
     {
-        cfg_.setArgList(std::move(argList_));
+        if (reader_)
+            reader_->setArgList(std::move(argList_));
         return defaultValue_;
     }
 
 private:
-    std::unique_ptr<ArgList<T>> argList_;
-    std::vector<T> defaultValue_;
-    IConfig& cfg_;
-    std::vector<T>& argListValue_;
+    std::unique_ptr<ArgList<TArgList>> argList_;
+    TArgList defaultValue_;
+    CommandLineReaderPtr reader_;
+    TArgList& argListValue_;
 };
-
-template <typename T, typename TConfig>
-auto makeArgListCreator(TConfig& cfg,
-                        const std::string& varName,
-                        const std::string& type,
-                        const std::function<std::vector<T>&()>& argListGetter)
-{
-    return ArgListCreator<T, TConfig::format()>{cfg, varName, type, argListGetter()};
-}
 
 }

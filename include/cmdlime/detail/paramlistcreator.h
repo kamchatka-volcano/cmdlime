@@ -1,29 +1,32 @@
 #pragma once
 #include "paramlist.h"
-#include "iconfig.h"
-#include "formatcfg.h"
+#include "icommandlinereader.h"
+#include "nameformat.h"
 #include "validator.h"
-#include "gsl_assert.h"
+#include <sfun/traits.h>
+#include <gsl/assert>
 
 namespace cmdlime::detail {
+using namespace sfun::traits;
 
-template<typename T, Format format>
+template<typename TParamList>
 class ParamListCreator{
-    using NameProvider = typename FormatCfg<format>::nameProvider;
+    static_assert(is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
 
 public:
-    ParamListCreator(IConfig& cfg,
+    ParamListCreator(CommandLineReaderPtr reader,
                      const std::string& varName,
                      const std::string& type,
-                     std::vector<T>& paramListValue)
-            : cfg_(cfg)
+                     TParamList& paramListValue)
+            : reader_(reader)
             , paramListValue_(paramListValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        paramList_ = std::make_unique<ParamList<T>>(NameProvider::name(varName),
-                NameProvider::shortName(varName),
-                NameProvider::valueName(type),
+        paramList_ = std::make_unique<ParamList<TParamList>>(
+                reader_ ? NameFormat::name(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::shortName(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
                 paramListValue);
     }
 
@@ -41,17 +44,15 @@ public:
 
     auto& operator<<(const ShortName& customName)
     {
-        static_assert(FormatCfg<format>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
-        paramList_->info().resetShortName(customName.value());
+        if (reader_ && reader_->shortNamesEnabled())
+            paramList_->info().resetShortName(customName.value());
         return *this;
     }
 
     auto& operator<<(const WithoutShortName&)
     {
-        static_assert(FormatCfg<format>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
-        paramList_->info().resetShortName({});
+        if (reader_ && reader_->shortNamesEnabled())
+            paramList_->info().resetShortName({});
         return *this;
     }
 
@@ -61,41 +62,34 @@ public:
         return *this;
     }
 
-    auto& operator<<(std::function<void(const std::vector<T>&)> validationFunc)
+    auto& operator<<(std::function<void(const TParamList&)> validationFunc)
     {
-        cfg_.addValidator(std::make_unique<Validator<std::vector<T>>>(*paramList_, paramListValue_, std::move(validationFunc)));
+        if (reader_)
+            reader_->addValidator(
+                    std::make_unique<Validator<TParamList>>(*paramList_, paramListValue_, std::move(validationFunc)));
         return *this;
     }
 
 
-    auto& operator()(std::vector<T> defaultValue = {})
+    auto& operator()(TParamList defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
         paramList_->setDefaultValue(defaultValue_);
         return *this;
     }
 
-    operator std::vector<T>()
+    operator TParamList()
     {
-        cfg_.addParamList(std::move(paramList_));
+        if (reader_)
+            reader_->addParamList(std::move(paramList_));
         return defaultValue_;
     }
 
 private:
-    std::unique_ptr<ParamList<T>> paramList_;
-    std::vector<T> defaultValue_;
-    IConfig& cfg_;
-    std::vector<T>& paramListValue_;
+    std::unique_ptr<ParamList<TParamList>> paramList_;
+    TParamList defaultValue_;
+    CommandLineReaderPtr reader_;
+    TParamList& paramListValue_;
 };
-
-template <typename T, typename TConfig>
-auto makeParamListCreator(TConfig& cfg,
-                          const std::string& varName,
-                          const std::string& type,
-                          const std::function<std::vector<T>&()>& paramListGetter)
-{
-return ParamListCreator<T, TConfig::format()>{cfg, varName, type, paramListGetter()};
-}
-
 
 }

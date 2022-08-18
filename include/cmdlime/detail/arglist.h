@@ -11,18 +11,18 @@
 
 namespace cmdlime::detail{
 
-template <typename T>
+template <typename TArgList>
 class ArgList : public IArgList{
 public:
     ArgList(std::string name,
             std::string type,
-            std::vector<T>& argListValue)
+            TArgList& argListValue)
         : info_(std::move(name), {}, std::move(type))
         , argListValue_(argListValue)
     {
     }
 
-    void setDefaultValue(const std::vector<T>& value)
+    void setDefaultValue(const TArgList& value)
     {
         hasValue_ = true;
         defaultValue_ = value;
@@ -50,7 +50,7 @@ private:
             argListValue_.clear();
             isDefaultValueOverwritten_ = true;
         }
-        auto argVal = convertFromString<T>(data);
+        auto argVal = convertFromString<typename TArgList::value_type>(data);
         if (!argVal)
             return false;
         argListValue_.emplace_back(*argVal);
@@ -90,9 +90,9 @@ private:
 
 private:
     OptionInfo info_;
-    std::vector<T>& argListValue_;
+    TArgList& argListValue_;
     bool hasValue_ = false;
-    std::optional<std::vector<T>> defaultValue_;
+    std::optional<TArgList> defaultValue_;
     bool isDefaultValueOverwritten_ = false;
 };
 

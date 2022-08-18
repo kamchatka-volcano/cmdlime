@@ -1,10 +1,20 @@
 #pragma once
+#include "initializedoptional.h"
 #include "nameof_import.h"
+#include <sfun/traits.h>
+#include <gsl/assert>
 #include <string>
 #include <sstream>
 #include <optional>
+#include <tuple>
 
 namespace cmdlime::detail{
+
+[[noreturn]]
+inline void ensureNotReachable()
+{
+    Ensures(false);
+}
 
 inline std::string capitalize(const std::string& input)
 {
@@ -25,19 +35,13 @@ inline bool isNumber(const std::string& str)
     return check(int64_t{}) || check(double{});
 }
 
-template<typename T, typename = void>
-struct is_optional : std::false_type {};
-
-template<typename T>
-struct is_optional<std::optional<T> > : std::true_type {};
-
 #ifdef CMDLIME_NAMEOF_AVAILABLE
-template<typename T>
+template<typename TCfg>
 inline std::string nameOfType()
 {
-    using type = std::remove_const_t<std::remove_reference_t<T>>;
+    using type = std::remove_const_t<std::remove_reference_t<TCfg>>;
     auto result = [&]{
-        if constexpr(is_optional<type>::value)
+        if constexpr(sfun::traits::is_optional_v<type> || sfun::traits::is_dynamic_sequence_container_v<type>)
             return std::string{nameof::nameof_short_type<typename type::value_type>()};
         else
             return std::string{nameof::nameof_short_type<type>()};

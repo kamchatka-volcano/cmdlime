@@ -1,27 +1,27 @@
 #pragma once
 #include "arg.h"
-#include "iconfig.h"
-#include "formatcfg.h"
+#include "icommandlinereader.h"
+#include "nameformat.h"
 #include "validator.h"
-#include "gsl_assert.h"
+#include <gsl/assert>
 
 namespace cmdlime::detail{
 
-template<typename T, Format format>
+template<typename T>
 class ArgCreator{
-    using NameProvider = typename FormatCfg<format>::nameProvider;
 public:
-    ArgCreator(IConfig& cfg,
+    ArgCreator(CommandLineReaderPtr reader,
                const std::string& varName,
                const std::string& type,
                T& argValue)
-            : cfg_(cfg)
+            : reader_(reader)
             , argValue_(argValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        arg_ = std::make_unique<Arg<T>>(NameProvider::fullName(varName),
-                NameProvider::valueName(type),
+        arg_ = std::make_unique<Arg<T>>(
+                reader_ ? NameFormat::fullName(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
                 argValue);
     }
 
@@ -45,29 +45,22 @@ public:
 
     auto& operator<<(std::function<void(const T&)> validationFunc)
     {
-        cfg_.addValidator(std::make_unique<Validator<T>>(*arg_, argValue_, std::move(validationFunc)));
+        if (reader_)
+            reader_->addValidator(std::make_unique<Validator<T>>(*arg_, argValue_, std::move(validationFunc)));
         return *this;
     }
 
     operator T()
     {
-        cfg_.addArg(std::move(arg_));
+        if (reader_)
+            reader_->addArg(std::move(arg_));
         return T{};
     }
 
 private:
     std::unique_ptr<Arg<T>> arg_;
-    IConfig& cfg_;
+    CommandLineReaderPtr reader_;
     T& argValue_;
 };
-
-template <typename T, typename TConfig>
-auto makeArgCreator(TConfig& cfg, const std::string& varName,
-                                  const std::string& type,
-                                  const std::function<T&()>& argGetter)
-{
-    return ArgCreator<T, TConfig::format()>{cfg, varName, type, argGetter()};
-}
-
 
 }

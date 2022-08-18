@@ -1,28 +1,28 @@
 #pragma once
 #include "param.h"
-#include "iconfig.h"
-#include "formatcfg.h"
+#include "icommandlinereader.h"
+#include "nameformat.h"
 #include "validator.h"
-#include "gsl_assert.h"
+#include <gsl/assert>
 
 namespace cmdlime::detail {
 
-template<typename T, Format format>
+template<typename T>
 class ParamCreator{
-    using NameProvider = typename FormatCfg<format>::nameProvider;
 public:
-    ParamCreator(IConfig& cfg,
+    ParamCreator(CommandLineReaderPtr reader,
                  const std::string& varName,
                  const std::string& type,
                  T& paramValue)
-        : cfg_(cfg)
+        : reader_(reader)
         , paramValue_(paramValue)
     {
         Expects(!varName.empty());
         Expects(!type.empty());
-        param_ = std::make_unique<Param<T>>(NameProvider::name(varName),
-                NameProvider::shortName(varName),
-                NameProvider::valueName(type),
+        param_ = std::make_unique<Param<T>>(
+                reader_ ? NameFormat::name(reader->format(), varName) : varName,
+                reader_ ? NameFormat::shortName(reader->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader->format(), type) : varName,
                 paramValue);
     }
 
@@ -40,17 +40,15 @@ public:
 
     auto& operator<<(const ShortName& customName)
     {
-        static_assert(FormatCfg<format>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
-        param_->info().resetShortName(customName.value());
+        if (reader_ && reader_->shortNamesEnabled())
+            param_->info().resetShortName(customName.value());
         return *this;
     }
 
     auto& operator<<(const WithoutShortName&)
     {
-        static_assert(FormatCfg<format>::shortNamesEnabled,
-                      "Current command line format doesn't support short names");
-        param_->info().resetShortName({});
+        if (reader_ && reader_->shortNamesEnabled())
+            param_->info().resetShortName({});
         return *this;
     }
 
@@ -62,7 +60,8 @@ public:
 
     auto& operator<<(std::function<void(const T&)> validationFunc)
     {
-        cfg_.addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validationFunc)));
+        if (reader_)
+            reader_->addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validationFunc)));
         return *this;
     }
 
@@ -75,25 +74,16 @@ public:
 
     operator T()
     {
-        cfg_.addParam(std::move(param_));
+        if (reader_)
+            reader_->addParam(std::move(param_));
         return defaultValue_;
     }
 
 private:
     std::unique_ptr<Param<T>> param_;
     T defaultValue_;
-    IConfig& cfg_;
+    CommandLineReaderPtr reader_;
     T& paramValue_;
 };
-
-template <typename T, typename TConfig>
-auto makeParamCreator(TConfig& cfg,
-                      const std::string& varName,
-                      const std::string& type,
-                      const std::function<T&()>& paramGetter)
-{
-    return ParamCreator<T, TConfig::format()>{cfg, varName, type, paramGetter()};
-}
-
 
 }

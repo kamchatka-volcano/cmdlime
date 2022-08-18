@@ -7,20 +7,19 @@
 ```C++
 ///examples/ex01.cpp
 ///
-#include <cmdlime/config.h>
+#include <cmdlime/commandlinereader.h>
 #include <iostream>
+
+struct Cfg : public cmdlime::Config{
+    CMDLIME_ARG(zipCode, int);
+    CMDLIME_PARAM(name, std::string);
+    CMDLIME_FLAG(verbose);
+};
 
 int main(int argc, char** argv)
 {
-    struct Cfg : public cmdlime::Config{
-        CMDLIME_ARG(zipCode, int);
-        CMDLIME_PARAM(name, std::string);
-        CMDLIME_FLAG(verbose);
-    } cfg;
-
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.read(argc, argv))
-        return reader.exitCode();
+    auto reader = cmdlime::CommandLineReader{"person-finder"};
+    auto cfg = reader.read<Cfg>(argc, argv);
 
     //At this point your config is ready to use
     std::cout << "Looking for person " << cfg.name << " in the region with zip code: " << cfg.zipCode;
@@ -41,7 +40,7 @@ Please note, that in this example, `--name` is a parameter, `--verbose` is a fla
 *    [Usage](#usage)
      * [Declaring the config structure](#declaring-the-config-structure)
      * [Avoiding macros](#avoiding-macros)
-     * [Using ConfigReader](#using-configreader) 
+     * [Using CommandLineReader::exec()](#using-commandlinereaderexec) 
      * [Custom names](#custom-names)
      * [Auto-generated usage info](#auto-generated-usage-info)
      * [Supported formats](#supported-formats)
@@ -54,6 +53,7 @@ Please note, that in this example, `--name` is a parameter, `--verbose` is a fla
      * [Using validators](#using-validators)
 *    [Installation](#installation)
 *    [Running tests](#running-tests)
+*    [Building examples](#building-examples)
 *    [License](#license)
 
 ## Usage
@@ -61,27 +61,27 @@ Please note, that in this example, `--name` is a parameter, `--verbose` is a fla
 
 ### Declaring the config structure
 
-To use **cmdlime** you need to create a structure with fields corresponding to parameters, flags and arguments readed from the command line.  
+To use **cmdlime** you need to create a structure with fields corresponding to parameters, flags and arguments which are read from the command line.  
 To do this subclass `cmdlime::Config` and declare fields with the following macros:
 - **CMDLIME_ARG(`name`, `type`)** - creates `type name;` config field and registers it in the parser.  
 Arguments are mapped to the config fields in the order of declaration. Arguments can't have default values and are always required to be specified in the command line.
-- **CMDLIME_ARGLIST(`name`, `type`)** - creates `std::vector<type> name;` config field and registers it in the parser.  
- Config can have only one arguments list and elements are placed into it after all other config arguments are set, regardless of the order of declaration. The declaration form **CMDLIME_ARGLIST(`name`, `type`)(`list-initialization`)** sets the default value of an argument list, which makes it optional, so it can be omitted from the command line without raising an error.
+- **CMDLIME_ARGLIST(`name`, `listType`)** - creates listType name; config field and registers it in the parser. listType can be any sequence container, supporting emplace_back operation, within STL it's vector, deque or list.  
+ Config can have only one argument list and elements are placed into it after all other config arguments are set, regardless of the order of declaration. The declaration form **CMDLIME_ARGLIST(`name`, `listType`)(`list-initialization`)** sets the default value of an argument list, which makes it optional, so it can be omitted from the command line without raising an error.
 - **CMDLIME_PARAM(`name`, `type`)** - creates `type name;` config field and registers it in the parser.  
-The declaration form **CMDLIME_PARAM(`name`, `type`)(`default value`)** sets the default value of a parameter, which makes it optional, so it can be omitted from the command line without raising an error.
-- **CMDLIME_PARAMLIST(`name`, `type`)** - creates `std::vector<type> name;` config field and registers it in the parser.   
+The declaration form **CMDLIME_PARAM(`name`, `type`)(`default value`)** sets the default value of a parameter, which makes it optional, so it can be omitted from the command line without raising an error. Parameters can also be declared optional by placing them in `cmdlime::optional`(`std::optional-like wrapper with similar interface`).
+- **CMDLIME_PARAMLIST(`name`, `listType`)** - creates listType name; config field and registers it in the parser. listType can be any sequence container, supporting emplace_back operation, within STL it's vector, deque or list
 Parameter list can be filled by specifying it in the command line multiple times (`--param-list val1 --param-list val2`) or passing a comma separated value (`--param-list val1,val2`).  
 The declaration form **CMDLIME_PARAMLIST(`name`, `type`)(`list-initialization`)** sets the default value of a parameter list, which makes it optional, so it can be omitted from the command line without raising an error.
 - **CMDLIME_FLAG(`name`)** - creates `bool name;` config field and registers it in the parser.  
 Flags are always optional and have default value `false`  
 - **CMDLIME_EXITFLAG(`name`)** - creates `bool name;` config field and registers it in the parser. 
 If at least one exit flag is set,  no parsing errors are raised regardless of the command line's content and config fields other than exit flags are left in an unspecified state. It's usefull for flags like `--help` or `--version` when you're supposed to print some message and exit the program without checking the other fields.
-- **CMDLIME_SUBCOMMAND(`name`, `type`)** - creates `std::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Subcommands are always optional and have default value `std::optional<type>{}`.
-- **CMDLIME_COMMAND(`name`, `type`)** - creates `std::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Commands are always optional and have default value `std::optional<type>{}`. If command is encountered, no parsing errors for other config fields are raised and they are left in an unspecified state.
+- **CMDLIME_SUBCOMMAND(`name`, `type`)** - creates `cmdlime::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Subcommands are always optional and have default value `cmdlime::optional<type>{}`.
+- **CMDLIME_COMMAND(`name`, `type`)** - creates `cmdlime::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Commands are always optional and have default value `cmdlime::optional<type>{}`. If command is encountered, no parsing errors for other config fields are raised, and they are left in an unspecified state.
 
 *Note: Types used for config fields must be default constructable and copyable.*  
 
-*Another note: You don't need to change your code style when declaring config fields - `camelCase`, `snake_case` and `PascalCase` names are supported and readed from the `kebab-case` named parameters in the command line.*  
+*Another note: You don't need to change your code style when declaring config fields - `camelCase`, `snake_case` and `PascalCase` names are supported and read from the `kebab-case` named parameters in the command line.*  
 
 Let's alter the config for the `person-finder` program by adding a required parameter `surname` and making the `name` parameter optional:
 ```C++
@@ -92,7 +92,7 @@ struct Cfg : public cmdlime::Config{
     CMDLIME_PARAM(surname, std::string);
     CMDLIME_PARAM(name, std::string)();
     CMDLIME_FLAG(verbose);
-} cfg;
+};
 ```
 Now parameter `--name` can be skipped without raising an error:
 ```console
@@ -107,7 +107,7 @@ If you have a low tolerance for macros, it's possible to register structure fiel
         int zipCode      = arg<&Cfg::zipCode>();
         std::string name = param<&Cfg::name>();
         bool verbose     = flag<&Cfg::verbose>();
-    } cfg;
+    };
 ```
 Internally these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings. By default, **cmdlime** ships without it and these methods aren't available, to use them, enable `CMDLIME_USE_NAMEOF` CMake variable to automatically download and configure **nameof** library, or install it on your system by yourself.   
 **nameof** relies on non-standard functionality of C++ compilers, so if you don't like it you can use **cmdlime**
@@ -118,29 +118,47 @@ without it, by providing the names by yourself:
         int zipCode      = arg<&Cfg::zipCode>("zipCode", "int");
         std::string name = param<&Cfg::name>("name", "string");
         bool verbose     = flag<&Cfg::verbose>("verbose"); //flag are always booleans, so we don't need to specify a type's name here
-    } cfg;
+    };
 ``` 
 
 Config structures declared using the macros-free methods are fully compatible with all **cmdlime**'s functionality. 
 Examples use registration with macros as it's the least verbose method. 
 
 
-### Using ConfigReader
+### Using CommandLineReader::exec()
 
-`ConfigReader` - is a helper class hiding the error handling boilerplate and adding`--help` and `--version` flags processing to your config.  
-`--help` flag shows a detailed help message, that otherwise can be accessed through the `Config::usageInfoDetailed()` method.  
-`--version` flag is enabled only if version info is set in the config with the `Config::setVersionInfo` method.  
+`CommandLineReader::exec()` - is a helper method hiding the error handling boilerplate and adding`--help` and `--version` flags processing to your config.  
+`--help` flag shows a detailed help message, that otherwise can be accessed through the `CommandLineReader::usageInfoDetailed()` method.  
+`--version` flag is enabled only if version info is set in the config with the `CommandLineReader::setVersionInfo` method.  
+To use `CommandLineReader::exec()` you need to provide an alternative entry point function to your program, taking a processed config structure object and returning a result code. 
 Let's modify `person-finder` and see how it works.
 
 ```C++
 ///examples/ex03.cpp
 ///
-...
-    cfg.setVersionInfo("person-finder 1.0");
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.read(argc, argv))
-        return reader.exitCode();
-...
+#include <cmdlime/commandlinereader.h>
+#include <iostream>
+
+struct Cfg : public cmdlime::Config{
+    CMDLIME_ARG(zipCode, int);
+    CMDLIME_PARAM(surname, std::string);
+    CMDLIME_PARAM(name, std::string)();
+    CMDLIME_FLAG(verbose);
+};
+
+int mainApp(const Cfg& cfg)
+{
+    //Here your config is ready to use
+    std::cout << "Looking for person " << cfg.name << " " << cfg.surname << " in the region with zip code: " << cfg.zipCode;
+    return 0;
+}
+
+int main(int argc, char** argv)
+{
+    auto reader = cmdlime::CommandLineReader{"person-finder"};
+    reader.setVersionInfo("person-finder 1.0");
+    return reader.exec<Cfg>(argc, argv, mainApp);
+}
 ```
 ```console
 kamchatka-volcano@home:~$ ./person-finder --version
@@ -158,43 +176,47 @@ Flags:
        --version              show version info and exit
 ```
 
-As mentioned before, `ConfigReader` is just a helper class, so if you like typing a lot, it's possible to implement the same program without using it:
+As mentioned before, `CommandLineReader::exec()` is just a helper method, so if you like typing a lot, it's possible to implement the same program without using it:
 ```C++
 ///examples/ex04.cpp
 ///
-#include <cmdlime/config.h>
+#include <cmdlime/commandlinereader.h>
 #include <iostream>
+
+struct Cfg : public cmdlime::Config{
+    CMDLIME_ARG(zipCode, int);
+    CMDLIME_PARAM(name, std::string);
+    CMDLIME_FLAG(verbose);
+    CMDLIME_EXITFLAG(help);
+    CMDLIME_EXITFLAG(version);
+};
 
 int main(int argc, char** argv)
 {
-    struct Cfg : public cmdlime::Config{
-        CMDLIME_ARG(zipCode, int);
-        CMDLIME_PARAM(name, std::string);
-        CMDLIME_FLAG(verbose);
-        CMDLIME_EXITFLAG(help);
-        CMDLIME_EXITFLAG(version);        
-    } cfg;
-	
+    auto reader = cmdlime::CommandLineReader{"person-finder"};
+    auto cfg = Cfg{};
     try{
-    	cfg.read(argc, argv);
+        cfg = reader.read<Cfg>(argc, argv);
     }
     catch(const cmdlime::Error& e){
-    	std::cerr << e.what();
-        std::cout << cfg.usageInfo();
+        std::cerr << e.what();
+        std::cout << reader.usageInfo<Cfg>();
         return -1;
     }
     if (cfg.help){
-    	std::cout << cfg.usageInfoDetailed();
+        std::cout << reader.usageInfoDetailed<Cfg>();
         return 0;
     }
     if (cfg.version){
-    	std::cout << "person-finder 1.0";
+        std::cout << "person-finder 1.0";
         return 0;
     }
     //At this point your config is ready to use
     std::cout << "Looking for person " << cfg.name << " in the region with zip code: " << cfg.zipCode;
     return 0;
 }
+
+
 ```
 
 Try to run it and...
@@ -216,10 +238,10 @@ struct Cfg : public cmdlime::Config{
     CMDLIME_FLAG(verbose);
     CMDLIME_EXITFLAG(help)    << cmdlime::WithoutShortName{};
     CMDLIME_EXITFLAG(version) << cmdlime::WithoutShortName{};
-} cfg;
+};
 
 ```
-Here's the fixed config. Turning off the short name generation for flag `--version` resolves the name conflict. When you rely on `ConfigReader` for handling of `--help` and `--version` flags, it creates them without short names. At this point, we should do this as well, and all following examples will be based on our original version of `person-finder` program that uses `ConfigReader`.
+Here's the fixed config. Turning off the short name generation for flag `--version` resolves the name conflict. When you rely on `CommandLineReader::exec()` for handling of `--help` and `--version` flags, it creates them without short names. At this point, we should do this as well, and all following examples will be based on the version of `person-finder` program that uses `CommandLineReader::exec()`.
 
 
 You can use the following objects to customize names generation:  
@@ -237,7 +259,7 @@ struct Cfg : public cmdlime::Config{
     CMDLIME_PARAM(surname, std::string)  << cmdlime::ValueName{"A-Z..."};
     CMDLIME_PARAM(name, std::string)()   << cmdlime::Name{"first-name"};
     CMDLIME_FLAG(verbose);
-} cfg;
+};
 ```
 ```console
 kamchatka-volcano@home:~$ ./person-finder --help
@@ -255,7 +277,7 @@ Flags:
 ```
 ### Auto-generated usage info
 
-**cmdlime** can generate help messages accessible with `Config::usageInfo()` and `Config::usageInfoDetailed()` methods. The former is the compact version that is supposed to be shown alongside error messages, the latter is the detailed version that is printed out when `--help` flag is set.
+**cmdlime** can generate help messages accessible with `CommandLineReader::usageInfo()` and `CommandLineReader::usageInfoDetailed()` methods. The former is the compact version that is supposed to be shown alongside error messages, the latter is the detailed version that is printed out when `--help` flag is set.
 
 We can add more information to the detailed usage info by setting the parameters` descriptions:
 ```C++
@@ -266,7 +288,7 @@ struct Cfg : public cmdlime::Config{
     CMDLIME_PARAM(surname, std::string)    << "surname of the person to find"       << cmdlime::ValueName{"A-Z..."};
     CMDLIME_PARAM(name, std::string)()     << "name of the person to find"          << cmdlime::Name{"first-name"};
     CMDLIME_FLAG(verbose)                  << "adds more information to the output";
-} cfg;
+};
 
 ```
 ```console
@@ -284,11 +306,11 @@ Flags:
        --version                 show version info and exit
 ```
 
-If you don't like auto-generated usage info message you can set your own with `Config::setUsageInfo()` and `Config::setUsageInfoDetailed()`
+If you don't like auto-generated usage info message you can set your own with `CommandLineReader::setUsageInfo()` and `CommandLineReader::setUsageInfoDetailed()`
 
 ### Supported formats
 
-**cmdlime** supports several command line naming conventions and unlike many other parsers it strictly enforces them, so you can't mix usage of different formats together.
+**cmdlime** supports several command line naming conventions and unlike many other parsing libraries it strictly enforces them, so you can't mix usage of different formats together.
 
 All formats support argument delimiter `--`,  after encountering it, all command line options are treated as arguments, even if they start with hyphens.
 
@@ -301,18 +323,17 @@ Parameters usage: `--parameter value`, `--parameter=value`, `-p value` or `-pval
 Flags usage: `--flag`, `-f`  
 Flags in short form can be "glued" together: `-abc` or with one parameter: `-fp value`
 
-This is the default command line format used by **cmdlime**. Subclass your config structure from `cmdlime::Config` or `cmdlime::GNUConfig` to use it.
+This is the default command line format used by **cmdlime**. Use  `CommandLineReader<cmdlime::Format::GNU>` specialization or its alias `GNUCommandLineReader` to choose this format explicitly.
 
 ```C++
 ///examples/ex08.cpp
 ///
-#include <cmdlime/config.h>
-struct Cfg : public cmdlime::Config{
-    CMDLIME_ARG(zipCode, int)              << "zip code of the searched region";
-    CMDLIME_PARAM(surname, std::string)    << "surname of the person to find";
-    CMDLIME_PARAM(name, std::string)()     << "name of the person to find";
-    CMDLIME_FLAG(verbose)                  << "adds more information to the output";
-} cfg;
+int main(int argc, char** argv)
+{
+    auto reader = cmdlime::GNUCommandLineReader{"person-finder"};
+    reader.setVersionInfo("person-finder 1.0");
+    return reader.exec<Cfg>(argc, argv, mainApp);
+}
 ```
 
 ```console
@@ -332,7 +353,7 @@ Flags:
 
 #### POSIX
 
-All names consist of single alphanumeric character.  
+All names consist of a single alphanumeric character.  
 Parameters and flags prefix: `-`  
 Short names aren't supported (the default names are already short enough).  
 Parameters usage: `-p value` or `-pvalue`  
@@ -341,21 +362,18 @@ Flags in short form can be "glued" together: `-abc` or with one parameter: `-fp 
 
 Parameters and flags must precede the arguments, besides that, this format is a subset of GNU format.
 
-Subclass your config structure from `cmdlime::POSIXConfig` to use it.
+Use `CommandLineReader<cmdlime::Format::POSIX>` specialization or its alias `POSIXCommandLineReader` to choose this format.
 ```C++
 ///examples/ex09.cpp
 ///
-#include <cmdlime/posixconfig.h>
-struct Cfg : public cmdlime::POSIXConfig{
-    CMDLIME_ARG(zipCode, int)              << "zip code of the searched region";
-    CMDLIME_PARAM(surname, std::string)    << "surname of the person to find";
-    CMDLIME_PARAM(name, std::string)()     << "name of the person to find";
-    CMDLIME_FLAG(verbose)                  << "adds more information to the output" << cmdlime::Name{"V"};
-} cfg;
+int main(int argc, char** argv)
+{
+    auto reader = cmdlime::POSIXCommandLineReader{"person-finder"};
+    reader.setVersionInfo("person-finder 1.0");
+    return reader.exec<Cfg>(argc, argv, mainApp);
+}
 
 ```
-*Note: here's the clashing names error again, so we have to rename `verbose` config field flag from `-v` to `-V`*
-
 ```console
 kamchatka-volcano@home:~$ ./person-finder -h
 Usage: person-finder <zip-code> -s <string> [params] [flags] 
@@ -378,17 +396,16 @@ Short names aren't supported.
 Parameters usage: `-parameter value`  
 Flags usage: `-flag`
 
-Subclass your config structure from `cmdlime::X11Config` to use it.
+Use `CommandLineReader<cmdlime::Format::X11>` specialization or its alias `X11CommandLineReader` to choose this format.
 ```C++
 ///examples/ex10.cpp
 ///
-#include <cmdlime/x11config.h>
-struct Cfg : public cmdlime::X11Config{
-    CMDLIME_ARG(zipCode, int)              << "zip code of the searched region";
-    CMDLIME_PARAM(surname, std::string)    << "surname of the person to find";
-    CMDLIME_PARAM(name, std::string)()     << "name of the person to find";
-    CMDLIME_FLAG(verbose)                  << "adds more information to the output";
-} cfg;
+int main(int argc, char** argv)
+{
+    auto reader = cmdlime::X11CommandLineReader{"person-finder"};
+    reader.setVersionInfo("person-finder 1.0");
+    return reader.exec<Cfg>(argc, argv, mainApp);
+}
 ```
 ```console
 kamchatka-volcano@home:~$ ./person-finder -help
@@ -415,17 +432,16 @@ Short names aren't supported.
 Parameters usage: `-parameter=value`   
 Flags usage: `--flag`
 
-Subclass your config structure from `cmdlime::SimpleConfig` to use it.
+Use `CommandLineReader<cmdlime::Format::Simple>` specialization or its alias `SimpleCommandLineReader` to choose this format.
 ```C++
 ///examples/ex11.cpp
 ///
-#include <cmdlime/simpleconfig.h>
-struct Cfg : public cmdlime::SimpleConfig{
-    CMDLIME_ARG(zipCode, int)              << "zip code of the searched region";
-    CMDLIME_PARAM(surname, std::string)    << "surname of the person to find";
-    CMDLIME_PARAM(name, std::string)()     << "name of the person to find";
-    CMDLIME_FLAG(verbose)                  << "adds more information to the output";
-} cfg;
+int main(int argc, char** argv)
+{
+    auto reader = cmdlime::SimpleCommandLineReader{"person-finder"};
+    reader.setVersionInfo("person-finder 1.0");
+    return reader.exec<Cfg>(argc, argv, mainApp);
+}
 ```
 ```console
 kamchatka-volcano@home:~$ ./person-finder --help
@@ -449,7 +465,7 @@ Let's add a coordinate parameter `--coord` to the `person-finder` program.
 ```C++
 ///examples/ex12.cpp
 ///
-#include <cmdlime/config.h>
+#include <cmdlime/commandlinereader.h>
 #include <iostream>
 
 struct Coord{
@@ -480,28 +496,27 @@ struct StringConverter<Coord>{
 };
 }
 
-int main(int argc, char** argv)
+struct Cfg : public cmdlime::Config{
+    CMDLIME_ARG(zipCode, int)              << "zip code of the searched region";
+    CMDLIME_PARAM(surname, std::string)    << "surname of the person to find";
+    CMDLIME_PARAM(name, std::string)()     << "name of the person to find";
+    CMDLIME_PARAM(coord, Coord)            << "possible location";
+    CMDLIME_FLAG(verbose)                  << "adds more information to the output";
+};
+
+int mainApp(const Cfg& cfg)
 {
-    struct Cfg : public cmdlime::Config{
-        CMDLIME_ARG(zipCode, int)              << "zip code of the searched region";
-        CMDLIME_PARAM(surname, std::string)    << "surname of the person to find";
-        CMDLIME_PARAM(name, std::string)()     << "name of the person to find";
-        CMDLIME_PARAM(coord, Coord)            << "possible location";
-        CMDLIME_FLAG(verbose)                  << "adds more information to the output";
-    } cfg;
-
-
-    cfg.setVersionInfo("person-finder 1.0");
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.read(argc, argv))
-        return reader.exitCode();
-
-    //At this point your config is ready to use
     std::cout << "Looking for person " << cfg.name << " " << cfg.surname << " in the region with zip code: " << cfg.zipCode << std::endl;
     std::cout << "Possible location:" << cfg.coord.lat << " " << cfg.coord.lon;
     return 0;
 }
 
+int main(int argc, char** argv)
+{
+    auto reader = cmdlime::CommandLineReader{"person-finder"};
+    reader.setVersionInfo("person-finder 1.0");
+    return reader.exec<Cfg>(argc, argv, mainApp);
+}
 ```
 ```console
 kamchatka-volcano@home:~$ ./person-finder 684007 --surname Deer --coord 53.0-157.25
@@ -516,32 +531,35 @@ Let's enhance `person-finder` programm by adding a result recording mode.
 ```C++
 ///examples/ex13.cpp
 ///
-#include <cmdlime/config.h>
+#include <cmdlime/commandlinereader.h>
 
-int main(int argc, char** argv)
+struct RecordCfg: public cmdlime::Config{
+    CMDLIME_PARAM(file, std::string)() << "save result to file";
+    CMDLIME_PARAM(db, std::string)()   << "save result to database";
+    CMDLIME_FLAG(detailed)             << "adds more information to the result" << cmdlime::WithoutShortName{};
+};
+
+struct Cfg : public cmdlime::Config{
+    CMDLIME_ARG(zipCode, int)               << "zip code of the searched region";
+    CMDLIME_PARAM(surname, std::string)     << "surname of the person to find";
+    CMDLIME_PARAM(name, std::string)()      << "name of the person to find";
+    CMDLIME_FLAG(verbose)                   << "adds more information to the output";
+    CMDLIME_SUBCOMMAND(record, RecordCfg)   << "record search result";
+};
+
+int mainApp(const Cfg& cfg)
 {
-    struct RecordCfg: public cmdlime::Config{
-        CMDLIME_PARAM(file, std::string)() << "save result to file";
-        CMDLIME_PARAM(db, std::string)()   << "save result to database";
-        CMDLIME_FLAG(detailed)             << "adds more information to the result" << cmdlime::WithoutShortName{};
-    };
-    
-    struct Cfg : public cmdlime::Config{
-        CMDLIME_ARG(zipCode, int)               << "zip code of the searched region";
-        CMDLIME_PARAM(surname, std::string)     << "surname of the person to find";
-        CMDLIME_PARAM(name, std::string)()      << "name of the person to find";
-        CMDLIME_FLAG(verbose)                   << "adds more information to the output";
-        CMDLIME_SUBCOMMAND(record, RecordCfg)   << "record search result";
-    } cfg;
-
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.read(argc, argv))
-        return reader.exitCode();
     std::cout << "Looking for person " << cfg.name << " " << cfg.surname << " in the region with zip code: " << cfg.zipCode << std::endl;
     if (cfg.record.has_value())
         std::cout << "Record settings: " << "file:" << cfg.record->file << " db:" << cfg.record->db << " detailed:" << cfg.record->detailed << std::endl;
     return 0;
 }
+
+int main(int argc, char** argv)
+{
+    return cmdlime::CommandLineReader{"person-finder"}.exec<Cfg>(argc, argv, mainApp);
+}
+
 ```
 Now, `person-finder` can be launched like this:
 
@@ -560,34 +578,30 @@ Let's see how it works:
 ```C++
 ///examples/ex14.cpp
 ///
-#include <cmdlime/config.h>
+#include <cmdlime/commandlinereader.h>
 
-int main(int argc, char** argv)
+struct RecordCfg: public cmdlime::Config{
+    CMDLIME_PARAM(file, std::string)() << "save result to file";
+    CMDLIME_PARAM(db, std::string)()   << "save result to database";
+    CMDLIME_FLAG(detailed)             << "hide search results" << cmdlime::WithoutShortName{};
+};
+
+struct HistoryCfg: public cmdlime::Config{
+    CMDLIME_PARAM(surname, std::string)() << "filter search queries by surname";
+    CMDLIME_FLAG(noResults)               << "hide search results";
+};
+
+struct Cfg : public cmdlime::Config{
+    CMDLIME_ARG(zipCode, int)             << "zip code of the searched region";
+    CMDLIME_PARAM(surname, std::string)   << "surname of the person to find";
+    CMDLIME_PARAM(name, std::string)()    << "name of the person to find";
+    CMDLIME_FLAG(verbose)                 << "adds more information to the output";
+    CMDLIME_SUBCOMMAND(record, RecordCfg) << "record search result";
+    CMDLIME_COMMAND(history, HistoryCfg)  << "show search history";
+};
+
+int mainApp(const Cfg& cfg)
 {
-    struct RecordCfg: public cmdlime::Config{
-        CMDLIME_PARAM(file, std::string)() << "save result to file";
-        CMDLIME_PARAM(db, std::string)()   << "save result to database";
-        CMDLIME_FLAG(detailed)             << "hide search results" << cmdlime::WithoutShortName{};
-    };
-
-    struct HistoryCfg: public cmdlime::Config{
-        CMDLIME_PARAM(surname, std::string)() << "filter search queries by surname";
-        CMDLIME_FLAG(noResults)               << "hide search results";
-    };
-
-    struct Cfg : public cmdlime::Config{
-        CMDLIME_ARG(zipCode, int)             << "zip code of the searched region";
-        CMDLIME_PARAM(surname, std::string)   << "surname of the person to find";
-        CMDLIME_PARAM(name, std::string)()    << "name of the person to find";
-        CMDLIME_FLAG(verbose)                 << "adds more information to the output";
-        CMDLIME_SUBCOMMAND(record, RecordCfg) << "record search result";
-        CMDLIME_COMMAND(history, HistoryCfg)  << "show search history";
-    } cfg;
-
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.read(argc, argv))
-        return reader.exitCode();
-
     if (cfg.history.has_value()){
         std::cout << "Preparing search history with surname filter:" << cfg.history->surname << std::endl;
         return 0;
@@ -599,6 +613,12 @@ int main(int argc, char** argv)
 
     return 0;
 }
+
+int main(int argc, char** argv)
+{
+    return cmdlime::CommandLineReader{"person-finder"}.exec<Cfg>(argc, argv, mainApp);
+}
+
 ```
 
 ```console
@@ -625,7 +645,7 @@ Let's improve `person-finder` by checking that either `file` or `db` parameter o
 ```c++
 ///examples/ex15.cpp
 ///
-#include <cmdlime/config.h>
+#include <cmdlime/commandlinereader.h>
 #include <algorithm>
 
 struct EnsureAlpha{
@@ -639,36 +659,34 @@ struct EnsureAlpha{
     }
 };
 
-int main(int argc, char** argv)
+struct RecordCfg: public cmdlime::Config{
+    CMDLIME_PARAM(file, std::string)() << "save result to file";
+    CMDLIME_PARAM(db, std::string)()   << "save result to database";
+    CMDLIME_FLAG(detailed)             << "hide search results" << cmdlime::WithoutShortName{};
+};
+
+struct HistoryCfg: public cmdlime::Config{
+    CMDLIME_PARAM(surname, std::string)() << "filter search queries by surname" << EnsureAlpha{};
+    CMDLIME_FLAG(noResults)               << "hide search results";
+};
+
+struct Cfg : public cmdlime::Config{
+    CMDLIME_ARG(zipCode, int)             << "zip code of the searched region";
+    CMDLIME_PARAM(surname, std::string)   << "surname of the person to find" << EnsureAlpha{};
+    CMDLIME_PARAM(name, std::string)()    << "name of the person to find" 	 << EnsureAlpha{};
+    CMDLIME_FLAG(verbose)                 << "adds more information to the output";
+    CMDLIME_SUBCOMMAND(record, RecordCfg) << "record search result"
+                                          << [](auto& record){
+                                              if (record && record->file.empty() && record->db.empty())
+                                                  throw cmdlime::ValidationError{"file or db paremeter must be provided."};
+                                              else
+                                                  throw std::runtime_error{"ERROR"};
+                                          };
+    CMDLIME_COMMAND(history, HistoryCfg)  << "show search history";
+};
+
+int mainApp(const Cfg& cfg)
 {
-    struct RecordCfg: public cmdlime::Config{
-        CMDLIME_PARAM(file, std::string)() << "save result to file";
-        CMDLIME_PARAM(db, std::string)()   << "save result to database";
-        CMDLIME_FLAG(detailed)             << "hide search results" << cmdlime::WithoutShortName{};
-    };
-
-    struct HistoryCfg: public cmdlime::Config{
-        CMDLIME_PARAM(surname, std::string)() << "filter search queries by surname" << EnsureAlpha{};
-        CMDLIME_FLAG(noResults)               << "hide search results";
-    };
-
-    struct Cfg : public cmdlime::Config{
-        CMDLIME_ARG(zipCode, int)             << "zip code of the searched region";
-        CMDLIME_PARAM(surname, std::string)   << "surname of the person to find" << EnsureAlpha{};
-        CMDLIME_PARAM(name, std::string)()    << "name of the person to find" 	 << EnsureAlpha{};
-        CMDLIME_FLAG(verbose)                 << "adds more information to the output";
-        CMDLIME_SUBCOMMAND(record, RecordCfg) << "record search result"
-            << [](auto& record){
-              if (record && record->file.empty() && record->db.empty())
-                  throw cmdlime::ValidationError{"file or db paremeter must be provided."};
-            };
-        CMDLIME_COMMAND(history, HistoryCfg)  << "show search history";
-    } cfg;
-
-    auto reader = cmdlime::ConfigReader{cfg, "person-finder"};
-    if (!reader.readCommandLine(argc, argv))
-        return reader.exitCode();
-
     if (cfg.history.has_value()){
         std::cout << "Preparing search history with surname filter:" << cfg.history->surname << std::endl;
         return 0;
@@ -680,6 +698,12 @@ int main(int argc, char** argv)
 
     return 0;
 }
+
+int main(int argc, char** argv)
+{
+    return cmdlime::CommandLineReader{"person-finder"}.exec<Cfg>(argc, argv, mainApp);
+}
+
 ```
 
 Now you'll get the following error messages if you provide invalid parameters:
@@ -740,6 +764,14 @@ cd cmdlime
 cmake -S . -B build -DENABLE_TESTS=ON
 cmake --build build
 cd build/tests && ctest
+```
+
+## Building examples
+```
+cd cmdlime
+cmake -S . -B build -DENABLE_EXAMPLES=ON
+cmake --build build
+cd build/examples
 ```
 
 ## License

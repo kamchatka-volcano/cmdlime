@@ -1,6 +1,6 @@
 #pragma once
 #include "ioption.h"
-#include "iconfig.h"
+#include "icommandlinereader.h"
 #include <vector>
 #include <string>
 #include <memory>
@@ -12,8 +12,9 @@ class IConfig;
 
 class ICommand : public IOption{
 public:
-    virtual const IConfig* config() const = 0;
-    virtual ConfigReadResult read(const std::vector<std::string>& commandLine) = 0;
+    virtual bool hasValue() const = 0;
+    virtual CommandLineReaderPtr configReader() const = 0;
+    virtual CommandLineReadResult read(const std::vector<std::string>& commandLine) = 0;
     virtual bool isSubCommand() const = 0;
     virtual void enableHelpFlag() = 0;
     virtual bool isHelpFlagSet() const = 0;

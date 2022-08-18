@@ -55,7 +55,7 @@ public:
     {}
     virtual ~Parser() = default;
 
-    ConfigReadResult parse(const std::vector<std::string>& cmdLine)
+    CommandLineReadResult parse(const std::vector<std::string>& cmdLine)
     {
         checkNames();
         argsToRead_.clear();
@@ -93,7 +93,7 @@ public:
         checkUnreadParams();
         checkUnreadArgs();
         checkUnreadArgList();
-        return ConfigReadResult::Completed;
+        return CommandLineReadResult::Completed;
     }
 
 protected:
@@ -102,7 +102,7 @@ protected:
         ShortName,
         All
     };
-    IParam* findParam(const std::string& name, FindMode mode = FindMode::All)
+    IParam* findParam(std::string_view name, FindMode mode = FindMode::All)
     {
         auto paramIt = std::find_if(options_.params().begin(), options_.params().end(),
             [&](auto& param){
@@ -122,7 +122,7 @@ protected:
         return paramIt->get();
     }
 
-    IParamList* findParamList(const std::string& name, FindMode mode = FindMode::All)
+    IParamList* findParamList(std::string_view name, FindMode mode = FindMode::All)
     {
         auto paramListIt = std::find_if(options_.paramLists().begin(), options_.paramLists().end(),
             [&](auto& paramList){
@@ -142,13 +142,13 @@ protected:
         return paramListIt->get();
     }
 
-    void readParam(const std::string& name, const std::string& value)
+    void readParam(std::string_view name, const std::string& value)
     {
         if (readMode_ != ReadMode::All)
             return;
 
         if (value.empty())
-            throw ParsingError{"Parameter '" + OutputFormatter::paramPrefix() + name + "' value can't be empty"};
+            throw ParsingError{"Parameter '" + OutputFormatter::paramPrefix() + std::string{name} + "' value can't be empty"};
         auto param = findParam(name);
         if (param){
             if (!param->read(value))
@@ -161,10 +161,10 @@ protected:
                 throw ParsingError{"Couldn't set parameter '" + OutputFormatter::paramPrefix() + paramList->info().name() + "' value from '" + value + "'"};
             return;
         }
-        throw ParsingError{"Encountered unknown parameter '" + OutputFormatter::paramPrefix() + name + "'"};
+        throw ParsingError{"Encountered unknown parameter '" + OutputFormatter::paramPrefix() + std::string{name} + "'"};
     }
 
-    IFlag* findFlag(const std::string& name, FindMode mode = FindMode::All)
+    IFlag* findFlag(std::string_view name, FindMode mode = FindMode::All)
     {
         auto flagIt = std::find_if(options_.flags().begin(), options_.flags().end(),
             [&](auto& flag){
@@ -184,7 +184,7 @@ protected:
         return flagIt->get();
     }
 
-    void readFlag(const std::string& name)
+    void readFlag(std::string_view name)
     {
         if (readMode_ != ReadMode::ExitFlagsAndCommands &&
             readMode_ != ReadMode::All)
@@ -192,7 +192,7 @@ protected:
 
         auto flag = findFlag(name);
         if (!flag)
-            throw ParsingError{"Encountered unknown flag '" + OutputFormatter::flagPrefix() + name + "'"};
+            throw ParsingError{"Encountered unknown flag '" + OutputFormatter::flagPrefix() + std::string{name} + "'"};
         flag->set();
     }
 
@@ -212,14 +212,14 @@ protected:
         if (!argsToRead_.empty()){
             auto& arg = static_cast<IArg&>(argsToRead_.front());
             if (value.empty())
-                throw ParsingError{"Arg '" + arg.info().name() + "' value can't be empty"};
+                throw ParsingError{"Argument '" + arg.info().name() + "' value can't be empty"};
             argsToRead_.pop_front();
             if (!arg.read(value))
                 throw ParsingError{"Couldn't set argument '" + arg.info().name() + "' value from '" + value + "'"};
         }
         else if (options_.argList()){
             if (value.empty())
-                throw ParsingError{"Arg list '" + options_.argList()->info().name() + "' element value can't be empty"};
+                throw ParsingError{"Argument list '" + options_.argList()->info().name() + "' element value can't be empty"};
             if (!options_.argList()->read(value))
                 throw ParsingError{"Couldn't set argument list '" + options_.argList()->info().name() + "' element's value from '" + value + "'"};
         }
@@ -263,7 +263,7 @@ private:
         return commandIt->get();
     }
 
-    ConfigReadResult readCommand(ICommand* command, const std::vector<std::string>& cmdLine)
+    CommandLineReadResult readCommand(ICommand* command, const std::vector<std::string>& cmdLine)
     {
         try{
             return command->read(cmdLine);
@@ -276,7 +276,7 @@ private:
         }
     }
 
-    std::optional<ConfigReadResult> readCommandsAndExitFlags(const std::vector<std::string>& cmdLine)
+    std::optional<CommandLineReadResult> readCommandsAndExitFlags(const std::vector<std::string>& cmdLine)
     {
         auto modeGuard = setScopeReadMode(ReadMode::ExitFlagsAndCommands);
 
@@ -300,7 +300,7 @@ private:
             }
         }
         if (isExitFlagSet())
-            return ConfigReadResult::StoppedOnExitFlag;
+            return CommandLineReadResult::StoppedOnExitFlag;
 
         return {};
     }
