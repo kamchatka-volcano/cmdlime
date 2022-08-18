@@ -65,11 +65,11 @@ To use **cmdlime** you need to create a structure with fields corresponding to p
 To do this subclass `cmdlime::Config` and declare fields with the following macros:
 - **CMDLIME_ARG(`name`, `type`)** - creates `type name;` config field and registers it in the parser.  
 Arguments are mapped to the config fields in the order of declaration. Arguments can't have default values and are always required to be specified in the command line.
-- **CMDLIME_ARGLIST(`name`, `type`)** - creates `std::vector<type> name;` config field and registers it in the parser.  
- Config can have only one argument list and elements are placed into it after all other config arguments are set, regardless of the order of declaration. The declaration form **CMDLIME_ARGLIST(`name`, `type`)(`list-initialization`)** sets the default value of an argument list, which makes it optional, so it can be omitted from the command line without raising an error.
+- **CMDLIME_ARGLIST(`name`, `listType`)** - creates listType name; config field and registers it in the parser. listType can be any sequence container, supporting emplace_back operation, within STL it's vector, deque or list.  
+ Config can have only one argument list and elements are placed into it after all other config arguments are set, regardless of the order of declaration. The declaration form **CMDLIME_ARGLIST(`name`, `listType`)(`list-initialization`)** sets the default value of an argument list, which makes it optional, so it can be omitted from the command line without raising an error.
 - **CMDLIME_PARAM(`name`, `type`)** - creates `type name;` config field and registers it in the parser.  
 The declaration form **CMDLIME_PARAM(`name`, `type`)(`default value`)** sets the default value of a parameter, which makes it optional, so it can be omitted from the command line without raising an error. Parameters can also be declared optional by placing them in `cmdlime::optional`(`std::optional-like wrapper with similar interface`).
-- **CMDLIME_PARAMLIST(`name`, `type`)** - creates `std::vector<type> name;` config field and registers it in the parser.   
+- **CMDLIME_PARAMLIST(`name`, `listType`)** - creates listType name; config field and registers it in the parser. listType can be any sequence container, supporting emplace_back operation, within STL it's vector, deque or list
 Parameter list can be filled by specifying it in the command line multiple times (`--param-list val1 --param-list val2`) or passing a comma separated value (`--param-list val1,val2`).  
 The declaration form **CMDLIME_PARAMLIST(`name`, `type`)(`list-initialization`)** sets the default value of a parameter list, which makes it optional, so it can be omitted from the command line without raising an error.
 - **CMDLIME_FLAG(`name`)** - creates `bool name;` config field and registers it in the parser.  
