@@ -236,24 +236,6 @@ private:
         return nestedReaders_[name]->makePtr();
     }
 
-    void swapContents(detail::CommandLineReaderPtr otherReader) override
-    {
-        auto& reader = static_cast<CommandLineReader<formatType>&>(*otherReader);
-        std::swap(versionInfo_, reader.versionInfo_);
-        std::swap(customUsageInfo_, reader.customUsageInfo_);
-        std::swap(customUsageInfoDetailed_, reader.customUsageInfoDetailed_);
-        std::swap(configError_, reader.configError_);
-        std::swap(options_, reader.options_);
-        std::swap(commandName_, reader.commandName_);
-        std::swap(usageInfoFormat_, reader.usageInfoFormat_);
-        std::swap(validators_, reader.validators_);
-        std::swap(argListSet_, reader.argListSet_);
-        std::swap(errorOutput_, reader.errorOutput_);
-        std::swap(output_, reader.output_);
-        std::swap(help_, reader.help_);
-        std::swap(version_, reader.version_);
-    }
-
     std::string usageInfo() const override
     {
         if (!customUsageInfo_.empty())

@@ -23,15 +23,11 @@ public:
     {}
     Config(const Config&) = default;
     Config& operator=(const Config&) = default;
-    Config(Config&& other)
+    Config(Config&&)
     {
-        if (reader() && other.reader())
-            reader()->swapContents(other.reader());
     }
-    Config& operator=(Config&& other)
+    Config& operator=(Config&&)
     {
-        if (reader() && other.reader())
-            reader()->swapContents(other.reader());
         return *this;
     }
 

@@ -51,7 +51,6 @@ public:
     virtual Format format() const = 0;
     virtual bool shortNamesEnabled() const = 0;
     virtual CommandLineReaderPtr makeNestedReader(const std::string& name) = 0;
-    virtual void swapContents(CommandLineReaderPtr) = 0;
 
 protected:
     CommandLineReaderPtr makePtr()
