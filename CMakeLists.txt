@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(cmdlime VERSION 2.0.0 DESCRIPTION "C++17 command line parsing library")
+project(cmdlime VERSION 2.0.1 DESCRIPTION "C++17 command line parsing library")
 include(GNUInstallDirs)
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
