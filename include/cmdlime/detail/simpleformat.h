@@ -4,7 +4,8 @@
 #include "nameutils.h"
 #include "utils.h"
 #include <cmdlime/errors.h>
-#include <sfun/string_utils.h>
+#include "external/sfun/string_utils.h"
+#include "external/sfun/asserts.h"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -73,25 +74,25 @@ class DefaultNameProvider{
 public:
     static std::string name(const std::string& optionName)
     {
-        Expects(!optionName.empty());
+        sfunPrecondition(!optionName.empty());
         return toCamelCase(optionName);
     }
 
     static std::string shortName(const std::string& optionName)
     {
-        Expects(!optionName.empty());
+        sfunPrecondition(!optionName.empty());
         return {};
     }
 
     static std::string fullName(const std::string& optionName)
     {
-        Expects(!optionName.empty());
+        sfunPrecondition(!optionName.empty());
         return toCamelCase(optionName);
     }
 
     static std::string valueName(const std::string& typeName)
     {
-        Expects(!typeName.empty());
+        sfunPrecondition(!typeName.empty());
         return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 

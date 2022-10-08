@@ -3,7 +3,7 @@
 #include "simpleformat.h"
 #include "posixformat.h"
 #include "x11format.h"
-#include "utils.h"
+#include "external/sfun/asserts.h"
 
 namespace cmdlime::detail{
 
@@ -20,7 +20,7 @@ struct NameFormat{
             case Format::GNU:
                 return FormatCfg<Format::GNU>::nameProvider::name(varName);
         }
-        ensureNotReachable();
+        sfun::assert::ensureNotReachable();
     }
 
     static std::string shortName(Format format, const std::string& varName)
@@ -35,7 +35,7 @@ struct NameFormat{
             case Format::GNU:
                 return FormatCfg<Format::GNU>::nameProvider::shortName(varName);
         }
-        ensureNotReachable();
+        sfun::assert::ensureNotReachable();
     }
     static std::string fullName(Format format, const std::string& varName)
     {
@@ -49,7 +49,7 @@ struct NameFormat{
             case Format::GNU:
                 return FormatCfg<Format::GNU>::nameProvider::fullName(varName);
         }
-        ensureNotReachable();
+        sfun::assert::ensureNotReachable();
     }
     static std::string valueName(Format format, const std::string& type)
     {
@@ -63,7 +63,7 @@ struct NameFormat{
             case Format::GNU:
                 return FormatCfg<Format::GNU>::nameProvider::valueName(type);
         }
-        ensureNotReachable();
+        sfun::assert::ensureNotReachable();
     }
 };
 

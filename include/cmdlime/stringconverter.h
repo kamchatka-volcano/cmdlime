@@ -1,6 +1,6 @@
 #pragma once
 #include "detail/utils.h"
-#include <sfun/traits.h>
+#include "detail/external/sfun/traits.h"
 #include <string>
 #include <sstream>
 #include <optional>

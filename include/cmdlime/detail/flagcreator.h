@@ -3,7 +3,7 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include <gsl/assert>
+#include "external/sfun/asserts.h"
 
 namespace cmdlime::detail{
 
@@ -16,7 +16,7 @@ public:
                 Flag::Type flagType = Flag::Type::Normal)
         : reader_(reader)
     {
-        Expects(!varName.empty());
+        sfunPrecondition(!varName.empty());
         flag_ = std::make_unique<Flag>(
                 reader_ ? NameFormat::name(reader_->format(), varName) : varName,
                 reader_ ? NameFormat::shortName(reader_->format(), varName) : varName,

@@ -4,7 +4,7 @@
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
-#include <sfun/traits.h>
+#include "external/sfun/traits.h"
 #include <sstream>
 #include <optional>
 #include <memory>

@@ -1,5 +1,5 @@
 #pragma once
-#include "configreaderptr.h"
+#include "commandlinereaderptr.h"
 #include <cmdlime/format.h>
 #include <vector>
 #include <string>

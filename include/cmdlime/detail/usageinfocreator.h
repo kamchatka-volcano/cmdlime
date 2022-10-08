@@ -9,7 +9,7 @@
 #include "options.h"
 #include "formatcfg.h"
 #include <cmdlime/usageinfoformat.h>
-#include <sfun/string_utils.h>
+#include "external/sfun/string_utils.h"
 #include <utility>
 #include <vector>
 #include <memory>
@@ -17,7 +17,6 @@
 #include <iomanip>
 
 namespace cmdlime::detail{
-using namespace gsl;
 namespace str = sfun::string_utils;
 
 inline std::string adjustedToLineBreak(std::string line, std::string& text)
