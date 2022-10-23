@@ -1,0 +1,55 @@
+name: Build and test
+
+on:
+  push:
+    branches: [ "master", "dev" ]
+  pull_request:
+    branches: [ "master", "dev" ]
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    env:
+      CC: ${{ matrix.config.cc }}
+      CXX: ${{ matrix.config.cxx }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {
+            name: "Ubuntu Latest gcc",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused"
+          }
+          - {
+            name: "Ubuntu Latest clang",
+            os: ubuntu-latest,
+            cc: "clang",
+            cxx: "clang++",
+            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused"
+          }
+          - {
+            name: "Windows Latest MSVC",
+            os: windows-latest,
+            cc: "cl",
+            cxx: "cl",
+            flags: "/EHsc /W4 /WX"
+          }
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DENABLE_TESTS=ON -DENABLE_EXAMPLES=ON -DCMAKE_CXX_FLAGS="${{ matrix.config.flags }}"
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest
+
