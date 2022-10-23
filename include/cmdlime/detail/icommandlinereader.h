@@ -7,7 +7,7 @@
 
 namespace cmdlime{
 struct UsageInfoFormat;
-};
+}
 
 namespace cmdlime::detail{
 class Options;
