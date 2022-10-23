@@ -39,6 +39,8 @@ public:
     TCfg read(const std::vector<std::string>& cmdLine)
     {
         auto cfg = makeCfg<TCfg>();
+        setCommandName(commandName_);
+        setUsageInfoFormat(usageInfoFormat_);
         if (read(cmdLine) != detail::CommandLineReadResult::StoppedOnExitFlag)
             validate({});
         resetCommandLineReader(cfg);
@@ -63,6 +65,8 @@ public:
     int exec(const std::vector<std::string>& cmdLine, std::function<int(const TCfg&)> func)
     {
         auto cfg = makeCfg<TCfg>();
+        setCommandName(commandName_);
+        setUsageInfoFormat(usageInfoFormat_);
         addDefaultFlags();
 
         try {
@@ -96,6 +100,8 @@ public:
     std::string usageInfo()
     {
         makeCfg<TCfg>();
+        setCommandName(commandName_);
+        setUsageInfoFormat(usageInfoFormat_);
         return usageInfo();
     }
 
@@ -103,6 +109,8 @@ public:
     std::string usageInfoDetailed()
     {
         makeCfg<TCfg>();
+        setCommandName(commandName_);
+        setUsageInfoFormat(usageInfoFormat_);
         return usageInfoDetailed();
     }
 
@@ -265,10 +273,8 @@ private:
     TCfg makeCfg()
     {
         clear();
-        auto cfg = TCfg{{makePtr()}};
-        setCommandName(commandName_);
-        setUsageInfoFormat(usageInfoFormat_);
-        return cfg;
+        return TCfg{{makePtr()}}; //can't add setCommandName and setUsageInfoFormat calls here
+                                  // due to the lack of NRVO on MSVC (the config object must not be copied)
     }
 
     void addDefaultFlags()
