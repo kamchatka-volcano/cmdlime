@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CMDLIME_USAGEINFOFORMAT_H
+#define CMDLIME_USAGEINFOFORMAT_H
 
 namespace cmdlime{
 
@@ -10,3 +11,5 @@ struct UsageInfoFormat{
 };
 
 }
+
+#endif //CMDLIME_USAGEINFOFORMAT_H

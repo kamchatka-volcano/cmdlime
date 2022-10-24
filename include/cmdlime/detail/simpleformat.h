@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_SIMPLEFORMAT_H
+#define CMDLIME_SIMPLEFORMAT_H
+
 #include "parser.h"
 #include "formatcfg.h"
 #include "nameutils.h"
@@ -207,5 +209,6 @@ struct FormatCfg<Format::Simple>
     static constexpr bool shortNamesEnabled = false;
 };
 
-
 }
+
+#endif //CMDLIME_SIMPLEFORMAT_H

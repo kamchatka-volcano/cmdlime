@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_PARSER_H
+#define CMDLIME_PARSER_H
+
 #include "iparam.h"
 #include "iparamlist.h"
 #include "iflag.h"
@@ -371,5 +373,6 @@ private:
     ICommand* foundCommand_ = nullptr;
 };
 
-
 }
+
+#endif //CMDLIME_PARSER_H

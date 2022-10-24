@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_VALIDATOR_H
+#define CMDLIME_VALIDATOR_H
+
 #include "ivalidator.h"
 #include "ioption.h"
 #include "optioninfo.h"
@@ -66,3 +68,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_VALIDATOR_H

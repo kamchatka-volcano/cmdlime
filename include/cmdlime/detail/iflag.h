@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_IFLAG_H
+#define CMDLIME_IFLAG_H
+
 #include "ioption.h"
 
 namespace cmdlime::detail{
@@ -12,3 +14,5 @@ public:
 };
 
 }
+
+#endif //CMDLIME_IFLAG_H

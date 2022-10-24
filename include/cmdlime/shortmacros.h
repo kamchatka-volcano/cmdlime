@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_SHORTMACROS_H
+#define CMDLIME_SHORTMACROS_H
+
 #include "detail/configmacros.h"
 
 #define PARAM CMDLIME_PARAM
@@ -9,3 +11,5 @@
 #define ARGLIST CMDLIME_ARGLIST
 #define COMMAND CMDLIME_COMMAND
 #define SUBCOMMAND CMDLIME_SUBCOMMAND
+
+#endif //CMDLIME_SHORTMACROS_H

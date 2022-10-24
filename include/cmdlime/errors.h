@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_ERRORS_H
+#define CMDLIME_ERRORS_H
+
 #include <stdexcept>
 #include <utility>
 
@@ -72,5 +74,6 @@ public:
     {}
 };
 
-
 }
+
+#endif //CMDLIME_ERRORS_H

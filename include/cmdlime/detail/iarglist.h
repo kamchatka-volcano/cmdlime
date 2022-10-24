@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_IARGLIST_H
+#define CMDLIME_IARGLIST_H
+
 #include "ioption.h"
 #include <string>
 
@@ -14,3 +16,5 @@ public:
 };
 
 }
+
+#endif //CMDLIME_IARGLIST_H

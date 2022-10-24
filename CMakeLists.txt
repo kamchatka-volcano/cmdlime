@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(cmdlime VERSION 2.0.2 DESCRIPTION "C++17 command line parsing library")
+project(cmdlime VERSION 2.1.0 DESCRIPTION "C++17 command line parsing library")
 include(GNUInstallDirs)
 include(external/seal_lake)
 

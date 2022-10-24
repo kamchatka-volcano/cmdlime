@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_FLAGCREATOR_H
+#define CMDLIME_FLAGCREATOR_H
+
 #include "flag.h"
 #include "icommandlinereader.h"
 #include "nameformat.h"
@@ -63,3 +65,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_FLAGCREATOR_H

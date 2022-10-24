@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CMDLIME_IVALIDATOR_H
+#define CMDLIME_IVALIDATOR_H
 #include "ioption.h"
 
 namespace cmdlime::detail {
@@ -17,3 +18,5 @@ public:
 };
 
 }
+
+#endif //CMDLIME_IVALIDATOR_H

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_USAGEINFOCREATOR_H
+#define CMDLIME_USAGEINFOCREATOR_H
+
 #include "iparam.h"
 #include "iparamlist.h"
 #include "iflag.h"
@@ -381,3 +383,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_USAGEINFOCREATOR_H

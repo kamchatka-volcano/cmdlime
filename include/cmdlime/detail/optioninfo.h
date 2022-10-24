@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_OPTIONINFO_H
+#define CMDLIME_OPTIONINFO_H
+
 #include "external/sfun/asserts.h"
 #include <string>
 #include <sstream>
@@ -65,3 +67,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_OPTIONINFO_H

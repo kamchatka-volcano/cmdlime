@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_ARGLISTCREATOR_H
+#define CMDLIME_ARGLISTCREATOR_H
+
 #include "arglist.h"
 #include "icommandlinereader.h"
 #include "nameformat.h"
@@ -75,3 +77,4 @@ private:
 };
 
 }
+#endif //CMDLIME_ARGLISTCREATOR_H

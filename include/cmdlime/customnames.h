@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_CUSTOMNAMES_H
+#define CMDLIME_CUSTOMNAMES_H
+
 #include "errors.h"
 #include <string>
 #include <utility>
@@ -38,3 +40,5 @@ using ValueName = CustomName<detail::CustomNameType::ValueName>;
 struct WithoutShortName{};
 
 }
+
+#endif //CMDLIME_CUSTOMNAMES_H

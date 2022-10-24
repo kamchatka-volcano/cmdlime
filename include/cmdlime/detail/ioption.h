@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_IOPTION_H
+#define CMDLIME_IOPTION_H
+
 #include <string>
 
 namespace cmdlime::detail{
@@ -29,3 +31,5 @@ public:
     virtual OptionType type() const = 0;
 };
 }
+
+#endif //CMDLIME_IOPTION_H

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_NAMEUTILS_H
+#define CMDLIME_NAMEUTILS_H
+
 #include "external/sfun/string_utils.h"
 #include <string>
 #include <algorithm>
@@ -91,3 +93,5 @@ inline std::string templateType(const std::string& type)
 }
 
 }
+
+#endif //CMDLIME_NAMEUTILS_H

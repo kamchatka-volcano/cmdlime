@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_POSIXFORMAT_H
+#define CMDLIME_POSIXFORMAT_H
+
 #include "parser.h"
 #include "nameutils.h"
 #include "utils.h"
@@ -259,5 +261,6 @@ struct FormatCfg<Format::POSIX>
     static constexpr bool shortNamesEnabled = false;
 };
 
-
 }
+
+#endif //CMDLIME_POSIXFORMAT_H

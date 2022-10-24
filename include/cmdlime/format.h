@@ -1,3 +1,6 @@
+#ifndef CMDLIME_FORMAT_H
+#define CMDLIME_FORMAT_H
+
 #pragma once
 
 namespace cmdlime {
@@ -9,3 +12,5 @@ enum class Format {
 };
 
 }
+
+#endif //CMDLIME_FORMAT_H

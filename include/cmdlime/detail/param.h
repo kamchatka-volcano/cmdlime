@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_PARAM_H
+#define CMDLIME_PARAM_H
+
 #include "iparam.h"
 #include "optioninfo.h"
 #include <cmdlime/errors.h>
@@ -94,3 +96,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_PARAM_H

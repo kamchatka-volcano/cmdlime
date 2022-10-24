@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_FLAG_H
+#define CMDLIME_FLAG_H
+
 #include "iflag.h"
 #include "optioninfo.h"
 #include <cmdlime/customnames.h>
@@ -64,4 +66,5 @@ private:
 
 }
 
+#endif //CMDLIME_FLAG_H
 
