@@ -2,6 +2,8 @@
   <img height="128" src="doc/logo.jpg"/>  
 </p>
 
+[![build & test (clang, gcc, MSVC)](https://github.com/kamchatka-volcano/cmdlime/actions/workflows/build_and_test.yml/badge.svg?branch=master)](https://github.com/kamchatka-volcano/cmdlime/actions/workflows/build_and_test.yml)
+
 **cmdlime** - is a C++17 header-only library for command line parsing with minimum of code and ~~pain~~ things to remember. See for yourself:
 
 ```C++
