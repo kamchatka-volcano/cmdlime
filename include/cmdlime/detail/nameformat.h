@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_NAMEFORMAT_H
+#define CMDLIME_NAMEFORMAT_H
+
 #include "gnuformat.h"
 #include "simpleformat.h"
 #include "posixformat.h"
@@ -68,3 +70,5 @@ struct NameFormat{
 };
 
 }
+
+#endif //CMDLIME_NAMEFORMAT_H

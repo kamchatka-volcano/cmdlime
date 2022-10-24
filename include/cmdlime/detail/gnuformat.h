@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_GNUFORMAT_H
+#define CMDLIME_GNUFORMAT_H
+
 #include "parser.h"
 #include "nameutils.h"
 #include "utils.h"
@@ -339,5 +341,6 @@ struct FormatCfg<Format::GNU>
     static constexpr bool shortNamesEnabled = true;
 };
 
-
 }
+
+#endif //CMDLIME_GNUFORMAT_H

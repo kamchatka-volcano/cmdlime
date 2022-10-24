@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_INITIALIZEDOPTIONAL_H
+#define CMDLIME_INITIALIZEDOPTIONAL_H
+
 #include <utility>
 #include <stdexcept>
 #include <optional>
@@ -291,3 +293,5 @@ bool operator>=( const U& lhs, const InitializedOptional<T>& rhs)
 
 
 }
+
+#endif //CMDLIME_INITIALIZEDOPTIONAL_H

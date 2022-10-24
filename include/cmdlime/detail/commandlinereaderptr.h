@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CMDLIME_COMMANDLINEREADERPTR_H
+#define CMDLIME_COMMANDLINEREADERPTR_H
 
 namespace cmdlime::detail {
 class ICommandLineReader;
@@ -45,3 +46,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_COMMANDLINEREADERPTR_H

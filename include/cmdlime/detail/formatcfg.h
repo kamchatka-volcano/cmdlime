@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_FORMATCFG_H
+#define CMDLIME_FORMATCFG_H
+
 #include <cmdlime/format.h>
 
 namespace cmdlime::detail{
@@ -19,3 +21,5 @@ template<>
 struct FormatCfg<Format::GNU>;
 
 }
+
+#endif //CMDLIME_FORMATCFG_H

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_ARG_H
+#define CMDLIME_ARG_H
+
 #include "iarg.h"
 #include "optioninfo.h"
 #include <cmdlime/errors.h>
@@ -52,3 +54,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_ARG_H

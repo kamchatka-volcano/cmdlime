@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_CONFIG_H
+#define CMDLIME_CONFIG_H
+
 #include "customnames.h"
 #include "detail/configmacros.h"
 #include "detail/paramcreator.h"
@@ -288,3 +290,5 @@ template<typename T>
 using optional = std::conditional_t<std::is_base_of_v<Config, T>, detail::InitializedOptional<T>, std::optional<T>>;
 
 }
+
+#endif //CMDLIME_CONFIG_H

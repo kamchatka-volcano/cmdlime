@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_COMMANDLINEREADER_H
+#define CMDLIME_COMMANDLINEREADER_H
+
 #include "config.h"
 #include "errors.h"
 #include "format.h"
@@ -357,3 +359,5 @@ using POSIXCommandLineReader = CommandLineReader<Format::POSIX>;
 using SimpleCommandLineReader = CommandLineReader<Format::Simple>;
 
 }
+
+#endif //CMDLIME_COMMANDLINEREADER_H

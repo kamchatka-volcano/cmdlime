@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_STRINGCONVERTER_H
+#define CMDLIME_STRINGCONVERTER_H
+
 #include "detail/utils.h"
 #include "detail/external/sfun/traits.h"
 #include <string>
@@ -80,3 +82,5 @@ std::optional<T> convertFromString(const std::string& data)
 
 }
 }
+
+#endif //CMDLIME_STRINGCONVERTER_H

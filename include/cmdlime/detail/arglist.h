@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_ARGLIST_H
+#define CMDLIME_ARGLIST_H
+
 #include "iarglist.h"
 #include "optioninfo.h"
 #include <cmdlime/errors.h>
@@ -97,3 +99,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_ARGLIST_H

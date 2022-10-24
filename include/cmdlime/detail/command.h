@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_COMMAND_H
+#define CMDLIME_COMMAND_H
+
 #include "icommand.h"
 #include "optioninfo.h"
 #include "flag.h"
@@ -140,3 +142,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_COMMAND_H

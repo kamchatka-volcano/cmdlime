@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_OPTIONS_H
+#define CMDLIME_OPTIONS_H
+
 #include "iparam.h"
 #include "iparamlist.h"
 #include "iflag.h"
@@ -82,3 +84,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_OPTIONS_H

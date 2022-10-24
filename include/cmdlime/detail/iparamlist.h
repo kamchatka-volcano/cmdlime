@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_IPARAMLIST_H
+#define CMDLIME_IPARAMLIST_H
+
 #include "ioption.h"
 #include <string>
 
@@ -15,3 +17,4 @@ public:
 
 }
 
+#endif //CMDLIME_IPARAMLIST_H

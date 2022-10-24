@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_PARAMCREATOR_H
+#define CMDLIME_PARAMCREATOR_H
+
 #include "param.h"
 #include "icommandlinereader.h"
 #include "nameformat.h"
@@ -87,3 +89,5 @@ private:
 };
 
 }
+
+#endif //CMDLIME_PARAMCREATOR_H

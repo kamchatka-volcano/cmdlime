@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_UTILS_H
+#define CMDLIME_UTILS_H
+
 #include "initializedoptional.h"
 #include "nameof_import.h"
 #include "external/sfun/traits.h"
@@ -55,3 +57,5 @@ inline std::tuple<std::string, std::string> getMemberPtrNameAndType(TParent* par
 #endif
 
 }
+
+#endif //CMDLIME_UTILS_H

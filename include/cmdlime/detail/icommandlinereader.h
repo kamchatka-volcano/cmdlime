@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_ICOMMANDLINEREADER_H
+#define CMDLIME_ICOMMANDLINEREADER_H
+
 #include "commandlinereaderptr.h"
 #include <cmdlime/format.h>
 #include <vector>
@@ -66,3 +68,5 @@ protected:
 };
 
 }
+
+#endif //CMDLIME_ICOMMANDLINEREADER_H

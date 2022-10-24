@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CMDLIME_ICOMMAND_H
+#define CMDLIME_ICOMMAND_H
+
 #include "ioption.h"
 #include "icommandlinereader.h"
 #include <vector>
@@ -26,3 +28,5 @@ public:
 };
 
 }
+
+#endif //CMDLIME_ICOMMAND_H
