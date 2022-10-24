@@ -1,6 +1,6 @@
 #pragma once
 #include "detail/utils.h"
-#include <sfun/traits.h>
+#include "detail/external/sfun/traits.h"
 #include <string>
 #include <sstream>
 #include <optional>
@@ -28,6 +28,7 @@ struct StringConverter{
 
     static std::optional<T> fromString(const std::string& data)
     {
+        [[maybe_unused]]
         auto setValue = [](auto& value, const std::string& data) -> std::optional<T>
         {
             auto stream = std::stringstream{data};

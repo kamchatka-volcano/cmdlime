@@ -3,8 +3,7 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include <gsl/assert>
-
+#include "external/sfun/asserts.h"
 namespace cmdlime::detail{
 
 template<typename T>
@@ -17,8 +16,8 @@ public:
             : reader_(reader)
             , argValue_(argValue)
     {
-        Expects(!varName.empty());
-        Expects(!type.empty());
+        sfunPrecondition(!varName.empty());
+        sfunPrecondition(!type.empty());
         arg_ = std::make_unique<Arg<T>>(
                 reader_ ? NameFormat::fullName(reader_->format(), varName) : varName,
                 reader_ ? NameFormat::valueName(reader_->format(), type) : type,

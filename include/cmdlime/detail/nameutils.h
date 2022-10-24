@@ -1,5 +1,5 @@
 #pragma once
-#include <sfun/string_utils.h>
+#include "external/sfun/string_utils.h"
 #include <string>
 #include <algorithm>
 #include <type_traits>

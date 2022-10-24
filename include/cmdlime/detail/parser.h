@@ -17,7 +17,6 @@
 #include <optional>
 
 namespace cmdlime::detail{
-using namespace gsl;
 
 template <Format formatType>
 class Parser{

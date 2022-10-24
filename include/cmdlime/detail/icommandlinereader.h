@@ -1,5 +1,5 @@
 #pragma once
-#include "configreaderptr.h"
+#include "commandlinereaderptr.h"
 #include <cmdlime/format.h>
 #include <vector>
 #include <string>
@@ -7,7 +7,7 @@
 
 namespace cmdlime{
 struct UsageInfoFormat;
-};
+}
 
 namespace cmdlime::detail{
 class Options;

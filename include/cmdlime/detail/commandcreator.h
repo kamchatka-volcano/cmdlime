@@ -4,7 +4,7 @@
 #include "nameformat.h"
 #include "validator.h"
 #include "initializedoptional.h"
-#include <gsl/assert>
+#include "external/sfun/asserts.h"
 
 namespace cmdlime{
 class Config;
@@ -24,7 +24,7 @@ public:
             : reader_(reader)
             , commandValue_(commandValue)
     {
-        Expects(!varName.empty());
+        sfunPrecondition(!varName.empty());
         nestedReader_ = reader_ ? reader_->makeNestedReader(NameFormat::fullName(reader_->format(), varName)) : CommandLineReaderPtr{};
         command_ = std::make_unique<Command<TCfg>>(
                 reader_ ? NameFormat::fullName(reader->format(), varName) : varName,

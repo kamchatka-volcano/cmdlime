@@ -4,7 +4,7 @@
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
-#include <sfun/string_utils.h>
+#include "external/sfun/string_utils.h"
 #include <vector>
 #include <sstream>
 #include <functional>

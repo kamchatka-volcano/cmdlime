@@ -4,7 +4,7 @@
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
-#include <sfun/traits.h>
+#include "external/sfun/traits.h"
 #include <sstream>
 #include <optional>
 #include <memory>
@@ -62,14 +62,16 @@ private:
     {
         if constexpr (is_optional_v<T>)
             return true;
-        return hasValue_;
+        else
+            return hasValue_;
     }
 
     bool isOptional() const override
     {
         if constexpr (is_optional_v<T>)
             return true;
-        return defaultValue_.has_value();
+        else
+            return defaultValue_.has_value();
     }
 
     std::string defaultValue() const override

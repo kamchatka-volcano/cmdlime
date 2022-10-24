@@ -3,6 +3,7 @@
 #include "ioption.h"
 #include "optioninfo.h"
 #include "utils.h"
+#include "external/sfun/asserts.h"
 #include <cmdlime/errors.h>
 #include <functional>
 
@@ -20,7 +21,7 @@ inline std::string validatorOptionTypeName(OptionType optionType)
         case OptionType::Param: return "parameter";
         case OptionType::ParamList: return "parameter list";
     }
-    ensureNotReachable();
+    sfun::assert::ensureNotReachable();
 }
 
 template<typename T>

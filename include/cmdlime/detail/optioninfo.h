@@ -1,5 +1,5 @@
 #pragma once
-#include <gsl/assert>
+#include "external/sfun/asserts.h"
 #include <string>
 #include <sstream>
 #include <utility>
@@ -13,7 +13,7 @@ public:
         , shortName_(std::move(shortName))
         , valueName_(std::move(valueName))
     {
-        Expects(!name_.empty());
+        sfunPrecondition(!name_.empty());
     }
 
     void addDescription(const std::string& desc)
@@ -23,7 +23,7 @@ public:
 
     void resetName(const std::string& name)
     {
-        Expects(!name.empty());
+        sfunPrecondition(!name.empty());
         name_ = name;
     }
 

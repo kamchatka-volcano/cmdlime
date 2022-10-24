@@ -1,20 +1,13 @@
 #pragma once
 #include "initializedoptional.h"
 #include "nameof_import.h"
-#include <sfun/traits.h>
-#include <gsl/assert>
+#include "external/sfun/traits.h"
 #include <string>
 #include <sstream>
 #include <optional>
 #include <tuple>
 
 namespace cmdlime::detail{
-
-[[noreturn]]
-inline void ensureNotReachable()
-{
-    Ensures(false);
-}
 
 inline std::string capitalize(const std::string& input)
 {

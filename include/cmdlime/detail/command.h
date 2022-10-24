@@ -14,7 +14,6 @@
 #include <memory>
 
 namespace cmdlime::detail{
-using namespace gsl;
 
 template <typename TConfig>
 class Command : public ICommand{
