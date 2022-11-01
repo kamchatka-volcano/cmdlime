@@ -6,10 +6,10 @@ include(external/seal_lake)
 option(CMDLIME_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
 if (CMDLIME_USE_NAMEOF)
     set(NAMEOF_OPT_INSTALL ON)
-    SealLake_Import(
-            nameof 0.10.2
+    SealLake_Bundle(
+            NAME nameof
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
-            GIT_TAG        v0.10.2
+            GIT_TAG        f7b2f34
     )
 endif()
 
