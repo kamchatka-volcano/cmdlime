@@ -4,7 +4,7 @@
 
 [![build & test (clang, gcc, MSVC)](https://github.com/kamchatka-volcano/cmdlime/actions/workflows/build_and_test.yml/badge.svg?branch=master)](https://github.com/kamchatka-volcano/cmdlime/actions/workflows/build_and_test.yml)
 
-**cmdlime** - is a C++17 header-only library for command line parsing with minimum of code and ~~pain~~ things to remember. See for yourself:
+**cmdlime** is a C++17 header-only library for command line parsing that provides a concise, declarative interface without many details to remember. See for yourself:
 
 ```C++
 ///examples/ex01.cpp
@@ -29,13 +29,13 @@ int main(int argc, char** argv)
 }
 ```
 
-The default configuration conforms to the GNU command line options convention, so this program can be launched like this:
+The default configuration follows the GNU command line options convention, so you can run the program like this:
 ```console
 kamchatka-volcano@home:~$ ./person-finder 684007 --name John --verbose
 Looking for person John in the region with zip code: 684007
 ```
 
-Please note, that in this example, `--name` is a parameter, `--verbose` is a flag, and `684007` is an argument, this naming is used in this document and within the **cmdlime** interface.
+Please note that in the example above, `--name` is a parameter, `--verbose` is a flag, and `684007` is an argument. This naming convention is used throughout this document and in the **cmdlime** interface.
 
 
 ## Table of Contents
@@ -63,23 +63,30 @@ Please note, that in this example, `--name` is a parameter, `--verbose` is a fla
 
 ### Declaring the config structure
 
-To use **cmdlime** you need to create a structure with fields corresponding to parameters, flags and arguments which are read from the command line.  
-To do this subclass `cmdlime::Config` and declare fields with the following macros:
-- **CMDLIME_ARG(`name`, `type`)** - creates `type name;` config field and registers it in the parser.  
-Arguments are mapped to the config fields in the order of declaration. Arguments can't have default values and are always required to be specified in the command line.
-- **CMDLIME_ARGLIST(`name`, `listType`)** - creates listType name; config field and registers it in the parser. listType can be any sequence container, supporting emplace_back operation, within STL it's vector, deque or list.  
- Config can have only one argument list and elements are placed into it after all other config arguments are set, regardless of the order of declaration. The declaration form **CMDLIME_ARGLIST(`name`, `listType`)(`list-initialization`)** sets the default value of an argument list, which makes it optional, so it can be omitted from the command line without raising an error.
-- **CMDLIME_PARAM(`name`, `type`)** - creates `type name;` config field and registers it in the parser.  
-The declaration form **CMDLIME_PARAM(`name`, `type`)(`default value`)** sets the default value of a parameter, which makes it optional, so it can be omitted from the command line without raising an error. Parameters can also be declared optional by placing them in `cmdlime::optional`(`std::optional-like wrapper with similar interface`).
-- **CMDLIME_PARAMLIST(`name`, `listType`)** - creates listType name; config field and registers it in the parser. listType can be any sequence container, supporting emplace_back operation, within STL it's vector, deque or list
-Parameter list can be filled by specifying it in the command line multiple times (`--param-list val1 --param-list val2`) or passing a comma separated value (`--param-list val1,val2`).  
-The declaration form **CMDLIME_PARAMLIST(`name`, `type`)(`list-initialization`)** sets the default value of a parameter list, which makes it optional, so it can be omitted from the command line without raising an error.
-- **CMDLIME_FLAG(`name`)** - creates `bool name;` config field and registers it in the parser.  
-Flags are always optional and have default value `false`  
-- **CMDLIME_EXITFLAG(`name`)** - creates `bool name;` config field and registers it in the parser. 
-If at least one exit flag is set,  no parsing errors are raised regardless of the command line's content and config fields other than exit flags are left in an unspecified state. It's usefull for flags like `--help` or `--version` when you're supposed to print some message and exit the program without checking the other fields.
-- **CMDLIME_SUBCOMMAND(`name`, `type`)** - creates `cmdlime::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Subcommands are always optional and have default value `cmdlime::optional<type>{}`.
-- **CMDLIME_COMMAND(`name`, `type`)** - creates `cmdlime::optional<type> name;` config field for nested configuration structure and registers it in the parser. Type must be a subclass of cmdlime::Config. Commands are always optional and have default value `cmdlime::optional<type>{}`. If command is encountered, no parsing errors for other config fields are raised, and they are left in an unspecified state.
+To use **cmdlime**, you need to create a structure with fields corresponding to the parameters, flags, and arguments that will be read from the command line.
+
+To do this, subclass `cmdlime::Config` and declare fields using the following macros:
+
+- **CMDLIME_ARG(`name`, `type`)** - creates a `type name;` config field and registers it in the parser.
+Arguments are mapped to the config fields in the order of declaration. Arguments cannot have default values and must be specified in the command line.
+
+- **CMDLIME_ARGLIST(`name`, `listType`)** - creates `listType name;` config field and registers it in the parser. `listType` can be any sequence container that supports the `emplace_back` operation; within the STL, this includes `vector`, `deque`, or `list`. A config can have only one argument list, and elements are placed into it after all other config arguments have been set, regardless of the order of declaration. The declaration form `CMDLIME_ARGLIST(name, listType)(list-initialization)` sets the default value of an argument list, making it optional and allowing it to be omitted from the command line without raising an error.
+
+- **CMDLIME_PARAM(`name`, `type`)** - creates a `type name;` config field and registers it in the parser.
+The declaration form `CMDLIME_PARAM(name, type)(default value)` sets the default value of a parameter, making it optional and allowing it to be omitted from the command line without raising an error. Parameters can also be declared optional by placing them in `cmdlime::optional` (a `std::optional`-like wrapper with a similar interface).
+
+- **CMDLIME_PARAMLIST(`name`, `listType`)** - creates `listType name;` config field and registers it in the parser. `listType` can be any sequence container that supports the `emplace_back` operation; within the STL, this includes `vector`, `deque`, or `list`.
+A parameter list can be filled by specifying it multiple times in the command line (e.g., `--param-list val1 --param-list val2`) or by passing a comma-separated value (e.g., `--param-list val1,val2`).
+The declaration form `CMDLIME_PARAMLIST(name, type)(list-initialization)` sets the default value of a parameter list, making it optional and allowing it to be omitted from the command line without raising an error.
+- **CMDLIME_FLAG(`name`)** - creates a `bool name;` config field and registers it in the parser.
+Flags are always optional and have a default value of `false`.
+
+- **CMDLIME_EXITFLAG(`name`)** - creates a `bool name;` config field and registers it in the parser.
+If at least one exit flag is set, no parsing errors will be raised regardless of the command line's content. The other config fields will be left in an unspecified state. This is useful for flags like `--help` or `--version`, when you need to print a message and exit the program without checking the other fields.
+- **CMDLIME_SUBCOMMAND(`name`, `type`)** - creates a `cmdlime::optional<type> name;` config field for a nested configuration structure and registers it in the parser. `type` must be a subclass of `cmdlime::Config`. Subcommands are always optional and have a default value of `cmdlime::optional<type>{}`.
+
+- **CMDLIME_COMMAND(`name`, `type`)** - creates a `cmdlime::optional<type> name;` config field for a nested configuration structure and registers it in the parser. `type` must be a subclass of `cmdlime::Config`. Commands are always optional and have a default value of `cmdlime::optional<type>{}`. If a command is encountered, no parsing errors will be raised for the other config fields, and they will be left in an unspecified state.
+
 
 *Note: Types used for config fields must be default constructable and copyable.*  
 
@@ -111,9 +118,8 @@ If you have a low tolerance for macros, it's possible to register structure fiel
         bool verbose     = flag<&Cfg::verbose>();
     };
 ```
-Internally these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings. By default, **cmdlime** ships without it and these methods aren't available, to use them, enable `CMDLIME_USE_NAMEOF` CMake variable to automatically download and configure **nameof** library, or install it on your system by yourself.   
-**nameof** relies on non-standard functionality of C++ compilers, so if you don't like it you can use **cmdlime**
-without it, by providing the names by yourself:
+Internally, these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings. By default, **cmdlime** ships without it and these methods aren't available. To use them, you can enable the `CMDLIME_USE_NAMEOF` CMake variable to automatically download and configure the **nameof** library, or install it on your system yourself.  
+**nameof** relies on non-standard functionality of C++ compilers, so if you don't like it, you can use **cmdlime** without it by providing the names yourself:
 
 ```c++
     struct Cfg : public cmdlime::Config{
@@ -123,17 +129,17 @@ without it, by providing the names by yourself:
     };
 ``` 
 
-Config structures declared using the macros-free methods are fully compatible with all **cmdlime**'s functionality. 
-Examples use registration with macros as it's the least verbose method. 
-
+Config structures declared using the macros-free methods are fully compatible with all **cmdlime**'s functionality. Examples use registration with macros as it's the least verbose method.
 
 ### Using CommandLineReader::exec()
 
-`CommandLineReader::exec()` - is a helper method hiding the error handling boilerplate and adding`--help` and `--version` flags processing to your config.  
-`--help` flag shows a detailed help message, that otherwise can be accessed through the `CommandLineReader::usageInfoDetailed()` method.  
-`--version` flag is enabled only if version info is set in the config with the `CommandLineReader::setVersionInfo` method.  
-To use `CommandLineReader::exec()` you need to provide an alternative entry point function to your program, taking a processed config structure object and returning a result code. 
-Let's modify `person-finder` and see how it works.
+`CommandLineReader::exec()` is a helper method that hides the error handling boilerplate and adds `--help` and `--version` flags processing to your config.
+
+The `--help` flag shows a detailed help message, which can otherwise be accessed through the `CommandLineReader::usageInfoDetailed()` method.
+
+The `--version` flag is enabled only if version info is set in the config with the `CommandLineReader::setVersionInfo` method.
+
+To use `CommandLineReader::exec()`, you need to provide an alternative entry point function for your program, which takes a processed config structure object and returns a result code. Let's modify `person-finder` and see how it works.
 
 ```C++
 ///examples/ex03.cpp
@@ -178,7 +184,7 @@ Flags:
        --version              show version info and exit
 ```
 
-As mentioned before, `CommandLineReader::exec()` is just a helper method, so if you like typing a lot, it's possible to implement the same program without using it:
+As mentioned before, `CommandLineReader::exec()` is just a helper method, so if you prefer to type a lot, it's possible to implement the same program without using it:
 ```C++
 ///examples/ex04.cpp
 ///
@@ -243,14 +249,14 @@ struct Cfg : public cmdlime::Config{
 };
 
 ```
-Here's the fixed config. Turning off the short name generation for flag `--version` resolves the name conflict. When you rely on `CommandLineReader::exec()` for handling of `--help` and `--version` flags, it creates them without short names. At this point, we should do this as well, and all following examples will be based on the version of `person-finder` program that uses `CommandLineReader::exec()`.
+Here's the fixed config. Turning off the short name generation for the flag `--version` resolves the name conflict. When you rely on `CommandLineReader::exec()` for handling of `--help` and `--version` flags, it creates them without short names. At this point, we should do this as well, and all following examples will be based on the version of `person-finder` program that uses `CommandLineReader::exec()`.
 
 
 You can use the following objects to customize names generation:  
-`cmdlime::Name{"customName"}` - overrides command line option's name.  
-`cmdlime::ShortName{"customShortName"}` - overrides command line option's short name.  
-`cmdlime::WithoutShortName{}` - removes command line option's short name.  
-`cmdlime::ValueName{}` - overrides parameter's value name in the usage info. 
+`cmdlime::Name{"customName"}` - overrides the command line option's name.  
+`cmdlime::ShortName{"customShortName"}` - overrides the command line option's short name.  
+`cmdlime::WithoutShortName{}` - removes the command line option's short name.  
+`cmdlime::ValueName{}` - overrides the parameter's value name in the usage info. 
 
 And it's time for another `person-finder`'s rewrite:
 ```C++
@@ -279,9 +285,9 @@ Flags:
 ```
 ### Auto-generated usage info
 
-**cmdlime** can generate help messages accessible with `CommandLineReader::usageInfo()` and `CommandLineReader::usageInfoDetailed()` methods. The former is the compact version that is supposed to be shown alongside error messages, the latter is the detailed version that is printed out when `--help` flag is set.
+**cmdlime** can generate help messages with the `CommandLineReader::usageInfo()` and `CommandLineReader::usageInfoDetailed()` methods. The former is a compact version that can be shown with error messages, while the latter is a detailed version that is printed when the `--help` flag is set.
 
-We can add more information to the detailed usage info by setting the parameters` descriptions:
+You can add more information to the detailed usage info by setting parameter descriptions:
 ```C++
 ///examples/ex07.cpp
 ///
@@ -312,20 +318,20 @@ If you don't like auto-generated usage info message you can set your own with `C
 
 ### Supported formats
 
-**cmdlime** supports several command line naming conventions and unlike many other parsing libraries it strictly enforces them, so you can't mix usage of different formats together.
+**cmdlime** supports several command line naming conventions and unlike other parsing libraries it enforces them strictly, so you can't mix different formats together.
 
-All formats support argument delimiter `--`,  after encountering it, all command line options are treated as arguments, even if they start with hyphens.
+All formats support the `--` argument delimiter. After encountering it, all command line options are treated as arguments, even if they start with hyphens.
 
 #### GNU
 
 All names are in `kebab-case`.  
 Parameters and flags prefix: `--`  
-Short names are supported.  Short names prefix: `-`  
+Short names are supported. Short names prefix: `-`  
 Parameters usage: `--parameter value`, `--parameter=value`, `-p value` or `-pvalue`  
 Flags usage: `--flag`, `-f`  
 Flags in short form can be "glued" together: `-abc` or with one parameter: `-fp value`
 
-This is the default command line format used by **cmdlime**. Use  `CommandLineReader<cmdlime::Format::GNU>` specialization or its alias `GNUCommandLineReader` to choose this format explicitly.
+This is the default command line format used by **cmdlime**. You can choose this format explicitly by using the `CommandLineReader<cmdlime::Format::GNU>` specialization or its alias `GNUCommandLineReader`.
 
 ```C++
 ///examples/ex08.cpp
@@ -362,9 +368,9 @@ Parameters usage: `-p value` or `-pvalue`
 Flags usage: `-f`  
 Flags in short form can be "glued" together: `-abc` or with one parameter: `-fp value`
 
-Parameters and flags must precede the arguments, besides that, this format is a subset of GNU format.
+Parameters and flags must precede the arguments. Other than that, this format is a subset of the GNU format.
 
-Use `CommandLineReader<cmdlime::Format::POSIX>` specialization or its alias `POSIXCommandLineReader` to choose this format.
+You can choose this format by using the `CommandLineReader<cmdlime::Format::POSIX>` specialization or its alias `POSIXCommandLineReader`.
 ```C++
 ///examples/ex09.cpp
 ///
@@ -392,13 +398,15 @@ Flags:
 ```
 
 #### X11
+
 All names are in `lowercase`.  
 Parameters and flags prefix: `-`  
 Short names aren't supported.  
 Parameters usage: `-parameter value`  
 Flags usage: `-flag`
 
-Use `CommandLineReader<cmdlime::Format::X11>` specialization or its alias `X11CommandLineReader` to choose this format.
+You can choose this format by using the `CommandLineReader<cmdlime::Format::X11>` specialization or its alias `X11CommandLineReader`.
+
 ```C++
 ///examples/ex10.cpp
 ///
@@ -425,7 +433,8 @@ Flags:
 ```
 
 #### Simple format
-This format is created for development purposes of **cmdlime** as it's the easiest one to parse, so **cmdlime** unit tests are probably the only software that use it.
+
+This format is intended for development purposes of **cmdlime**, as it's the easiest one to parse. As a result, **cmdlime** unit tests are probably the only software that uses it.
 
 All names are in `camelCase`.  
 Parameters prefix: `-`  
@@ -434,7 +443,9 @@ Short names aren't supported.
 Parameters usage: `-parameter=value`   
 Flags usage: `--flag`
 
-Use `CommandLineReader<cmdlime::Format::Simple>` specialization or its alias `SimpleCommandLineReader` to choose this format.
+You can choose this format by using the `CommandLineReader<cmdlime::Format::Simple>` specialization or its alias `SimpleCommandLineReader`.
+
+
 ```C++
 ///examples/ex11.cpp
 ///
@@ -461,8 +472,9 @@ Flags:
 ```
 
 ### Using custom types
-To use custom types in the config, it's necessary to add a specialization of the struct `cmdlime::StringConverter` and implement its static methods `toString` and `fromString`.   
-Let's add a coordinate parameter `--coord` to the `person-finder` program.
+To use custom types in the config, you need to add a specialization of the `cmdlime::StringConverter` struct and implement its static methods `toString and fromString`.
+
+For example, let's add a coordinate parameter `--coord` to the `person-finder` program.
 
 ```C++
 ///examples/ex12.cpp
@@ -528,8 +540,8 @@ Possible location:53 157.25
 
 ### Using subcommands
 
-With **cmdlime** it's possible to place a config structure inside other config's field by creating a subcommand. Subcommands are specified in command line by their full name and all following parameters are used to fill a subcommand's structure instead of the main one.  
-Let's enhance `person-finder` programm by adding a result recording mode.
+With **cmdlime**, it's possible to place a config structure inside another config field by creating a subcommand. Subcommands are specified in the command line by their full name, and all following parameters are used to fill the subcommand's structure instead of the main one.  
+Let's enhance `person-finder` program by adding a result recording mode.
 ```C++
 ///examples/ex13.cpp
 ///
@@ -571,8 +583,9 @@ Looking for person  Deer in the region with zip code: 684007
 Record settings: file:res.txt db: detailed:1
 ```
 
-Note that all required config fields like `zipCode` positional argument and `surname` parameter must still be specified. Some subcommands don't need that, imagine that `person-finder` has a search history mode that doesn't require those parameters, and needs to be launched like this: `./person-finder history` without raising a parsing error.   
-It can be easily achieved by registering `history` as a command instead of the subcommand. The main difference is that while command is also stored in the main config's field, logically it's an alternative configuration, not a part of the original one. When command is present in the command line, other config fields aren't read at all and left in an unspecified state.
+Note that all required config fields, such as the `zipCode` positional argument and the `surname` parameter, must still be specified. However, some subcommands don't need those parameters. For example, imagine that the `person-finder` program has a search history mode that doesn't require them and can be launched like this: `./person-finder history` without raising a parsing error.
+
+This can be easily achieved by registering history as a command instead of a subcommand. The main difference is that, while a command is also stored in the main config's field, logically it's an alternative configuration, not a part of the original one. When a command is present in the command line, other config fields aren't read at all and are left in an unspecified state.
 
 
 Let's see how it works:
@@ -628,10 +641,10 @@ kamchatka-volcano@home:~$ ./person-finder history --surname Doe
 Preparing search history with surname filter:Doe
 ```
 
-As you can see a config structure can have multiple commands, but only one can be specified for each config.
+As you can see, a config structure can have multiple commands, but only one can be specified for each config.
 
 ### Using validators
-Processed command line options can be validated by registering constraints checking functions or callable objects. The signature must be compatible with `void (const T&)` where T - is a type of validated config structure field. If option's value is invalid, a validator is required to throw an exception of type `cmdlime::ValidationError`:
+Processed command line options can be validated by registering constraint checking functions or callable objects. The signature must be compatible with `void (const T&)` where `T` is the type of the validated config structure field. If an option's value is invalid, a validator is required to throw an exception of type `cmdlime::ValidationError`:
 
 ```c++
 struct Cfg : cmdlime::Config{
@@ -743,7 +756,7 @@ add_executable(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PRIVATE cmdlime::cmdlime)
 ```
 
-For the system-wide installation use these commands:
+To install the library system-wide, use the following commands:
 ```
 git clone https://github.com/kamchatka-volcano/cmdlime.git
 cd cmdlime
@@ -752,7 +765,7 @@ cmake --build build
 cmake --install build
 ```
 
-Afterwards, you can use find_package() command to make installed library available inside your project:
+After installation, you can use the `find_package()` command to make the installed library available inside your project:
 ```
 find_package(cmdlime 0.10.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE cmdlime::cmdlime)   
