@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(cmdlime VERSION 2.1.0 DESCRIPTION "C++17 command line parsing library" LANGUAGES CXX)
+project(cmdlime VERSION 2.1.0 DESCRIPTION "C++17 command line parsing library")
 include(GNUInstallDirs)
 include(external/seal_lake)
 
@@ -24,14 +24,8 @@ SealLake_Bundle(
             "SFUN_" "CMDLIME_SFUN_"
 )
 
-if (CMDLIME_USE_NAMEOF AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(CPP_STANDARD_FEATURE cxx_std_20)
-else()
-    set(CPP_STANDARD_FEATURE cxx_std_17)
-endif()
-
 SealLake_HeaderOnlyLibrary(
-        COMPILE_FEATURES ${CPP_STANDARD_FEATURE}
+        COMPILE_FEATURES cxx_std_17
         PROPERTIES
             CXX_EXTENSIONS OFF
 )
