@@ -9,7 +9,7 @@ if (CMDLIME_USE_NAMEOF)
     SealLake_Bundle(
             NAME nameof
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
-            GIT_TAG        f7b2f34
+            GIT_TAG        bc183cd
     )
 endif()
 
@@ -24,8 +24,14 @@ SealLake_Bundle(
             "SFUN_" "CMDLIME_SFUN_"
 )
 
+if (CMDLIME_USE_NAMEOF AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CPP_STANDARD_FEATURE cxx_std_20)
+else()
+    set(CPP_STANDARD_FEATURE cxx_std_17)
+endif()
+
 SealLake_HeaderOnlyLibrary(
-        COMPILE_FEATURES cxx_std_17
+        COMPILE_FEATURES ${CPP_STANDARD_FEATURE}
         PROPERTIES
             CXX_EXTENSIONS OFF
 )

@@ -44,21 +44,11 @@ jobs:
             cxx: "cl",
             flags: "/EHsc /W4 /WX"
           }
-        exclude:
-          -
-            config: {
-              name: "Windows Latest MSVC",
-              os: windows-latest,
-              cc: "cl",
-              cxx: "cl",
-              flags: "/EHsc /W4 /WX"
-            }
-            use_nameof: "ON"
     steps:
     - uses: actions/checkout@v3
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DENABLE_TESTS=ON -DENABLE_EXAMPLES=ON -DFIGCONE_USE_NAMEOF=${{ matrix.use_nameof }} -DCMAKE_CXX_FLAGS="${{ matrix.config.flags }}"
+      run: cmake -B ${{github.workspace}}/build -DENABLE_TESTS=ON -DENABLE_EXAMPLES=ON -DCMDLIME_USE_NAMEOF=${{ matrix.use_nameof }} -DCMAKE_CXX_FLAGS="${{ matrix.config.flags }}"
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build
