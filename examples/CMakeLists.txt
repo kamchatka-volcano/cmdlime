@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.18)
 
 file(GLOB SRC_FILES "*.cpp")
 foreach(SRC_FILE ${SRC_FILES})

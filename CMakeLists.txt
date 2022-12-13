@@ -32,8 +32,6 @@ endif()
 
 SealLake_HeaderOnlyLibrary(
         COMPILE_FEATURES ${CPP_STANDARD_FEATURE}
-        PROPERTIES
-            CXX_EXTENSIONS OFF
 )
 
 if (CMDLIME_USE_NAMEOF)
