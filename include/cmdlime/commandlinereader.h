@@ -275,8 +275,11 @@ private:
     TCfg makeCfg()
     {
         clear();
-        return TCfg{{makePtr()}}; //can't add setCommandName and setUsageInfoFormat calls here
+        if constexpr (std::is_aggregate_v<TCfg>)
+            return TCfg{{makePtr()}}; //can't add setCommandName and setUsageInfoFormat calls here
                                   // due to the lack of NRVO on MSVC (the config object must not be copied)
+        else
+            return TCfg{makePtr()};
     }
 
     void addDefaultFlags()

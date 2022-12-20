@@ -82,6 +82,24 @@ private:
 };
 #endif
 
+class IConfig{
+public:
+    virtual ~IConfig() = default;
+};
+
+struct NonAggregateSubCommandCfg : public Config, public IConfig
+{
+    CMDLIME_INIT(NonAggregateSubCommandCfg);
+    CMDLIME_PARAM(prm, std::string);
+};
+
+struct NonAggregateConfig : public Config, public IConfig
+{
+    CMDLIME_INIT(NonAggregateConfig);
+    CMDLIME_PARAM(requiredParam, std::string);
+    CMDLIME_COMMAND(cmd, NonAggregateSubCommandCfg);
+};
+
 TEST(GNUConfig, AllSet)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
@@ -393,6 +411,21 @@ TEST(GNUConfig, MissingOptionalArgList)
     EXPECT_EQ(cfg.flg, false);
     EXPECT_EQ(cfg.argument, 4.2);
     EXPECT_EQ(cfg.argumentList, (std::vector<float>{1.f, 2.f}));
+}
+
+TEST(GNUConfig, NonAggregateConfig)
+{
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
+    {
+        auto cfg = reader.read<NonAggregateConfig>({"-r", "FOO"});
+        EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
+        EXPECT_EQ(cfg.cmd.has_value(), false);
+    }
+    {
+        auto cfg = reader.read<NonAggregateConfig>({"cmd", "--prm", "FOO"});
+        EXPECT_EQ(cfg.cmd.has_value(), true);
+        EXPECT_EQ(cfg.cmd->prm, "FOO");
+    }
 }
 
 TEST(GNUConfig, MissingParam)
