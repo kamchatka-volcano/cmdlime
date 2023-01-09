@@ -13,10 +13,4 @@
 #define CMDLIME_COMMAND(name, type) cmdlime::detail::InitializedOptional<type> name = command<&std::remove_pointer_t<decltype(this)>::name>(#name)
 #define CMDLIME_SUBCOMMAND(name, type) cmdlime::detail::InitializedOptional<type> name = subCommand<&std::remove_pointer_t<decltype(this)>::name>(#name)
 
-#define CMDLIME_INIT(Cfg) \
-Cfg() = default; \
-Cfg(detail::CommandLineReaderPtr readerPtr) \
-    : cmdlime::Config(readerPtr) \
-{}
-
 #endif //CMDLIME_CONFIGMACROS_H

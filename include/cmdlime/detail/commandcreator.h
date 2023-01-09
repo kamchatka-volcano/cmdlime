@@ -61,6 +61,8 @@ public:
     {
         if (reader_)
             reader_->addCommand(std::move(command_));
+        if constexpr(!std::is_aggregate_v<TCfg>)
+            static_assert(std::is_constructible_v<TCfg, detail::CommandLineReaderPtr>, "Non aggregate config objects must inherit cmdlime::Config constructors with 'using Config::Config;'");
         return InitializedOptional<TCfg>{nestedReader_};
     }
 

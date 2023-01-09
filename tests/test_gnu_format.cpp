@@ -89,13 +89,13 @@ public:
 
 struct NonAggregateSubCommandCfg : public Config, public IConfig
 {
-    CMDLIME_INIT(NonAggregateSubCommandCfg);
+    using Config::Config;
     CMDLIME_PARAM(prm, std::string);
 };
 
 struct NonAggregateConfig : public Config, public IConfig
 {
-    CMDLIME_INIT(NonAggregateConfig);
+    using Config::Config;
     CMDLIME_PARAM(requiredParam, std::string);
     CMDLIME_COMMAND(cmd, NonAggregateSubCommandCfg);
 };

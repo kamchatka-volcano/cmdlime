@@ -41,6 +41,7 @@ Please note that in the example above, `--name` is a parameter, `--verbose` is a
 ## Table of Contents
 *    [Usage](#usage)
      * [Declaring the config structure](#declaring-the-config-structure)
+     * [Supporting non-aggregate config structures](#supporting-non-aggregate-config-structures)
      * [Avoiding macros](#avoiding-macros)
      * [Using CommandLineReader::exec()](#using-commandlinereaderexec) 
      * [Custom names](#custom-names)
@@ -87,10 +88,9 @@ If at least one exit flag is set, no parsing errors will be raised regardless of
 
 - **CMDLIME_COMMAND(`name`, `type`)** - creates a `cmdlime::optional<type> name;` config field for a nested configuration structure and registers it in the parser. `type` must be a subclass of `cmdlime::Config`. Commands are always optional and have a default value of `cmdlime::optional<type>{}`. If a command is encountered, no parsing errors will be raised for the other config fields, and they will be left in an unspecified state.
 
-
 *Note: Types used for config fields must be default constructable and copyable.*  
 
-*Another note: You don't need to change your code style when declaring config fields - `camelCase`, `snake_case` and `PascalCase` names are supported and read from the `kebab-case` named parameters in the command line.*  
+*Another note: You don't need to change your code style when declaring config fields - `camelCase`, `snake_case` and `PascalCase` names are supported and read from the `kebab-case` named parameters in the command line.*   
 
 Let's alter the config for the `person-finder` program by adding a required parameter `surname` and making the `name` parameter optional:
 ```C++
@@ -107,6 +107,18 @@ Now parameter `--name` can be skipped without raising an error:
 ```console
 kamchatka-volcano@home:~$ ./person-finder 684007 --surname Deer
 Looking for person Deer in region with zip code: 684007
+```
+
+### Supporting non-aggregate config structures
+`cmdlime` relies on aggregate initialization of user-provided structures. If your config object needs to contain private data or virtual functions, it becomes a non-aggregate type. In this case, you must use the following `using` declaration to inherit `cmdlime::Config`'s constructors: `using Config::Config;`
+```cpp
+struct Cfg : public cmdlime::Config{
+    using Config::Config;
+    CMDLIME_ARG(zipCode, int);
+    CMDLIME_PARAM(name, std::string);
+    CMDLIME_FLAG(verbose);
+    virtual void write(){}; //virtual method makes Cfg non-aggregate
+};
 ```
 
 ### Avoiding macros
@@ -130,6 +142,7 @@ Internally, these methods use the [nameof](https://github.com/Neargye/nameof) li
 ``` 
 
 Config structures declared using the macros-free methods are fully compatible with all **cmdlime**'s functionality. Examples use registration with macros as it's the least verbose method.
+
 
 ### Using CommandLineReader::exec()
 

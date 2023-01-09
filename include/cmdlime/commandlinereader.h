@@ -277,9 +277,11 @@ private:
         clear();
         if constexpr (std::is_aggregate_v<TCfg>)
             return TCfg{{makePtr()}}; //can't add setCommandName and setUsageInfoFormat calls here
-                                  // due to the lack of NRVO on MSVC (the config object must not be copied)
-        else
+                                      // due to the lack of NRVO on MSVC (the config object must not be copied)
+        else{
+            static_assert(std::is_constructible_v<TCfg, detail::CommandLineReaderPtr>, "Non aggregate config objects must inherit cmdlime::Config constructors with 'using Config::Config;'");
             return TCfg{makePtr()};
+        }
     }
 
     void addDefaultFlags()
