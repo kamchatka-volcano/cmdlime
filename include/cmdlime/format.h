@@ -11,6 +11,6 @@ enum class Format {
     GNU
 };
 
-}
+} //namespace cmdlime
 
 #endif //CMDLIME_FORMAT_H

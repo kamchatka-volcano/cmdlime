@@ -4,13 +4,13 @@
 #include "ioption.h"
 #include <string>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
-class IArg : public IOption{
+class IArg : public IOption {
 public:
-    virtual bool read(const std::string& data)  = 0;
+    virtual bool read(const std::string& data) = 0;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_IARG_H

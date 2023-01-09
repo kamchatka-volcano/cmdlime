@@ -1,12 +1,13 @@
 #ifndef CMDLIME_IOPTION_H
 #define CMDLIME_IOPTION_H
 
+#include "external/sfun/interface.h"
 #include <string>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 class OptionInfo;
 
-enum class OptionType{
+enum class OptionType {
     Arg,
     ArgList,
     Command,
@@ -17,19 +18,12 @@ enum class OptionType{
     ParamList
 };
 
-class IOption{
+class IOption : private sfun::Interface<IOption> {
 public:
-    IOption() = default;
-    virtual ~IOption() = default;
-    IOption(const OptionInfo& info) = delete;
-    IOption& operator=(const OptionInfo& info) = delete;
-    IOption(OptionInfo&& info) = delete;
-    IOption& operator=(OptionInfo&& info) = delete;
-
     virtual OptionInfo& info() = 0;
     virtual const OptionInfo& info() const = 0;
     virtual OptionType type() const = 0;
 };
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_IOPTION_H

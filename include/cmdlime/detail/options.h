@@ -1,16 +1,16 @@
 #ifndef CMDLIME_OPTIONS_H
 #define CMDLIME_OPTIONS_H
 
-#include "iparam.h"
-#include "iparamlist.h"
-#include "iflag.h"
 #include "iarg.h"
 #include "iarglist.h"
 #include "icommand.h"
-#include <vector>
+#include "iflag.h"
+#include "iparam.h"
+#include "iparamlist.h"
 #include <memory>
+#include <vector>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
 class Options {
 public:
@@ -83,6 +83,6 @@ private:
     std::vector<std::unique_ptr<ICommand>> commands_;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_OPTIONS_H

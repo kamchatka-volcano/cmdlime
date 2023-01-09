@@ -1,5 +1,5 @@
-#include <gtest/gtest.h>
 #include <cmdlime/detail/nameutils.h>
+#include <gtest/gtest.h>
 
 using namespace cmdlime::detail;
 

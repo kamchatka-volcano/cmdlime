@@ -1,34 +1,31 @@
 #ifndef CMDLIME_COMMAND_H
 #define CMDLIME_COMMAND_H
 
-#include "icommand.h"
-#include "optioninfo.h"
 #include "flag.h"
+#include "icommand.h"
 #include "icommandlinereader.h"
-#include "options.h"
-#include "nameformat.h"
 #include "initializedoptional.h"
-#include <cmdlime/errors.h>
+#include "nameformat.h"
+#include "optioninfo.h"
+#include "options.h"
 #include <cmdlime/customnames.h>
+#include <cmdlime/errors.h>
 #include <cmdlime/usageinfoformat.h>
-#include <sstream>
 #include <functional>
 #include <memory>
+#include <sstream>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
-template <typename TConfig>
-class Command : public ICommand{
+template<typename TConfig>
+class Command : public ICommand {
 public:
-    enum class Type{
+    enum class Type {
         Normal,
         SubCommand
     };
 
-    Command(const std::string& name,
-            InitializedOptional<TConfig>& commandCfg,
-            CommandLineReaderPtr reader,
-            Type type)
+    Command(const std::string& name, InitializedOptional<TConfig>& commandCfg, CommandLineReaderPtr reader, Type type)
         : info_(name, {}, {})
         , type_(type)
         , cfg_(commandCfg)
@@ -60,7 +57,7 @@ private:
 
         reader_->setCommandName(commandName_);
         reader_->setUsageInfoFormat(commandUsageInfoFormat_);
-        if (helpFlag_){
+        if (helpFlag_) {
             reader_->addFlag(std::move(helpFlag_));
             for (auto& command : reader_->options().commands())
                 command->enableHelpFlag();
@@ -76,10 +73,11 @@ private:
 
     void enableHelpFlag() override
     {
-        helpFlag_ = std::make_unique<detail::Flag>(NameFormat::name(reader_->format(), "help"),
-                                                   std::string{},
-                                                   helpFlagValue_,
-                                                   detail::Flag::Type::Exit);
+        helpFlag_ = std::make_unique<detail::Flag>(
+                NameFormat::name(reader_->format(), "help"),
+                std::string{},
+                helpFlagValue_,
+                detail::Flag::Type::Exit);
         helpFlag_->info().addDescription("show usage info and exit");
     }
 
@@ -119,8 +117,7 @@ private:
 
     void setCommandName(const std::string& parentCommandName) override
     {
-        commandName_ = parentCommandName.empty() ? info_.name() :
-                       parentCommandName + " " + info_.name();
+        commandName_ = parentCommandName.empty() ? info_.name() : parentCommandName + " " + info_.name();
     }
 
     void validate() const override
@@ -128,7 +125,6 @@ private:
         if (reader_ && cfg_)
             reader_->validate(info_.name());
     }
-
 
 private:
     OptionInfo info_;
@@ -141,6 +137,6 @@ private:
     bool helpFlagValue_ = false;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_COMMAND_H

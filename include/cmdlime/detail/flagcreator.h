@@ -5,17 +5,18 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/contract.h"
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
-class FlagCreator{
+class FlagCreator {
 
 public:
-    FlagCreator(CommandLineReaderPtr reader,
-                const std::string& varName,
-                bool& flagValue,
-                Flag::Type flagType = Flag::Type::Normal)
+    FlagCreator(
+            CommandLineReaderPtr reader,
+            const std::string& varName,
+            bool& flagValue,
+            Flag::Type flagType = Flag::Type::Normal)
         : reader_(reader)
     {
         sfunPrecondition(!varName.empty());
@@ -64,6 +65,6 @@ private:
     CommandLineReaderPtr reader_;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_FLAGCREATOR_H

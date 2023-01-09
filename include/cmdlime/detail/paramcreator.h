@@ -1,21 +1,18 @@
 #ifndef CMDLIME_PARAMCREATOR_H
 #define CMDLIME_PARAMCREATOR_H
 
-#include "param.h"
 #include "icommandlinereader.h"
 #include "nameformat.h"
+#include "param.h"
 #include "validator.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/contract.h"
 
 namespace cmdlime::detail {
 
 template<typename T>
-class ParamCreator{
+class ParamCreator {
 public:
-    ParamCreator(CommandLineReaderPtr reader,
-                 const std::string& varName,
-                 const std::string& type,
-                 T& paramValue)
+    ParamCreator(CommandLineReaderPtr reader, const std::string& varName, const std::string& type, T& paramValue)
         : reader_(reader)
         , paramValue_(paramValue)
     {
@@ -88,6 +85,6 @@ private:
     T& paramValue_;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_PARAMCREATOR_H

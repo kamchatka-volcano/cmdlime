@@ -3,21 +3,19 @@
 
 #include "iarg.h"
 #include "optioninfo.h"
-#include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
+#include <cmdlime/errors.h>
 #include <cmdlime/stringconverter.h>
-#include <sstream>
 #include <functional>
 #include <memory>
+#include <sstream>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
-template <typename T>
-class Arg : public IArg{
+template<typename T>
+class Arg : public IArg {
 public:
-    Arg(std::string name,
-        std::string type,
-        T& argValue)
+    Arg(std::string name, std::string type, T& argValue)
         : info_(std::move(name), {}, std::move(type))
         , argValue_(argValue)
     {
@@ -53,6 +51,6 @@ private:
     T& argValue_;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_ARG_H

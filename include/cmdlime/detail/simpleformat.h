@@ -1,24 +1,22 @@
 #ifndef CMDLIME_SIMPLEFORMAT_H
 #define CMDLIME_SIMPLEFORMAT_H
 
-#include "parser.h"
 #include "formatcfg.h"
 #include "nameutils.h"
+#include "parser.h"
 #include "utils.h"
-#include <cmdlime/errors.h>
+#include "external/sfun/contract.h"
 #include "external/sfun/string_utils.h"
-#include "external/sfun/asserts.h"
+#include <cmdlime/errors.h>
 #include <algorithm>
-#include <sstream>
-#include <iomanip>
 #include <functional>
+#include <iomanip>
+#include <sstream>
 
-namespace cmdlime::detail{
-namespace str = sfun::string_utils;
+namespace cmdlime::detail {
 
-template <Format formatType>
-class DefaultParser : public Parser<formatType>
-{
+template<Format formatType>
+class DefaultParser : public Parser<formatType> {
     using Parser<formatType>::Parser;
 
     void preProcess() override
@@ -28,12 +26,12 @@ class DefaultParser : public Parser<formatType>
 
     void process(const std::string& token) override
     {
-        if (str::startsWith(token, "--") && token.size() > 2){
-            const auto flagName = str::after(token, "--");
+        if (sfun::startsWith(token, "--") && token.size() > 2) {
+            const auto flagName = sfun::after(token, "--");
             this->readFlag(flagName);
         }
-        else if (str::startsWith(token, "-") && token.size() > 1){
-            if (isNumber(token)){
+        else if (sfun::startsWith(token, "-") && token.size() > 1) {
+            if (isNumber(token)) {
                 this->readArg(token);
                 return;
             }
@@ -41,8 +39,8 @@ class DefaultParser : public Parser<formatType>
             if (token.find('=') == std::string::npos)
                 throw ParsingError{"Wrong parameter format: " + token + ". Parameter must have a form of -name=value"};
 
-            const auto paramName = str::before(str::after(token, "-"), "=");
-            const auto paramValue = std::string{str::after(token, "=")};
+            const auto paramName = sfun::before(sfun::after(token, "-"), "=");
+            const auto paramValue = std::string{sfun::after(token, "=")};
             this->readParam(paramName, paramValue);
         }
         else
@@ -51,28 +49,41 @@ class DefaultParser : public Parser<formatType>
 
     void checkNames()
     {
-        auto check = [](const OptionInfo& var, const std::string& varType){
+        auto check = [](const OptionInfo& var, const std::string& varType)
+        {
             if (!std::isalpha(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
-            if (var.name().size() > 1){
-                auto nonAlphaNumCharIt = std::find_if(var.name().begin() + 1, var.name().end(), [](char ch){return !std::isalnum(ch);});
+            if (var.name().size() > 1) {
+                auto nonAlphaNumCharIt = std::find_if(
+                        var.name().begin() + 1,
+                        var.name().end(),
+                        [](char ch)
+                        {
+                            return !std::isalnum(ch);
+                        });
                 if (nonAlphaNumCharIt != var.name().end())
                     throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters"};
             }
         };
-        this->forEachParamInfo([check](const OptionInfo& var){
-            check(var, "Parameter");
-        });
-        this->forEachParamListInfo([check](const OptionInfo& var){
-            check(var, "Parameter");
-        });
-        this->forEachFlagInfo([check](const OptionInfo& var){
-            check(var, "Flag");
-        });
+        this->forEachParamInfo(
+                [check](const OptionInfo& var)
+                {
+                    check(var, "Parameter");
+                });
+        this->forEachParamListInfo(
+                [check](const OptionInfo& var)
+                {
+                    check(var, "Parameter");
+                });
+        this->forEachFlagInfo(
+                [check](const OptionInfo& var)
+                {
+                    check(var, "Flag");
+                });
     }
 };
 
-class DefaultNameProvider{
+class DefaultNameProvider {
 public:
     static std::string name(const std::string& optionName)
     {
@@ -97,11 +108,9 @@ public:
         sfunPrecondition(!typeName.empty());
         return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
     }
-
 };
 
-
-class DefaultOutputFormatter{
+class DefaultOutputFormatter {
 public:
     static std::string paramUsageName(const IParam& param)
     {
@@ -126,16 +135,14 @@ public:
     static std::string paramDescriptionName(const IParam& param, int indent = 0)
     {
         auto stream = std::stringstream{};
-        stream << std::setw(indent) << paramPrefix()
-               << param.info().name() << "=<" << param.info().valueName() << ">";
+        stream << std::setw(indent) << paramPrefix() << param.info().name() << "=<" << param.info().valueName() << ">";
         return stream.str();
     }
 
     static std::string paramListDescriptionName(const IParamList& param, int indent = 0)
     {
         auto stream = std::stringstream{};
-        stream << std::setw(indent) << paramPrefix()
-               << param.info().name() << "=<" << param.info().valueName() << ">";
+        stream << std::setw(indent) << paramPrefix() << param.info().name() << "=<" << param.info().valueName() << ">";
         return stream.str();
     }
 
@@ -197,18 +204,16 @@ public:
         stream << "<" << argList.info().name() << "> (" << argList.info().valueName() << ")";
         return stream.str();
     }
-
 };
 
 template<>
-struct FormatCfg<Format::Simple>
-{
+struct FormatCfg<Format::Simple> {
     using parser = DefaultParser<Format::Simple>;
     using nameProvider = DefaultNameProvider;
     using outputFormatter = DefaultOutputFormatter;
     static constexpr bool shortNamesEnabled = false;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_SIMPLEFORMAT_H

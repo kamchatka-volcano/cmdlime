@@ -1,14 +1,14 @@
 #ifndef CMDLIME_OPTIONINFO_H
 #define CMDLIME_OPTIONINFO_H
 
-#include "external/sfun/asserts.h"
-#include <string>
+#include "external/sfun/contract.h"
 #include <sstream>
+#include <string>
 #include <utility>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
-class OptionInfo{
+class OptionInfo {
 public:
     OptionInfo(std::string name, std::string shortName, std::string valueName)
         : name_(std::move(name))
@@ -66,6 +66,6 @@ private:
     std::string description_;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_OPTIONINFO_H

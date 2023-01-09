@@ -4,23 +4,20 @@
 #include "iflag.h"
 #include "optioninfo.h"
 #include <cmdlime/customnames.h>
-#include <memory>
 #include <functional>
+#include <memory>
 #include <utility>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
-class Flag : public IFlag{
+class Flag : public IFlag {
 public:
-    enum class Type{
+    enum class Type {
         Normal,
         Exit
     };
 
-    Flag(std::string name,
-         std::string shortName,
-         bool& flagValue,
-         Type type)
+    Flag(std::string name, std::string shortName, bool& flagValue, Type type)
         : info_(std::move(name), std::move(shortName), {})
         , flagValue_(flagValue)
         , type_(type)
@@ -64,7 +61,6 @@ private:
     Type type_;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_FLAG_H
-

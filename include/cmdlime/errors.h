@@ -4,34 +4,27 @@
 #include <stdexcept>
 #include <utility>
 
-namespace cmdlime{
+namespace cmdlime {
 
-class Error : public std::runtime_error
-{
+class Error : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
-class ParsingError : public Error
-{
+class ParsingError : public Error {
     using Error::Error;
 };
 
-class ConfigError : public Error
-{
+class ConfigError : public Error {
     using Error::Error;
 };
 
-class ValidationError : public Error
-{
+class ValidationError : public Error {
     using Error::Error;
 };
 
-class CommandError : public Error
-{
+class CommandError : public Error {
 public:
-    CommandError(std::string commandName,
-                 std::string commandUsageInfo,
-                 const std::string& errorMsg)
+    CommandError(std::string commandName, std::string commandUsageInfo, const std::string& errorMsg)
         : Error(errorMsg)
         , commandName_(std::move(commandName))
         , commandUsageInfo_(std::move(commandUsageInfo))
@@ -53,27 +46,22 @@ private:
     std::string commandUsageInfo_;
 };
 
-class CommandParsingError : public CommandError
-{
+class CommandParsingError : public CommandError {
 public:
-    CommandParsingError(std::string commandName,
-                        std::string commandUsageInfo,
-                        const ParsingError& error)
+    CommandParsingError(std::string commandName, std::string commandUsageInfo, const ParsingError& error)
         : CommandError(std::move(commandName), std::move(commandUsageInfo), error.what())
-    {}
+    {
+    }
 };
 
-
-class CommandConfigError : public CommandError
-{
+class CommandConfigError : public CommandError {
 public:
-    CommandConfigError(std::string commandName,
-                       std::string commandUsageInfo,
-                       const ConfigError& error)
+    CommandConfigError(std::string commandName, std::string commandUsageInfo, const ConfigError& error)
         : CommandError(std::move(commandName), std::move(commandUsageInfo), error.what())
-    {}
+    {
+    }
 };
 
-}
+} //namespace cmdlime
 
 #endif //CMDLIME_ERRORS_H

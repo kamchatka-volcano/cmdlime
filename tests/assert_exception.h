@@ -3,16 +3,18 @@
 #include <functional>
 
 template<typename ExceptionType>
-void assert_exception(std::function<void()> throwingCode, std::function<void(const ExceptionType&)> exceptionContentChecker)
+void assert_exception(
+        std::function<void()> throwingCode,
+        std::function<void(const ExceptionType&)> exceptionContentChecker)
 {
-    try{
+    try {
         throwingCode();
         FAIL() << "exception wasn't thrown!";
     }
-    catch(const ExceptionType& e){
+    catch (const ExceptionType& e) {
         exceptionContentChecker(e);
     }
-    catch(...){
+    catch (...) {
         FAIL() << "Unexpected exception was thrown";
     }
 }

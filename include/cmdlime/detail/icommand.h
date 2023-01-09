@@ -1,18 +1,18 @@
 #ifndef CMDLIME_ICOMMAND_H
 #define CMDLIME_ICOMMAND_H
 
-#include "ioption.h"
 #include "icommandlinereader.h"
-#include <vector>
-#include <string>
+#include "ioption.h"
 #include <memory>
+#include <string>
+#include <vector>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 class OptionInfo;
 class IFlag;
 class IConfig;
 
-class ICommand : public IOption{
+class ICommand : public IOption {
 public:
     virtual bool hasValue() const = 0;
     virtual CommandLineReaderPtr configReader() const = 0;
@@ -27,6 +27,6 @@ public:
     virtual void validate() const = 0;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_ICOMMAND_H

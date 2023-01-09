@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(cmdlime VERSION 2.1.1 DESCRIPTION "C++17 command line parsing library")
+project(cmdlime VERSION 2.2.0 DESCRIPTION "C++17 command line parsing library")
 include(GNUInstallDirs)
 include(external/seal_lake)
 
@@ -16,7 +16,7 @@ endif()
 SealLake_Bundle(
         NAME cmdlime_sfun
         GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
-        GIT_TAG        v2.4.0
+        GIT_TAG        v3.0.0
         DESTINATION include/cmdlime/detail/external
         DIRECTORIES include/sfun
         TEXT_REPLACEMENTS

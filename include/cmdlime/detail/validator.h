@@ -1,11 +1,11 @@
 #ifndef CMDLIME_VALIDATOR_H
 #define CMDLIME_VALIDATOR_H
 
-#include "ivalidator.h"
 #include "ioption.h"
+#include "ivalidator.h"
 #include "optioninfo.h"
 #include "utils.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/utility.h"
 #include <cmdlime/errors.h>
 #include <functional>
 
@@ -13,46 +13,55 @@ namespace cmdlime::detail {
 
 inline std::string validatorOptionTypeName(OptionType optionType)
 {
-    switch(optionType){
-        case OptionType::Arg: return "argument";
-        case OptionType::ArgList: return "argument list";
-        case OptionType::Command: return "command";
-        case OptionType::Subcommand: return "subcommand";
-        case OptionType::Flag: return "flag";
-        case OptionType::ExitFlag: return "exit flag";
-        case OptionType::Param: return "parameter";
-        case OptionType::ParamList: return "parameter list";
+    switch (optionType) {
+    case OptionType::Arg:
+        return "argument";
+    case OptionType::ArgList:
+        return "argument list";
+    case OptionType::Command:
+        return "command";
+    case OptionType::Subcommand:
+        return "subcommand";
+    case OptionType::Flag:
+        return "flag";
+    case OptionType::ExitFlag:
+        return "exit flag";
+    case OptionType::Param:
+        return "parameter";
+    case OptionType::ParamList:
+        return "parameter list";
     }
-    sfun::assert::ensureNotReachable();
+    sfun::unreachable();
 }
 
 template<typename T>
-class Validator : public IValidator
-{
+class Validator : public IValidator {
 public:
     Validator(IOption& option, T& optionValue, std::function<void(const T&)> validatingFunc)
         : option_(option)
         , optionValue_(optionValue)
         , validatingFunc_(std::move(validatingFunc))
-    {}
+    {
+    }
 
 private:
     void validate(const std::string& commandName) const override
     {
-        auto makeErrorMessage = [&](const auto& message){
-            auto prefix = commandName.empty() ?
-                capitalize(validatorOptionTypeName(option_.type())) :
-                "Command '" + commandName + "'s " + validatorOptionTypeName(option_.type());
+        auto makeErrorMessage = [&](const auto& message)
+        {
+            auto prefix = commandName.empty()
+                    ? capitalize(validatorOptionTypeName(option_.type()))
+                    : "Command '" + commandName + "'s " + validatorOptionTypeName(option_.type());
             return prefix + " '" + option_.info().name() + "' is invalid: " + message;
         };
 
-        try{
+        try {
             validatingFunc_(optionValue_);
         }
-        catch(const ValidationError& e){
+        catch (const ValidationError& e) {
             throw ParsingError{makeErrorMessage(e.what())};
         }
-        catch(...){
+        catch (...) {
             throw ParsingError{makeErrorMessage("Unexpected error")};
         }
     }
@@ -67,6 +76,6 @@ private:
     std::function<void(const T&)> validatingFunc_;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_VALIDATOR_H

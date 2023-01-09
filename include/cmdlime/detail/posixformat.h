@@ -1,32 +1,30 @@
 #ifndef CMDLIME_POSIXFORMAT_H
 #define CMDLIME_POSIXFORMAT_H
 
-#include "parser.h"
-#include "nameutils.h"
-#include "utils.h"
 #include "formatcfg.h"
-#include <cmdlime/errors.h>
+#include "nameutils.h"
+#include "parser.h"
+#include "utils.h"
+#include "external/sfun/contract.h"
 #include "external/sfun/string_utils.h"
-#include "external/sfun/asserts.h"
+#include <cmdlime/errors.h>
 #include <algorithm>
-#include <sstream>
-#include <iomanip>
 #include <functional>
+#include <iomanip>
+#include <sstream>
 
-namespace cmdlime::detail{
-namespace str = sfun::string_utils;
+namespace cmdlime::detail {
 
-template <Format formatType>
-class PosixParser : public Parser<formatType>
-{
+template<Format formatType>
+class PosixParser : public Parser<formatType> {
     using Parser<formatType>::Parser;
 
     void processCommand(std::string command)
     {
         auto possibleNumberArg = command;
-        command = str::after(command, "-");
-        if (isParamOrFlag(command)){
-            if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands){
+        command = sfun::after(command, "-");
+        if (isParamOrFlag(command)) {
+            if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands) {
                 if (!foundParam_.empty())
                     throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
                 if (argumentEncountered_)
@@ -34,7 +32,7 @@ class PosixParser : public Parser<formatType>
             }
             parseCommand(command);
         }
-        else if (isNumber(possibleNumberArg)){
+        else if (isNumber(possibleNumberArg)) {
             this->readArg(possibleNumberArg);
             argumentEncountered_ = true;
         }
@@ -51,13 +49,13 @@ class PosixParser : public Parser<formatType>
 
     void process(const std::string& token) override
     {
-        if (!foundParam_.empty()){
+        if (!foundParam_.empty()) {
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (str::startsWith(token, "-") && token.size() > 1)
-           processCommand(token);
-        else{
+        else if (sfun::startsWith(token, "-") && token.size() > 1)
+            processCommand(token);
+        else {
             this->readArg(token);
             argumentEncountered_ = true;
         }
@@ -74,7 +72,7 @@ class PosixParser : public Parser<formatType>
         if (command.empty())
             throw ParsingError{"Flags and parameters must have a name"};
         auto paramValue = std::string{};
-        for(auto ch : command){
+        for (auto ch : command) {
             auto opt = std::string{ch};
             if (!foundParam_.empty())
                 paramValue += opt;
@@ -85,7 +83,7 @@ class PosixParser : public Parser<formatType>
             else if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands)
                 throw ParsingError{"Unknown option '" + opt + "' in command '-" + command + "'"};
         }
-        if (!foundParam_.empty() && !paramValue.empty()){
+        if (!foundParam_.empty() && !paramValue.empty()) {
             this->readParam(foundParam_, paramValue);
             foundParam_.clear();
         }
@@ -93,31 +91,36 @@ class PosixParser : public Parser<formatType>
 
     void checkNames()
     {
-        auto check = [](const OptionInfo& var, const std::string& varType){
+        auto check = [](const OptionInfo& var, const std::string& varType)
+        {
             if (var.name().size() != 1)
                 throw ConfigError{varType + "'s name '" + var.name() + "' can't have more than one symbol"};
             if (!std::isalnum(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must be an alphanumeric character"};
         };
-        this->forEachParamInfo([check](const OptionInfo& var){
-            check(var, "Parameter");
-        });
-        this->forEachParamListInfo([check](const OptionInfo& var){
-            check(var, "Parameter");
-        });
-        this->forEachFlagInfo([check](const OptionInfo& var){
-            check(var, "Flag");
-        });
+        this->forEachParamInfo(
+                [check](const OptionInfo& var)
+                {
+                    check(var, "Parameter");
+                });
+        this->forEachParamListInfo(
+                [check](const OptionInfo& var)
+                {
+                    check(var, "Parameter");
+                });
+        this->forEachFlagInfo(
+                [check](const OptionInfo& var)
+                {
+                    check(var, "Flag");
+                });
     }
 
     bool isParamOrFlag(const std::string& str)
     {
         if (str.empty())
             return false;
-        auto opt = str.substr(0,1);
-        return this->findFlag(opt) ||
-               this->findParam(opt) ||
-               this->findParamList(opt);
+        auto opt = str.substr(0, 1);
+        return this->findFlag(opt) || this->findParam(opt) || this->findParamList(opt);
     }
 
 private:
@@ -125,7 +128,7 @@ private:
     std::string foundParam_;
 };
 
-class PosixNameProvider{
+class PosixNameProvider {
 public:
     static std::string name(const std::string& optionName)
     {
@@ -152,8 +155,7 @@ public:
     }
 };
 
-
-class PosixOutputFormatter{
+class PosixOutputFormatter {
 public:
     static std::string paramUsageName(const IParam& param)
     {
@@ -178,16 +180,14 @@ public:
     static std::string paramDescriptionName(const IParam& param, int indent = 0)
     {
         auto stream = std::stringstream{};
-        stream << std::setw(indent) << paramPrefix()
-               << param.info().name() << " <" << param.info().valueName() << ">";
+        stream << std::setw(indent) << paramPrefix() << param.info().name() << " <" << param.info().valueName() << ">";
         return stream.str();
     }
 
     static std::string paramListDescriptionName(const IParamList& param, int indent = 0)
     {
         auto stream = std::stringstream{};
-        stream << std::setw(indent) << paramPrefix()
-               << param.info().name() << " <" << param.info().valueName() << ">";
+        stream << std::setw(indent) << paramPrefix() << param.info().name() << " <" << param.info().valueName() << ">";
         return stream.str();
     }
 
@@ -249,18 +249,16 @@ public:
         stream << "<" << argList.info().name() << "> (" << argList.info().valueName() << ")";
         return stream.str();
     }
-
 };
 
 template<>
-struct FormatCfg<Format::POSIX>
-{
+struct FormatCfg<Format::POSIX> {
     using parser = PosixParser<Format::POSIX>;
     using nameProvider = PosixNameProvider;
     using outputFormatter = PosixOutputFormatter;
     static constexpr bool shortNamesEnabled = false;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_POSIXFORMAT_H
