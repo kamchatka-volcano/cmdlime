@@ -4,15 +4,15 @@
 #include "commandlinereaderptr.h"
 #include "external/sfun/interface.h"
 #include <cmdlime/format.h>
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
-namespace cmdlime{
+namespace cmdlime {
 struct UsageInfoFormat;
 }
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 class Options;
 class IParam;
 class IParamList;
@@ -22,12 +22,12 @@ class IArgList;
 class ICommand;
 class IValidator;
 
-enum CommandLineReadResult{
+enum CommandLineReadResult {
     Completed,
     StoppedOnExitFlag
 };
 
-class ICommandLineReader : private sfun::Interface<ICommandLineReader>{
+class ICommandLineReader : private sfun::Interface<ICommandLineReader> {
 public:
     virtual CommandLineReadResult read(const std::vector<std::string>& cmdLine) = 0;
     virtual const std::string& versionInfo() const = 0;
@@ -61,6 +61,6 @@ protected:
     }
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_ICOMMANDLINEREADER_H

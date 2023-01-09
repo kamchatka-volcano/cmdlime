@@ -3,27 +3,24 @@
 
 #include "iparamlist.h"
 #include "optioninfo.h"
-#include <cmdlime/errors.h>
-#include <cmdlime/customnames.h>
-#include <cmdlime/stringconverter.h>
 #include "external/sfun/string_utils.h"
 #include "external/sfun/type_traits.h"
-#include <vector>
-#include <sstream>
+#include <cmdlime/customnames.h>
+#include <cmdlime/errors.h>
+#include <cmdlime/stringconverter.h>
 #include <functional>
 #include <memory>
+#include <sstream>
+#include <vector>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
-template <typename TParamList>
-class ParamList : public IParamList{
+template<typename TParamList>
+class ParamList : public IParamList {
     static_assert(sfun::is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
 
 public:
-    ParamList(std::string name,
-              std::string shortName,
-              std::string type,
-              TParamList& paramListValue)
+    ParamList(std::string name, std::string shortName, std::string type, TParamList& paramListValue)
         : info_(std::move(name), std::move(shortName), std::move(type))
         , paramListValue_(paramListValue)
     {
@@ -53,13 +50,13 @@ public:
 private:
     bool read(const std::string& data) override
     {
-        if (!isDefaultValueOverwritten_){
+        if (!isDefaultValueOverwritten_) {
             paramListValue_.clear();
             isDefaultValueOverwritten_ = true;
         }
 
         const auto dataParts = sfun::split(data, ",");
-        for (const auto& part : dataParts){
+        for (const auto& part : dataParts) {
             auto paramVal = convertFromString<typename TParamList::value_type>(std::string{part});
             if (!paramVal)
                 return false;
@@ -86,7 +83,7 @@ private:
         auto stream = std::stringstream{};
         stream << "{";
         auto firstVal = true;
-        for (auto& val : *defaultValue_){
+        for (auto& val : *defaultValue_) {
             auto valStr = convertToString(val);
             if (!valStr)
                 return {};
@@ -112,6 +109,6 @@ private:
     bool isDefaultValueOverwritten_ = false;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_PARAMLIST_H

@@ -3,22 +3,20 @@
 
 #include "iarglist.h"
 #include "optioninfo.h"
-#include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
+#include <cmdlime/errors.h>
 #include <cmdlime/stringconverter.h>
-#include <vector>
-#include <sstream>
 #include <functional>
 #include <memory>
+#include <sstream>
+#include <vector>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
-template <typename TArgList>
-class ArgList : public IArgList{
+template<typename TArgList>
+class ArgList : public IArgList {
 public:
-    ArgList(std::string name,
-            std::string type,
-            TArgList& argListValue)
+    ArgList(std::string name, std::string type, TArgList& argListValue)
         : info_(std::move(name), {}, std::move(type))
         , argListValue_(argListValue)
     {
@@ -48,7 +46,7 @@ public:
 private:
     bool read(const std::string& data) override
     {
-        if (!isDefaultValueOverwritten_){
+        if (!isDefaultValueOverwritten_) {
             argListValue_.clear();
             isDefaultValueOverwritten_ = true;
         }
@@ -77,7 +75,7 @@ private:
         auto stream = std::stringstream{};
         stream << "{";
         auto firstVal = true;
-        for (auto& val : *defaultValue_){
+        for (auto& val : *defaultValue_) {
             if (firstVal)
                 stream << ", ";
             firstVal = false;
@@ -98,6 +96,6 @@ private:
     bool isDefaultValueOverwritten_ = false;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_ARGLIST_H

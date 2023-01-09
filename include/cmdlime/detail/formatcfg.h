@@ -3,7 +3,7 @@
 
 #include <cmdlime/format.h>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
 template<Format>
 struct FormatCfg;
@@ -20,6 +20,6 @@ struct FormatCfg<Format::X11>;
 template<>
 struct FormatCfg<Format::GNU>;
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_FORMATCFG_H

@@ -1,32 +1,38 @@
 #ifndef CMDLIME_USAGEINFOCREATOR_H
 #define CMDLIME_USAGEINFOCREATOR_H
 
-#include "iparam.h"
-#include "iparamlist.h"
-#include "iflag.h"
+#include "formatcfg.h"
 #include "iarg.h"
 #include "iarglist.h"
 #include "icommand.h"
+#include "iflag.h"
+#include "iparam.h"
+#include "iparamlist.h"
 #include "optioninfo.h"
 #include "options.h"
-#include "formatcfg.h"
-#include <cmdlime/usageinfoformat.h>
 #include "external/sfun/string_utils.h"
-#include <utility>
-#include <vector>
-#include <memory>
+#include <cmdlime/usageinfoformat.h>
 #include <algorithm>
 #include <iomanip>
+#include <memory>
+#include <utility>
+#include <vector>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
 inline std::string adjustedToLineBreak(std::string line, std::string& text)
 {
-    if (!text.empty() && !isspace(text.front())){
+    if (!text.empty() && !isspace(text.front())) {
         auto trimmedLine = sfun::trimFront(line);
-        if (std::find_if(trimmedLine.begin(), trimmedLine.end(), [](auto ch){return std::isspace(ch);}) == trimmedLine.end())
+        if (std::find_if(
+                    trimmedLine.begin(),
+                    trimmedLine.end(),
+                    [](auto ch)
+                    {
+                        return std::isspace(ch);
+                    }) == trimmedLine.end())
             return line;
-        while(!isspace(line.back())){
+        while (!isspace(line.back())) {
             text.insert(text.begin(), 1, line.back());
             line.pop_back();
         }
@@ -37,7 +43,7 @@ inline std::string adjustedToLineBreak(std::string line, std::string& text)
 inline std::string popLine(std::string& text, std::size_t width, bool firstLine = false)
 {
     auto newLinePos = text.find('\n');
-    if (newLinePos != std::string::npos && newLinePos <= width){
+    if (newLinePos != std::string::npos && newLinePos <= width) {
         auto line = text.substr(0, newLinePos);
         text.erase(text.begin(), text.begin() + static_cast<int>(newLinePos + 1));
         if (!firstLine)
@@ -55,63 +61,69 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
     return adjustedToLineBreak(line, text);
 }
 
-template <typename T>
-inline std::vector<std::reference_wrapper<T>> getParamsByOptionality(const std::vector<std::unique_ptr<T>>& params, bool isOptional)
+template<typename T>
+inline std::vector<std::reference_wrapper<T>> getParamsByOptionality(
+        const std::vector<std::unique_ptr<T>>& params,
+        bool isOptional)
 {
     auto result = std::vector<std::reference_wrapper<T>>{};
     auto paramRefList = std::vector<std::reference_wrapper<T>>{};
-    std::transform(params.begin(), params.end(), std::back_inserter(paramRefList),
-                   [](auto& param) -> T& {return *param;});
-    std::copy_if(paramRefList.begin(), paramRefList.end(), std::back_inserter(result),
-                 [isOptional](auto& param){return param.get().isOptional() == isOptional;});
+    std::transform(
+            params.begin(),
+            params.end(),
+            std::back_inserter(paramRefList),
+            [](auto& param) -> T&
+            {
+                return *param;
+            });
+    std::copy_if(
+            paramRefList.begin(),
+            paramRefList.end(),
+            std::back_inserter(result),
+            [isOptional](auto& param)
+            {
+                return param.get().isOptional() == isOptional;
+            });
     return result;
 }
 
-template <typename T>
+template<typename T>
 const std::string& getName(T& option)
 {
     return option.info().name();
 }
 
-template <typename T>
+template<typename T>
 const std::string& getType(T& option)
 {
     return option.info().type();
 }
 
-template <typename T>
+template<typename T>
 const std::string& getDescription(T& option)
 {
     return option.info().description();
 }
 
-template <Format formatType>
-class UsageInfoCreator{
+template<Format formatType>
+class UsageInfoCreator {
 public:
-    UsageInfoCreator(std::string commandName,
-                     UsageInfoFormat outputSettings,
-                     const Options& options)
-    : commandName_(std::move(commandName))
-    , params_(getParamsByOptionality(options.params(), false))
-    , optionalParams_(getParamsByOptionality(options.params(), true))
-    , paramLists_(getParamsByOptionality(options.paramLists(), false))
-    , optionalParamLists_(getParamsByOptionality(options.paramLists(), true))
-    , options_(options)
-    , outputSettings_(outputSettings)
-    , maxOptionNameSize_(maxOptionNameLength() + outputSettings.columnsSpacing)
+    UsageInfoCreator(std::string commandName, UsageInfoFormat outputSettings, const Options& options)
+        : commandName_(std::move(commandName))
+        , params_(getParamsByOptionality(options.params(), false))
+        , optionalParams_(getParamsByOptionality(options.params(), true))
+        , paramLists_(getParamsByOptionality(options.paramLists(), false))
+        , optionalParamLists_(getParamsByOptionality(options.paramLists(), true))
+        , options_(options)
+        , outputSettings_(outputSettings)
+        , maxOptionNameSize_(maxOptionNameLength() + outputSettings.columnsSpacing)
     {
     }
 
     std::string createDetailed()
     {
-        return minimizedUsageInfo() +
-               argsInfo() +
-               paramsInfo() +
-               paramListsInfo() +
-               optionsInfo() +
-               optionalParamListsInfo() +
-               flagsInfo() +
-               commandsInfo();
+        return minimizedUsageInfo() + argsInfo() + paramsInfo() + paramListsInfo() + optionsInfo() +
+                optionalParamListsInfo() + flagsInfo() + commandsInfo();
     }
 
     std::string create()
@@ -136,9 +148,9 @@ private:
         for (auto& paramList : paramLists_)
             result += OutputFormatter::paramListUsageName(paramList) + " ";
         for (auto& param : optionalParams_)
-           result += OutputFormatter::paramUsageName(param) + " ";
+            result += OutputFormatter::paramUsageName(param) + " ";
         for (auto& paramList : optionalParamLists_)
-           result += OutputFormatter::paramListUsageName(paramList) + " ";
+            result += OutputFormatter::paramListUsageName(paramList) + " ";
 
         for (auto& flag : options_.flags())
             result += OutputFormatter::flagUsageName(*flag) + " ";
@@ -184,7 +196,7 @@ private:
         auto result = std::string{"Parameters:\n"};
         if (params_.empty())
             return result;
-        for (const IParam& param : params_){
+        for (const IParam& param : params_) {
             const auto name = OutputFormatter::paramDescriptionName(param, outputSettings_.nameIndentation) + "\n";
             result += makeConfigFieldInfo(name, getDescription(param));
         }
@@ -196,8 +208,9 @@ private:
         auto result = std::string{};
         if (paramLists_.empty())
             return result;
-        for (const IParamList& paramList : paramLists_){
-            const auto name = OutputFormatter::paramListDescriptionName(paramList, outputSettings_.nameIndentation) + "\n";
+        for (const IParamList& paramList : paramLists_) {
+            const auto name =
+                    OutputFormatter::paramListDescriptionName(paramList, outputSettings_.nameIndentation) + "\n";
             auto description = getDescription(paramList);
             if (!description.empty())
                 description += "\n(multi-value)";
@@ -213,21 +226,23 @@ private:
         if (optionalParams_.empty())
             return {};
         auto result = std::string{};
-        for (const IParam& option : optionalParams_){
+        for (const IParam& option : optionalParams_) {
             auto description = getDescription(option);
-            if (!description.empty()){
+            if (!description.empty()) {
                 if (!option.defaultValue().empty())
                     description += "\n(optional, default: " + option.defaultValue() + ")";
                 else
                     description += "\n(optional)";
             }
-            else{
+            else {
                 if (!option.defaultValue().empty())
                     description += "optional, default: " + option.defaultValue();
                 else
                     description += "optional";
             }
-            result += makeConfigFieldInfo(OutputFormatter::paramDescriptionName(option, outputSettings_.nameIndentation) + "\n", description);
+            result += makeConfigFieldInfo(
+                    OutputFormatter::paramDescriptionName(option, outputSettings_.nameIndentation) + "\n",
+                    description);
         }
         return result;
     }
@@ -237,23 +252,25 @@ private:
         if (optionalParamLists_.empty())
             return {};
         auto result = std::string{};
-        for (const IParamList& option : optionalParamLists_){
+        for (const IParamList& option : optionalParamLists_) {
             auto description = getDescription(option);
-            if (!description.empty()){
+            if (!description.empty()) {
                 description += "\n(multi-value, ";
                 if (!option.defaultValue().empty())
                     description += "optional, default: " + option.defaultValue() + ")";
                 else
                     description += "optional)";
             }
-            else{
+            else {
                 description += "multi-value, ";
                 if (!option.defaultValue().empty())
                     description += "optional, default: " + option.defaultValue();
                 else
                     description += "optional";
             }
-            result += makeConfigFieldInfo(OutputFormatter::paramListDescriptionName(option, outputSettings_.nameIndentation) + "\n", description);
+            result += makeConfigFieldInfo(
+                    OutputFormatter::paramListDescriptionName(option, outputSettings_.nameIndentation) + "\n",
+                    description);
         }
         return result;
     }
@@ -264,31 +281,36 @@ private:
             return {};
         auto result = std::string{"Arguments:\n"};
         for (const auto& arg : options_.args())
-            result += makeConfigFieldInfo(OutputFormatter::argDescriptionName(*arg, outputSettings_.nameIndentation) + "\n", getDescription(*arg));
+            result += makeConfigFieldInfo(
+                    OutputFormatter::argDescriptionName(*arg, outputSettings_.nameIndentation) + "\n",
+                    getDescription(*arg));
 
-        if (options_.argList()){
+        if (options_.argList()) {
             auto description = getDescription(*options_.argList());
-            if (!description.empty()){
+            if (!description.empty()) {
                 description += "\n(multi-value";
-                if (options_.argList()->isOptional()){
+                if (options_.argList()->isOptional()) {
                     if (!options_.argList()->defaultValue().empty())
                         description += ", optional, default: " + options_.argList()->defaultValue() + ")";
                     else
-                        description +=  ", optional)";
+                        description += ", optional)";
                 }
                 else
                     description += ")";
             }
-            else{
+            else {
                 description += "multi-value";
-                if (options_.argList()->isOptional()){
+                if (options_.argList()->isOptional()) {
                     if (!options_.argList()->defaultValue().empty())
                         description += ", optional, default: " + options_.argList()->defaultValue();
                     else
-                        description +=  ", optional";
+                        description += ", optional";
                 }
             }
-            result += makeConfigFieldInfo(OutputFormatter::argListDescriptionName(*options_.argList(), outputSettings_.nameIndentation) + "\n", description);
+            result += makeConfigFieldInfo(
+                    OutputFormatter::argListDescriptionName(*options_.argList(), outputSettings_.nameIndentation) +
+                            "\n",
+                    description);
         }
         return result;
     }
@@ -299,7 +321,9 @@ private:
             return {};
         auto result = std::string{"Flags:\n"};
         for (const auto& flag : options_.flags())
-            result += makeConfigFieldInfo(OutputFormatter::flagDescriptionName(*flag, outputSettings_.nameIndentation) + "\n", getDescription(*flag));
+            result += makeConfigFieldInfo(
+                    OutputFormatter::flagDescriptionName(*flag, outputSettings_.nameIndentation) + "\n",
+                    getDescription(*flag));
         return result;
     }
 
@@ -308,12 +332,11 @@ private:
         if (options_.commands().empty())
             return {};
         auto result = std::string{"Commands:\n"};
-        for (const auto& command : options_.commands()){
+        for (const auto& command : options_.commands()) {
             auto nameStream = std::stringstream{};
             if (outputSettings_.nameIndentation)
                 nameStream << std::setw(outputSettings_.nameIndentation) << " ";
-            nameStream << getName(*command)
-                       << " [options]";
+            nameStream << getName(*command) << " [options]";
             result += makeConfigFieldInfo(nameStream.str(), getDescription(*command));
         }
         return result;
@@ -326,10 +349,11 @@ private:
         {
             auto firstLine = true;
             do {
-               auto nameLine = popLine(name, 100, firstLine);
-               length = std::max(length, static_cast<int>(nameLine.size()));
-               firstLine = false;
-            } while(!name.empty());
+                auto nameLine = popLine(name, 100, firstLine);
+                length = std::max(length, static_cast<int>(nameLine.size()));
+                firstLine = false;
+            }
+            while (!name.empty());
         };
 
         for (auto& param : params_)
@@ -354,7 +378,7 @@ private:
         const auto descriptionWidth = rightColumnWidth - 2;
         auto stream = std::stringstream{};
         auto firstLine = true;
-        while (!name.empty()){
+        while (!name.empty()) {
             auto nameLine = popLine(name, static_cast<std::size_t>(maxNameWidth), firstLine);
             const auto descriptionLine = popLine(description, descriptionWidth, firstLine);
             if (firstLine)
@@ -363,9 +387,10 @@ private:
                 stream << std::setw(maxNameWidth) << std::left << nameLine << "   " << descriptionLine << std::endl;
             firstLine = false;
         }
-        while(!description.empty()){
+        while (!description.empty()) {
             auto descriptionLine = popLine(description, descriptionWidth);
-            stream << std::setw(leftColumnWidth) << " " << "  " << descriptionLine << std::endl;
+            stream << std::setw(leftColumnWidth) << " "
+                   << "  " << descriptionLine << std::endl;
         }
         return stream.str();
     }
@@ -381,6 +406,6 @@ private:
     int maxOptionNameSize_;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_USAGEINFOCREATOR_H

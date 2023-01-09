@@ -4,10 +4,10 @@
 #include "external/sfun/interface.h"
 #include <string>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 class OptionInfo;
 
-enum class OptionType{
+enum class OptionType {
     Arg,
     ArgList,
     Command,
@@ -18,12 +18,12 @@ enum class OptionType{
     ParamList
 };
 
-class IOption : private sfun::Interface<IOption>{
+class IOption : private sfun::Interface<IOption> {
 public:
     virtual OptionInfo& info() = 0;
     virtual const OptionInfo& info() const = 0;
     virtual OptionType type() const = 0;
 };
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_IOPTION_H

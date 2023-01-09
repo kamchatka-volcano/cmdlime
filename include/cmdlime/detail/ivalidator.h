@@ -6,12 +6,12 @@
 
 namespace cmdlime::detail {
 
-class IValidator : private sfun::Interface<IValidator>{
+class IValidator : private sfun::Interface<IValidator> {
 public:
     virtual void validate(const std::string& commandName) const = 0;
     virtual OptionType optionType() const = 0;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_IVALIDATOR_H

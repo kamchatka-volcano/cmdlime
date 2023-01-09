@@ -4,14 +4,14 @@
 namespace cmdlime::detail {
 class ICommandLineReader;
 
-
 class CommandLineReaderPtr {
     friend class ICommandLineReader;
 
 private:
     CommandLineReaderPtr(ICommandLineReader* reader)
         : reader_{reader}
-    {}
+    {
+    }
 
 public:
     CommandLineReaderPtr() = default;
@@ -45,6 +45,6 @@ private:
     ICommandLineReader* reader_ = nullptr;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_COMMANDLINEREADERPTR_H

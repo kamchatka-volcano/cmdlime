@@ -4,12 +4,12 @@
 #include "initializedoptional.h"
 #include "nameof_import.h"
 #include "external/sfun/type_traits.h"
-#include <string>
-#include <sstream>
 #include <optional>
+#include <sstream>
+#include <string>
 #include <tuple>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
 inline std::string capitalize(const std::string& input)
 {
@@ -22,7 +22,8 @@ inline std::string capitalize(const std::string& input)
 
 inline bool isNumber(const std::string& str)
 {
-    auto check = [&str](auto num){
+    auto check = [&str](auto num)
+    {
         std::stringstream stream{str};
         stream >> num;
         return !stream.bad() && !stream.fail() && stream.eof();
@@ -35,8 +36,9 @@ template<typename TCfg>
 inline std::string nameOfType()
 {
     using type = std::remove_const_t<std::remove_reference_t<TCfg>>;
-    auto result = [&]{
-        if constexpr(sfun::is_optional_v<type> || sfun::is_dynamic_sequence_container_v<type>)
+    auto result = [&]
+    {
+        if constexpr (sfun::is_optional_v<type> || sfun::is_dynamic_sequence_container_v<type>)
             return std::string{nameof::nameof_short_type<typename type::value_type>()};
         else
             return std::string{nameof::nameof_short_type<type>()};
@@ -56,6 +58,6 @@ inline std::tuple<std::string, std::string> getMemberPtrNameAndType(TParent* par
 }
 #endif
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_UTILS_H

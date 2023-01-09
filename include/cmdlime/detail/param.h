@@ -3,24 +3,21 @@
 
 #include "iparam.h"
 #include "optioninfo.h"
-#include <cmdlime/errors.h>
-#include <cmdlime/customnames.h>
-#include <cmdlime/stringconverter.h>
 #include "external/sfun/type_traits.h"
-#include <sstream>
-#include <optional>
-#include <memory>
+#include <cmdlime/customnames.h>
+#include <cmdlime/errors.h>
+#include <cmdlime/stringconverter.h>
 #include <functional>
+#include <memory>
+#include <optional>
+#include <sstream>
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
 template<typename T>
-class Param : public IParam{
+class Param : public IParam {
 public:
-    Param(std::string name,
-          std::string shortName,
-          std::string type,
-          T& paramValue)
+    Param(std::string name, std::string shortName, std::string type, T& paramValue)
         : info_(std::move(name), std::move(shortName), std::move(type))
         , paramValue_(paramValue)
     {
@@ -94,6 +91,6 @@ private:
     bool hasValue_ = false;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_PARAM_H

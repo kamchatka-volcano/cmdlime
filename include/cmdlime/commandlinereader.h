@@ -5,26 +5,26 @@
 #include "errors.h"
 #include "format.h"
 #include "usageinfoformat.h"
-#include "detail/flag.h"
 #include "detail/configmacros.h"
-#include "detail/nameformat.h"
+#include "detail/flag.h"
 #include "detail/formatcfg.h"
+#include "detail/nameformat.h"
 #include "detail/usageinfocreator.h"
-#include <iostream>
-#include <optional>
-#include <map>
-#include <utility>
 #include <functional>
+#include <iostream>
+#include <map>
+#include <optional>
+#include <utility>
 
-
-namespace cmdlime{
+namespace cmdlime {
 
 template<Format formatType = Format::GNU>
-class CommandLineReader : public detail::ICommandLineReader{
+class CommandLineReader : public detail::ICommandLineReader {
 public:
-    CommandLineReader(const std::string& programName = {},
-                      std::string versionInfo = {},
-                      const UsageInfoFormat& usageInfoFormat = {})
+    CommandLineReader(
+            const std::string& programName = {},
+            std::string versionInfo = {},
+            const UsageInfoFormat& usageInfoFormat = {})
         : versionInfo_{std::move(versionInfo)}
     {
         setCommandName(programName);
@@ -52,15 +52,20 @@ public:
     template<typename TCfg>
     int exec(int argc, char** argv, std::function<int(const TCfg&)> func)
     {
-         auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
-         return exec<TCfg>(cmdLine, func);
+        auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
+        return exec<TCfg>(cmdLine, func);
     }
 
     template<typename TCfg>
     int exec(int argc, char** argv, std::function<int(int, char**, const TCfg&)> func)
     {
-         auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
-         return exec<TCfg>(cmdLine, [=](const TCfg& cfg){ return func(argc, argv, cfg);});
+        auto cmdLine = std::vector<std::string>(argv + 1, argv + argc);
+        return exec<TCfg>(
+                cmdLine,
+                [=](const TCfg& cfg)
+                {
+                    return func(argc, argv, cfg);
+                });
     }
 
     template<typename TCfg>
@@ -75,12 +80,12 @@ public:
             if (read(cmdLine) != detail::CommandLineReadResult::StoppedOnExitFlag)
                 validate({});
         }
-        catch(const CommandError& e){
+        catch (const CommandError& e) {
             errorOutput_.get() << "Command '" + e.commandName() + "' error: " << e.what() << "\n";
             output_.get() << e.commandUsageInfo() << std::endl;
             return -1;
         }
-        catch(const Error& e){
+        catch (const Error& e) {
             errorOutput_.get() << e.what() << "\n";
             output_.get() << usageInfo() << std::endl;
             return -1;
@@ -265,7 +270,7 @@ private:
     void clear()
     {
         configError_.clear();
-        options_= detail::Options{};
+        options_ = detail::Options{};
         validators_.clear();
         argListSet_ = false;
         nestedReaders_.clear();
@@ -278,26 +283,31 @@ private:
         if constexpr (std::is_aggregate_v<TCfg>)
             return TCfg{{makePtr()}}; //can't add setCommandName and setUsageInfoFormat calls here
                                       // due to the lack of NRVO on MSVC (the config object must not be copied)
-        else{
-            static_assert(std::is_constructible_v<TCfg, detail::CommandLineReaderPtr>, "Non aggregate config objects must inherit cmdlime::Config constructors with 'using Config::Config;'");
+        else {
+            static_assert(
+                    std::is_constructible_v<TCfg, detail::CommandLineReaderPtr>,
+                    "Non aggregate config objects must inherit cmdlime::Config constructors with 'using "
+                    "Config::Config;'");
             return TCfg{makePtr()};
         }
     }
 
     void addDefaultFlags()
     {
-        auto helpFlag = std::make_unique<detail::Flag>(detail::NameFormat::name(format(), "help"),
-                                                       std::string{},
-                                                       help_,
-                                                       detail::Flag::Type::Exit);
+        auto helpFlag = std::make_unique<detail::Flag>(
+                detail::NameFormat::name(format(), "help"),
+                std::string{},
+                help_,
+                detail::Flag::Type::Exit);
         helpFlag->info().addDescription("show usage info and exit");
         addFlag(std::move(helpFlag));
 
-        if (!versionInfo().empty()){
-            auto versionFlag = std::make_unique<detail::Flag>(detail::NameFormat::name(format(), "version"),
-                                                           std::string{},
-                                                           version_,
-                                                           detail::Flag::Type::Exit);
+        if (!versionInfo().empty()) {
+            auto versionFlag = std::make_unique<detail::Flag>(
+                    detail::NameFormat::name(format(), "version"),
+                    std::string{},
+                    version_,
+                    detail::Flag::Type::Exit);
             versionFlag->info().addDescription("show version info and exit");
             addFlag(std::move(versionFlag));
         }
@@ -308,11 +318,11 @@ private:
 
     bool processDefaultFlags()
     {
-        if (help_){
+        if (help_) {
             output_.get() << usageInfoDetailed() << std::endl;
             return true;
         }
-        if (version_){
+        if (version_) {
             output_.get() << versionInfo() << std::endl;
             return true;
         }
@@ -326,7 +336,7 @@ private:
 
     bool checkCommandHelpFlag(detail::ICommand& command)
     {
-        if (command.isHelpFlagSet()){
+        if (command.isHelpFlagSet()) {
             output_.get() << command.usageInfoDetailed() << std::endl;
             return true;
         }
@@ -363,6 +373,6 @@ using X11CommandLineReader = CommandLineReader<Format::X11>;
 using POSIXCommandLineReader = CommandLineReader<Format::POSIX>;
 using SimpleCommandLineReader = CommandLineReader<Format::Simple>;
 
-}
+} //namespace cmdlime
 
 #endif //CMDLIME_COMMANDLINEREADER_H

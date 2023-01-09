@@ -3,16 +3,16 @@
 
 #include "ioption.h"
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 class OptionInfo;
 
-class IFlag : public IOption{
+class IFlag : public IOption {
 public:
     virtual void set() = 0;
     virtual bool isSet() const = 0;
     virtual bool isExitFlag() const = 0;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_IFLAG_H

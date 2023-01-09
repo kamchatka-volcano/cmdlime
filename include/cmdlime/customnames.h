@@ -5,7 +5,7 @@
 #include <string>
 #include <utility>
 
-namespace cmdlime{
+namespace cmdlime {
 
 namespace detail {
 enum class CustomNameType {
@@ -13,15 +13,15 @@ enum class CustomNameType {
     ShortName,
     ValueName
 };
-}
+} //namespace detail
 
-template <detail::CustomNameType>
-class CustomName{
+template<detail::CustomNameType>
+class CustomName {
 public:
     CustomName(std::string name)
         : value_(std::move(name))
     {
-        if(value_.empty())
+        if (value_.empty())
             throw ConfigError{"Custom name can't be empty."};
     }
 
@@ -37,8 +37,8 @@ private:
 using Name = CustomName<detail::CustomNameType::Name>;
 using ShortName = CustomName<detail::CustomNameType::ShortName>;
 using ValueName = CustomName<detail::CustomNameType::ValueName>;
-struct WithoutShortName{};
+struct WithoutShortName {};
 
-}
+} //namespace cmdlime
 
 #endif //CMDLIME_CUSTOMNAMES_H

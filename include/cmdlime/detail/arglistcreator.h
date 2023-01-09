@@ -5,22 +5,23 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/type_traits.h"
 #include "external/sfun/contract.h"
+#include "external/sfun/type_traits.h"
 
-namespace cmdlime::detail{
+namespace cmdlime::detail {
 
 template<typename TArgList>
-class ArgListCreator{
+class ArgListCreator {
     static_assert(sfun::is_dynamic_sequence_container_v<TArgList>, "Argument list field must be a sequence container");
 
 public:
-    ArgListCreator(CommandLineReaderPtr reader,
-                   const std::string& varName,
-                   const std::string& type,
-                   TArgList& argListValue)
-            : reader_(reader)
-            , argListValue_(argListValue)
+    ArgListCreator(
+            CommandLineReaderPtr reader,
+            const std::string& varName,
+            const std::string& type,
+            TArgList& argListValue)
+        : reader_(reader)
+        , argListValue_(argListValue)
     {
         sfunPrecondition(!varName.empty());
         sfunPrecondition(!type.empty());
@@ -48,10 +49,11 @@ public:
         return *this;
     }
 
-    auto& operator <<(std::function<void(const TArgList&)> validationFunc)
+    auto& operator<<(std::function<void(const TArgList&)> validationFunc)
     {
         if (reader_)
-            reader_->addValidator(std::make_unique<Validator<TArgList>>(*argList_, argListValue_, std::move(validationFunc)));
+            reader_->addValidator(
+                    std::make_unique<Validator<TArgList>>(*argList_, argListValue_, std::move(validationFunc)));
         return *this;
     }
 
@@ -76,5 +78,5 @@ private:
     TArgList& argListValue_;
 };
 
-}
+} //namespace cmdlime::detail
 #endif //CMDLIME_ARGLISTCREATOR_H

@@ -1,7 +1,7 @@
-#include <gtest/gtest.h>
-#include <cmdlime/config.h>
-#include <cmdlime/commandlinereader.h>
 #include "assert_exception.h"
+#include <cmdlime/commandlinereader.h>
+#include <cmdlime/config.h>
+#include <gtest/gtest.h>
 #include <optional>
 
 namespace test_simple_format {
@@ -48,13 +48,21 @@ struct FullConfigWithCommand : public Config {
     CMDLIME_COMMAND(subcommand, SubcommandConfig);
 };
 
-
 TEST(SimpleConfig, AllSet)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     auto cfg = reader.read<FullConfig>(
-            {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=-9", "-prmList=zero", "-prmList=one",
-             "-optionalParamList=1,2", "--flg", "4.2", "1.1", "2.2", "3.3"});
+            {"-requiredParam=FOO",
+             "-optionalParam=BAR",
+             "-optionalIntParam=-9",
+             "-prmList=zero",
+             "-prmList=one",
+             "-optionalParamList=1,2",
+             "--flg",
+             "4.2",
+             "1.1",
+             "2.2",
+             "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
     EXPECT_EQ(cfg.optionalIntParam, -9);
@@ -69,10 +77,24 @@ TEST(SimpleConfig, AllSet)
 TEST(SimpleConfig, AllSetInSubCommand)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
-    auto cfg = reader.read<FullConfig>({"-requiredParam=FOO", "-prmList=zero", "-prmList=one", "4.2", "1.1",
-                                           "subcommand", "-requiredParam=FOO", "-optionalParam=BAR",
-                                           "-optionalIntParam=9", "-prmList=zero", "-prmList=one",
-                                           "-optionalParamList=1,2", "--flg", "4.2", "1.1", "2.2", "3.3"});
+    auto cfg = reader.read<FullConfig>(
+            {"-requiredParam=FOO",
+             "-prmList=zero",
+             "-prmList=one",
+             "4.2",
+             "1.1",
+             "subcommand",
+             "-requiredParam=FOO",
+             "-optionalParam=BAR",
+             "-optionalIntParam=9",
+             "-prmList=zero",
+             "-prmList=one",
+             "-optionalParamList=1,2",
+             "--flg",
+             "4.2",
+             "1.1",
+             "2.2",
+             "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_FALSE(cfg.optionalIntParam.has_value());
@@ -110,14 +132,24 @@ TEST(SimpleConfig, MissingParamAllSetInSubCommand)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfig>(
-                        {"subcommand", "-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9",
+                        {"subcommand",
+                         "-requiredParam=FOO",
+                         "-optionalParam=BAR",
+                         "-optionalIntParam=9",
                          "-prmList=zero",
                          "-prmList=one",
-                         "-optionalParamList=1,2", "--flg", "4.2", "1.1", "2.2", "3.3"});
+                         "-optionalParamList=1,2",
+                         "--flg",
+                         "4.2",
+                         "1.1",
+                         "2.2",
+                         "3.3"});
             },
-            [](const cmdlime::ParsingError& error) {
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-requiredParam' is missing."});
             });
 }
@@ -126,10 +158,23 @@ TEST(SimpleConfig, AllSetInCommand)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     auto cfg = reader.read<FullConfigWithCommand>(
-            {"-requiredParam=FOO", "-prmList=zero", "-prmList=one", "4.2", "1.1",
-             "subcommand", "-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-prmList=zero",
+            {"-requiredParam=FOO",
+             "-prmList=zero",
              "-prmList=one",
-             "-optionalParamList=1,2", "--flg", "4.2", "1.1", "2.2", "3.3"});
+             "4.2",
+             "1.1",
+             "subcommand",
+             "-requiredParam=FOO",
+             "-optionalParam=BAR",
+             "-optionalIntParam=9",
+             "-prmList=zero",
+             "-prmList=one",
+             "-optionalParamList=1,2",
+             "--flg",
+             "4.2",
+             "1.1",
+             "2.2",
+             "3.3"});
     EXPECT_TRUE(cfg.requiredParam.empty());
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_FALSE(cfg.optionalIntParam.has_value());
@@ -153,9 +198,18 @@ TEST(SimpleConfig, MissingParamAllSetInCommand)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     auto cfg = reader.read<FullConfigWithCommand>(
-            {"subcommand", "-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-prmList=zero",
+            {"subcommand",
+             "-requiredParam=FOO",
+             "-optionalParam=BAR",
+             "-optionalIntParam=9",
+             "-prmList=zero",
              "-prmList=one",
-             "-optionalParamList=1,2", "--flg", "4.2", "1.1", "2.2", "3.3"});
+             "-optionalParamList=1,2",
+             "--flg",
+             "4.2",
+             "1.1",
+             "2.2",
+             "3.3"});
     EXPECT_TRUE(cfg.requiredParam.empty());
     EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
     EXPECT_FALSE(cfg.optionalIntParam.has_value());
@@ -200,7 +254,6 @@ TEST(SimpleConfig, MissingParamAllSetInNestedCommand)
     EXPECT_EQ(cfg.subcommand->nested->prm, "FOO");
 }
 
-
 struct FullConfigWithOptionalArgList : public Config {
     CMDLIME_PARAM(requiredParam, std::string);
     CMDLIME_PARAM(optionalParam, std::string)({"defaultValue"});
@@ -226,8 +279,12 @@ TEST(SimpleConfig, MissingParam)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { reader.read<FullConfig>({"-optionalParam=FOO", "-prmList=zero", "4.2", "1.1", "2.2", "3.3"}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                reader.read<FullConfig>({"-optionalParam=FOO", "-prmList=zero", "4.2", "1.1", "2.2", "3.3"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-requiredParam' is missing."});
             });
 }
@@ -236,11 +293,13 @@ TEST(SimpleConfig, MissingArg)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfigWithOptionalArgList>(
                         {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flg"});
             },
-            [](const cmdlime::ParsingError& error) {
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Positional argument 'argument' is missing."});
             });
 }
@@ -249,12 +308,18 @@ TEST(SimpleConfig, MissingArgList)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfig>(
-                        {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-prmList=zero", "--flg",
+                        {"-requiredParam=FOO",
+                         "-optionalParam=BAR",
+                         "-optionalIntParam=9",
+                         "-prmList=zero",
+                         "--flg",
                          "4.2"});
             },
-            [](const cmdlime::ParsingError& error) {
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'argumentList' is missing."});
             });
 }
@@ -263,13 +328,20 @@ TEST(SimpleConfig, MissingParamList)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfig>(
-                        {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "--flg", "4.2", "1.1",
+                        {"-requiredParam=FOO",
+                         "-optionalParam=BAR",
+                         "-optionalIntParam=9",
+                         "--flg",
+                         "4.2",
+                         "1.1",
                          "2.2",
                          "3.3"});
             },
-            [](const cmdlime::ParsingError& error) {
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-prmList' is missing."});
             });
 }
@@ -278,11 +350,13 @@ TEST(SimpleConfig, UnexpectedParam)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfig>(
                         {"-requiredParam=FOO", "-testParam=TEST", "-prmList=zero", "4.2", "1.1", "2.2", "3.3"});
             },
-            [](const cmdlime::ParsingError& error) {
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown parameter '-testParam'"});
             });
 }
@@ -291,11 +365,13 @@ TEST(SimpleConfig, UnexpectedFlag)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfig>(
                         {"-requiredParam=FOO", "--testFlag", "-prmList=zero", "4.2", "1.1", "2.2", "3.3"});
             },
-            [](const cmdlime::ParsingError& error) {
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown flag '--testFlag'"});
             });
 }
@@ -307,25 +383,38 @@ TEST(SimpleConfig, UnexpectedArg)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { reader.read<Cfg>({"-prm=FOO", "4.2", "1"}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                reader.read<Cfg>({"-prm=FOO", "4.2", "1"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown positional argument '4.2'"});
             });
-
 }
 
 TEST(SimpleConfig, WrongParamType)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfig>(
-                        {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=nine", "-prmList=zero", "--flg",
-                         "4.2", "1.1", "2.2", "3.3"});
+                        {"-requiredParam=FOO",
+                         "-optionalParam=BAR",
+                         "-optionalIntParam=nine",
+                         "-prmList=zero",
+                         "--flg",
+                         "4.2",
+                         "1.1",
+                         "2.2",
+                         "3.3"});
             },
-            [](const cmdlime::ParsingError& error) {
-                EXPECT_EQ(std::string{error.what()},
-                          std::string{"Couldn't set parameter '-optionalIntParam' value from 'nine'"});
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Couldn't set parameter '-optionalIntParam' value from 'nine'"});
             });
 }
 
@@ -333,15 +422,24 @@ TEST(SimpleConfig, WrongParamListElementType)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfig>(
-                        {"-requiredParam=FOO", "-optionalParam=BAR", "-prmList=zero", "-optionalParamList=not-int",
+                        {"-requiredParam=FOO",
+                         "-optionalParam=BAR",
+                         "-prmList=zero",
+                         "-optionalParamList=not-int",
                          "--flg",
-                         "4.2", "1.1", "2.2", "3.3"});
+                         "4.2",
+                         "1.1",
+                         "2.2",
+                         "3.3"});
             },
-            [](const cmdlime::ParsingError& error) {
-                EXPECT_EQ(std::string{error.what()},
-                          std::string{"Couldn't set parameter '-optionalParamList' value from 'not-int'"});
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Couldn't set parameter '-optionalParamList' value from 'not-int'"});
             });
 }
 
@@ -349,14 +447,24 @@ TEST(SimpleConfig, WrongArgType)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfig>(
-                        {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-prmList=zero", "--flg",
-                         "fortytwo", "1.1", "2.2", "3.3"});
+                        {"-requiredParam=FOO",
+                         "-optionalParam=BAR",
+                         "-optionalIntParam=9",
+                         "-prmList=zero",
+                         "--flg",
+                         "fortytwo",
+                         "1.1",
+                         "2.2",
+                         "3.3"});
             },
-            [](const cmdlime::ParsingError& error) {
-                EXPECT_EQ(std::string{error.what()},
-                          std::string{"Couldn't set argument 'argument' value from 'fortytwo'"});
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Couldn't set argument 'argument' value from 'fortytwo'"});
             });
 }
 
@@ -364,15 +472,24 @@ TEST(SimpleConfig, WrongArgListElementType)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] {
+            [&]
+            {
                 reader.read<FullConfig>(
-                        {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-prmList=zero", "--flg",
+                        {"-requiredParam=FOO",
+                         "-optionalParam=BAR",
+                         "-optionalIntParam=9",
+                         "-prmList=zero",
+                         "--flg",
                          "4.2",
-                         "1.1", "2.2", "three"});
+                         "1.1",
+                         "2.2",
+                         "three"});
             },
-            [](const cmdlime::ParsingError& error) {
-                EXPECT_EQ(std::string{error.what()},
-                          std::string{"Couldn't set argument list 'argumentList' element's value from 'three'"});
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Couldn't set argument list 'argumentList' element's value from 'three'"});
             });
 }
 
@@ -383,10 +500,15 @@ TEST(SimpleConfig, ParamWrongNameNonAlphaFirstChar)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ConfigError>(
-            [&] { reader.read<Cfg>({"-!param=Foo"}); },
-            [](const cmdlime::ConfigError& error) {
-                EXPECT_EQ(std::string{error.what()},
-                          std::string{"Parameter's name '!param' must start with an alphabet character"});
+            [&]
+            {
+                reader.read<Cfg>({"-!param=Foo"});
+            },
+            [](const cmdlime::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Parameter's name '!param' must start with an alphabet character"});
             });
 }
 
@@ -397,10 +519,15 @@ TEST(SimpleConfig, ParamWrongNameNonAlphanum)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ConfigError>(
-            [&] { reader.read<Cfg>({"-pa-ram=Foo"}); },
-            [](const cmdlime::ConfigError& error) {
-                EXPECT_EQ(std::string{error.what()},
-                          std::string{"Parameter's name 'p$r$m' must consist of alphanumeric characters"});
+            [&]
+            {
+                reader.read<Cfg>({"-pa-ram=Foo"});
+            },
+            [](const cmdlime::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Parameter's name 'p$r$m' must consist of alphanumeric characters"});
             });
 }
 
@@ -413,8 +540,12 @@ TEST(SimpleConfig, MultipleArgLists)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ConfigError>(
-            [&] { reader.read<Cfg>({"-param=Foo"}); },
-            [](const cmdlime::ConfigError& error) {
+            [&]
+            {
+                reader.read<Cfg>({"-param=Foo"});
+            },
+            [](const cmdlime::ConfigError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"BaseConfig can have only one arguments list"});
             });
 }
@@ -426,8 +557,12 @@ TEST(SimpleConfig, ParamEmptyValue)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { reader.read<Cfg>({"-param="}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                reader.read<Cfg>({"-param="});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-param' value can't be empty"});
             });
 }
@@ -439,8 +574,12 @@ TEST(SimpleConfig, ParamListEmptyValue)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { reader.read<Cfg>({"-params=", ""}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                reader.read<Cfg>({"-params=", ""});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-params' value can't be empty"});
             });
 }
@@ -452,8 +591,12 @@ TEST(SimpleConfig, ArgEmptyValue)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { reader.read<Cfg>({""}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                reader.read<Cfg>({""});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Argument 'argument' value can't be empty"});
             });
 }
@@ -465,12 +608,15 @@ TEST(SimpleConfig, ArgListEmptyValue)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { reader.read<Cfg>({"foo", ""}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                reader.read<Cfg>({"foo", ""});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Argument list 'args' element value can't be empty"});
             });
 }
-
 
 TEST(SimpleConfig, ValuesWithWhitespace)
 {
@@ -495,10 +641,15 @@ TEST(SimpleConfig, ParamWrongFormat)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { auto cfg = reader.read<Cfg>({"-param:2"}); },
-            [](const cmdlime::ParsingError& error) {
-                EXPECT_EQ(std::string{error.what()},
-                          std::string{"Wrong parameter format: -param:2. Parameter must have a form of -name=value"});
+            [&]
+            {
+                auto cfg = reader.read<Cfg>({"-param:2"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Wrong parameter format: -param:2. Parameter must have a form of -name=value"});
             });
 }
 
@@ -523,8 +674,12 @@ TEST(SimpleConfig, NegativeNumberWithoutArg)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { reader.read<Cfg>({"-2"}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                reader.read<Cfg>({"-2"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Encountered unknown positional argument '-2'"});
             });
 }
@@ -584,8 +739,18 @@ TEST(SimpleConfig, PascalNames)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     auto cfg = reader.read<PascalConfig>(
-            {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-prmList=zero", "-prmList=one",
-             "-optionalParamList=1", "-optionalParamList=2", "--flg", "4.2", "1.1", "2.2", "3.3"});
+            {"-requiredParam=FOO",
+             "-optionalParam=BAR",
+             "-optionalIntParam=9",
+             "-prmList=zero",
+             "-prmList=one",
+             "-optionalParamList=1",
+             "-optionalParamList=2",
+             "--flg",
+             "4.2",
+             "1.1",
+             "2.2",
+             "3.3"});
     EXPECT_EQ(cfg.RequiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.OptionalParam, std::string{"BAR"});
     EXPECT_EQ(cfg.OptionalIntParam, 9);
@@ -610,8 +775,18 @@ TEST(SimpleConfig, SnakeNames)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     auto cfg = reader.read<PascalConfig>(
-            {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-paramList=zero", "-paramList=one",
-             "-optionalParamList=1", "-optionalParamList=2", "--flg", "4.2", "1.1", "2.2", "3.3"});
+            {"-requiredParam=FOO",
+             "-optionalParam=BAR",
+             "-optionalIntParam=9",
+             "-paramList=zero",
+             "-paramList=one",
+             "-optionalParamList=1",
+             "-optionalParamList=2",
+             "--flg",
+             "4.2",
+             "1.1",
+             "2.2",
+             "3.3"});
     EXPECT_EQ(cfg.required_param, std::string{"FOO"});
     EXPECT_EQ(cfg.optional_param, std::string{"BAR"});
     EXPECT_EQ(cfg.optional_int_param, 9);
@@ -634,8 +809,14 @@ TEST(SimpleConfig, CustomNames)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     auto cfg = reader.read<TestConfig>(
-            {"-customRequiredParam=FOO", "-customOptionalParam=BAR", "-customOptionalIntParam=9", "--customFlag", "4.2",
-             "1.1", "2.2", "3.3"});
+            {"-customRequiredParam=FOO",
+             "-customOptionalParam=BAR",
+             "-customOptionalIntParam=9",
+             "--customFlag",
+             "4.2",
+             "1.1",
+             "2.2",
+             "3.3"});
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
     EXPECT_EQ(cfg.optionalIntParam, 9);
@@ -652,8 +833,12 @@ TEST(SimpleConfig, CustomNamesMissingParam)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { auto cfg = reader.read<TestConfig>({}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                auto cfg = reader.read<TestConfig>({});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-customParam' is missing."});
             });
 }
@@ -666,8 +851,12 @@ TEST(SimpleConfig, CustomNamesMissingParamList)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { auto cfg = reader.read<TestConfig>({"-customParam=1"}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                auto cfg = reader.read<TestConfig>({"-customParam=1"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter '-customParamList' is missing."});
             });
 }
@@ -680,8 +869,12 @@ TEST(SimpleConfig, CustomNamesMissingArg)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { auto cfg = reader.read<TestConfig>({}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                auto cfg = reader.read<TestConfig>({});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Positional argument 'customArg' is missing."});
             });
 }
@@ -694,8 +887,12 @@ TEST(SimpleConfig, CustomNamesMissingArgList)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ParsingError>(
-            [&] { auto cfg = reader.read<TestConfig>({"1.0"}); },
-            [](const cmdlime::ParsingError& error) {
+            [&]
+            {
+                auto cfg = reader.read<TestConfig>({"1.0"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Arguments list 'customArgList' is missing."});
             });
 }
@@ -708,8 +905,12 @@ TEST(SimpleConfig, ConfigErrorRepeatingParamNames)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ConfigError>(
-            [&] { reader.read<TestConfig>({}); },
-            [](const cmdlime::ConfigError& error) {
+            [&]
+            {
+                reader.read<TestConfig>({});
+            },
+            [](const cmdlime::ConfigError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Parameter's name 'prm' is already used."});
             });
 }
@@ -722,8 +923,12 @@ TEST(SimpleConfig, ConfigErrorRepeatingFlagNames)
     };
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     assert_exception<cmdlime::ConfigError>(
-            [&] { reader.read<TestConfig>({}); },
-            [](const cmdlime::ConfigError& error) {
+            [&]
+            {
+                reader.read<TestConfig>({});
+            },
+            [](const cmdlime::ConfigError& error)
+            {
                 EXPECT_EQ(std::string{error.what()}, std::string{"Flag's name 'flg' is already used."});
             });
 }
@@ -732,10 +937,10 @@ TEST(SimpleConfig, UsageInfo)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     reader.setProgramName("testproc");
-    auto expectedInfo = std::string{
-            "Usage: testproc [commands] <argument> -requiredParam=<string> -prmList=<string>... "
-            "[-optionalParam=<string>] [-optionalIntParam=<int>] [-optionalParamList=<int>...] [--flg] <argumentList...>\n"
-    };
+    auto expectedInfo =
+            std::string{"Usage: testproc [commands] <argument> -requiredParam=<string> -prmList=<string>... "
+                        "[-optionalParam=<string>] [-optionalIntParam=<int>] [-optionalParamList=<int>...] [--flg] "
+                        "<argumentList...>\n"};
     EXPECT_EQ(reader.usageInfo<FullConfig>(), expectedInfo);
 }
 
@@ -743,22 +948,21 @@ TEST(SimpleConfig, DetailedUsageInfo)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     reader.setProgramName("testproc");
-    auto expectedDetailedInfo = std::string{
-            "Usage: testproc [commands] <argument> -requiredParam=<string> -prmList=<string>... [params] [flags] <argumentList...>\n"
-            "Arguments:\n"
-            "    <argument> (double)        \n"
-            "    <argumentList> (float)     multi-value\n"
-            "Parameters:\n"
-            "   -requiredParam=<string>     \n"
-            "   -prmList=<string>           multi-value\n"
-            "   -optionalParam=<string>     optional, default: defaultValue\n"
-            "   -optionalIntParam=<int>     optional\n"
-            "   -optionalParamList=<int>    multi-value, optional, default: {99, 100}\n"
-            "Flags:\n"
-            "  --flg                        \n"
-            "Commands:\n"
-            "    subcommand [options]       \n"
-    };
+    auto expectedDetailedInfo = std::string{"Usage: testproc [commands] <argument> -requiredParam=<string> "
+                                            "-prmList=<string>... [params] [flags] <argumentList...>\n"
+                                            "Arguments:\n"
+                                            "    <argument> (double)        \n"
+                                            "    <argumentList> (float)     multi-value\n"
+                                            "Parameters:\n"
+                                            "   -requiredParam=<string>     \n"
+                                            "   -prmList=<string>           multi-value\n"
+                                            "   -optionalParam=<string>     optional, default: defaultValue\n"
+                                            "   -optionalIntParam=<int>     optional\n"
+                                            "   -optionalParamList=<int>    multi-value, optional, default: {99, 100}\n"
+                                            "Flags:\n"
+                                            "  --flg                        \n"
+                                            "Commands:\n"
+                                            "    subcommand [options]       \n"};
     EXPECT_EQ(reader.usageInfoDetailed<FullConfig>(), expectedDetailedInfo);
 }
 
@@ -771,27 +975,25 @@ TEST(SimpleConfig, DetailedUsageInfoFormat)
     format.nameIndentation = 0;
     format.terminalWidth = 50;
     reader.setUsageInfoFormat(format);
-    auto expectedDetailedInfo = std::string{
-            "Usage: testproc [commands] <argument> -requiredParam=<string> -prmList=<string>... [params] [flags] <argumentList...>\n"
-            "Arguments:\n"
-            "<argument> (double)       \n"
-            "<argumentList> (float)    multi-value\n"
-            "Parameters:\n"
-            "-requiredParam=<string>   \n"
-            "-prmList=<string>         multi-value\n"
-            "-optionalParam=<string>   optional, default: \n"
-            "                            defaultValue\n"
-            "-optionalIntParam=<int>   optional\n"
-            "-optionalParamList=<int>  multi-value, optional,\n"
-            "                            default: {99, 100}\n"
-            "Flags:\n"
-            "--flg                     \n"
-            "Commands:\n"
-            "subcommand [options]      \n"
-    };
+    auto expectedDetailedInfo = std::string{"Usage: testproc [commands] <argument> -requiredParam=<string> "
+                                            "-prmList=<string>... [params] [flags] <argumentList...>\n"
+                                            "Arguments:\n"
+                                            "<argument> (double)       \n"
+                                            "<argumentList> (float)    multi-value\n"
+                                            "Parameters:\n"
+                                            "-requiredParam=<string>   \n"
+                                            "-prmList=<string>         multi-value\n"
+                                            "-optionalParam=<string>   optional, default: \n"
+                                            "                            defaultValue\n"
+                                            "-optionalIntParam=<int>   optional\n"
+                                            "-optionalParamList=<int>  multi-value, optional,\n"
+                                            "                            default: {99, 100}\n"
+                                            "Flags:\n"
+                                            "--flg                     \n"
+                                            "Commands:\n"
+                                            "subcommand [options]      \n"};
     EXPECT_EQ(reader.usageInfoDetailed<FullConfig>(), expectedDetailedInfo);
 }
-
 
 TEST(SimpleConfig, CustomValueNames)
 {
@@ -804,18 +1006,15 @@ TEST(SimpleConfig, CustomValueNames)
 
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{};
     reader.setProgramName("testproc");
-    auto expectedInfo = std::string{
-            "Usage: testproc <argument> -prm=<STRING> [params] <argumentList...>\n"
-            "Arguments:\n"
-            "    <argument> (DOUBLE)         \n"
-            "    <argumentList> (FLOATS)     multi-value\n"
-            "Parameters:\n"
-            "   -prm=<STRING>                \n"
-            "   -prmList=<INTS>              multi-value, optional, default: {}\n"
-    };
+    auto expectedInfo = std::string{"Usage: testproc <argument> -prm=<STRING> [params] <argumentList...>\n"
+                                    "Arguments:\n"
+                                    "    <argument> (DOUBLE)         \n"
+                                    "    <argumentList> (FLOATS)     multi-value\n"
+                                    "Parameters:\n"
+                                    "   -prm=<STRING>                \n"
+                                    "   -prmList=<INTS>              multi-value, optional, default: {}\n"};
     EXPECT_EQ(reader.usageInfoDetailed<TestConfig>(), expectedInfo);
 }
-
 
 TEST(SimpleConfig, WrongParamsWithExitFlag)
 {
@@ -838,7 +1037,14 @@ TEST(SimpleConfig, ExecMissingVersionInfo)
     auto errorOutput = std::stringstream{};
     reader.setErrorOutputStream(errorOutput);
 
-    EXPECT_EQ(reader.exec<FullConfig>({"--version"}, [](const FullConfig&) { return 0; }), -1);
+    EXPECT_EQ(
+            reader.exec<FullConfig>(
+                    {"--version"},
+                    [](const FullConfig&)
+                    {
+                        return 0;
+                    }),
+            -1);
     EXPECT_EQ(errorOutput.str(), "Encountered unknown flag '--version'\n");
 }
 
@@ -848,7 +1054,14 @@ TEST(SimpleConfig, ExecVersion)
     reader.setVersionInfo("testproc 1.0");
     auto output = std::stringstream{};
     reader.setOutputStream(output);
-    EXPECT_EQ(reader.exec<FullConfig>({"--version"}, [](const FullConfig&) { return 0; }), 0);
+    EXPECT_EQ(
+            reader.exec<FullConfig>(
+                    {"--version"},
+                    [](const FullConfig&)
+                    {
+                        return 0;
+                    }),
+            0);
     EXPECT_EQ(output.str(), "testproc 1.0\n");
 }
 
@@ -857,24 +1070,30 @@ TEST(SimpleConfig, ExecHelp)
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc"};
     auto output = std::stringstream{};
     reader.setOutputStream(output);
-    EXPECT_EQ(reader.exec<FullConfig>({"--help"}, [](const FullConfig&) { return 0; }), 0);
-    auto expectedDetailedInfo = std::string{
-            "Usage: testproc [commands] <argument> -requiredParam=<string> -prmList=<string>... [params] [flags] <argumentList...>\n"
-            "Arguments:\n"
-            "    <argument> (double)        \n"
-            "    <argumentList> (float)     multi-value\n"
-            "Parameters:\n"
-            "   -requiredParam=<string>     \n"
-            "   -prmList=<string>           multi-value\n"
-            "   -optionalParam=<string>     optional, default: defaultValue\n"
-            "   -optionalIntParam=<int>     optional\n"
-            "   -optionalParamList=<int>    multi-value, optional, default: {99, 100}\n"
-            "Flags:\n"
-            "  --flg                        \n"
-            "  --help                       show usage info and exit\n"
-            "Commands:\n"
-            "    subcommand [options]       \n\n"
-    };
+    EXPECT_EQ(
+            reader.exec<FullConfig>(
+                    {"--help"},
+                    [](const FullConfig&)
+                    {
+                        return 0;
+                    }),
+            0);
+    auto expectedDetailedInfo = std::string{"Usage: testproc [commands] <argument> -requiredParam=<string> "
+                                            "-prmList=<string>... [params] [flags] <argumentList...>\n"
+                                            "Arguments:\n"
+                                            "    <argument> (double)        \n"
+                                            "    <argumentList> (float)     multi-value\n"
+                                            "Parameters:\n"
+                                            "   -requiredParam=<string>     \n"
+                                            "   -prmList=<string>           multi-value\n"
+                                            "   -optionalParam=<string>     optional, default: defaultValue\n"
+                                            "   -optionalIntParam=<int>     optional\n"
+                                            "   -optionalParamList=<int>    multi-value, optional, default: {99, 100}\n"
+                                            "Flags:\n"
+                                            "  --flg                        \n"
+                                            "  --help                       show usage info and exit\n"
+                                            "Commands:\n"
+                                            "    subcommand [options]       \n\n"};
     EXPECT_EQ(output.str(), expectedDetailedInfo);
 }
 
@@ -888,27 +1107,33 @@ TEST(SimpleConfig, ExecHelpUsageInfoFormat)
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc", {}, format};
     auto output = std::stringstream{};
     reader.setOutputStream(output);
-    EXPECT_EQ(reader.exec<FullConfig>({"--help"}, [](const FullConfig&) { return 0; }), 0);
-    auto expectedDetailedInfo = std::string{
-            "Usage: testproc [commands] <argument> -requiredParam=<string> -prmList=<string>... [params] [flags] <argumentList...>\n"
-            "Arguments:\n"
-            "<argument> (double)       \n"
-            "<argumentList> (float)    multi-value\n"
-            "Parameters:\n"
-            "-requiredParam=<string>   \n"
-            "-prmList=<string>         multi-value\n"
-            "-optionalParam=<string>   optional, default: \n"
-            "                            defaultValue\n"
-            "-optionalIntParam=<int>   optional\n"
-            "-optionalParamList=<int>  multi-value, optional,\n"
-            "                            default: {99, 100}\n"
-            "Flags:\n"
-            "--flg                     \n"
-            "--help                    show usage info and \n"
-            "                            exit\n"
-            "Commands:\n"
-            "subcommand [options]      \n\n"
-    };
+    EXPECT_EQ(
+            reader.exec<FullConfig>(
+                    {"--help"},
+                    [](const FullConfig&)
+                    {
+                        return 0;
+                    }),
+            0);
+    auto expectedDetailedInfo = std::string{"Usage: testproc [commands] <argument> -requiredParam=<string> "
+                                            "-prmList=<string>... [params] [flags] <argumentList...>\n"
+                                            "Arguments:\n"
+                                            "<argument> (double)       \n"
+                                            "<argumentList> (float)    multi-value\n"
+                                            "Parameters:\n"
+                                            "-requiredParam=<string>   \n"
+                                            "-prmList=<string>         multi-value\n"
+                                            "-optionalParam=<string>   optional, default: \n"
+                                            "                            defaultValue\n"
+                                            "-optionalIntParam=<int>   optional\n"
+                                            "-optionalParamList=<int>  multi-value, optional,\n"
+                                            "                            default: {99, 100}\n"
+                                            "Flags:\n"
+                                            "--flg                     \n"
+                                            "--help                    show usage info and \n"
+                                            "                            exit\n"
+                                            "Commands:\n"
+                                            "subcommand [options]      \n\n"};
     EXPECT_EQ(output.str(), expectedDetailedInfo);
 }
 
@@ -917,24 +1142,30 @@ TEST(SimpleConfig, ExecCommandHelp)
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc"};
     auto output = std::stringstream{};
     reader.setOutputStream(output);
-    auto expectedDetailedInfo = std::string{
-            "Usage: testproc subcommand [commands] <argument> -requiredParam=<string> -prmList=<string>... [params] [flags] <argumentList...>\n"
-            "Arguments:\n"
-            "    <argument> (double)        \n"
-            "    <argumentList> (float)     multi-value\n"
-            "Parameters:\n"
-            "   -requiredParam=<string>     \n"
-            "   -prmList=<string>           multi-value\n"
-            "   -optionalParam=<string>     optional, default: defaultValue\n"
-            "   -optionalIntParam=<int>     optional\n"
-            "   -optionalParamList=<int>    multi-value, optional, default: {99, 100}\n"
-            "Flags:\n"
-            "  --flg                        \n"
-            "  --help                       show usage info and exit\n"
-            "Commands:\n"
-            "    nested [options]           \n\n"
-    };
-    EXPECT_EQ(reader.exec<FullConfigWithCommand>({"subcommand", "--help"}, [](const auto&) { return 0; }), 0);
+    auto expectedDetailedInfo = std::string{"Usage: testproc subcommand [commands] <argument> -requiredParam=<string> "
+                                            "-prmList=<string>... [params] [flags] <argumentList...>\n"
+                                            "Arguments:\n"
+                                            "    <argument> (double)        \n"
+                                            "    <argumentList> (float)     multi-value\n"
+                                            "Parameters:\n"
+                                            "   -requiredParam=<string>     \n"
+                                            "   -prmList=<string>           multi-value\n"
+                                            "   -optionalParam=<string>     optional, default: defaultValue\n"
+                                            "   -optionalIntParam=<int>     optional\n"
+                                            "   -optionalParamList=<int>    multi-value, optional, default: {99, 100}\n"
+                                            "Flags:\n"
+                                            "  --flg                        \n"
+                                            "  --help                       show usage info and exit\n"
+                                            "Commands:\n"
+                                            "    nested [options]           \n\n"};
+    EXPECT_EQ(
+            reader.exec<FullConfigWithCommand>(
+                    {"subcommand", "--help"},
+                    [](const auto&)
+                    {
+                        return 0;
+                    }),
+            0);
     EXPECT_EQ(output.str(), expectedDetailedInfo);
 }
 
@@ -947,27 +1178,33 @@ TEST(SimpleConfig, ExecCommandHelpUsageInfoFormat)
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc", {}, format};
     auto output = std::stringstream{};
     reader.setOutputStream(output);
-    EXPECT_EQ(reader.exec<FullConfigWithCommand>({"subcommand", "--help"}, [](const auto&) { return 0; }), 0);
-    auto expectedDetailedInfo = std::string{
-            "Usage: testproc subcommand [commands] <argument> -requiredParam=<string> -prmList=<string>... [params] [flags] <argumentList...>\n"
-            "Arguments:\n"
-            "<argument> (double)       \n"
-            "<argumentList> (float)    multi-value\n"
-            "Parameters:\n"
-            "-requiredParam=<string>   \n"
-            "-prmList=<string>         multi-value\n"
-            "-optionalParam=<string>   optional, default: \n"
-            "                            defaultValue\n"
-            "-optionalIntParam=<int>   optional\n"
-            "-optionalParamList=<int>  multi-value, optional,\n"
-            "                            default: {99, 100}\n"
-            "Flags:\n"
-            "--flg                     \n"
-            "--help                    show usage info and \n"
-            "                            exit\n"
-            "Commands:\n"
-            "nested [options]          \n\n"
-    };
+    EXPECT_EQ(
+            reader.exec<FullConfigWithCommand>(
+                    {"subcommand", "--help"},
+                    [](const auto&)
+                    {
+                        return 0;
+                    }),
+            0);
+    auto expectedDetailedInfo = std::string{"Usage: testproc subcommand [commands] <argument> -requiredParam=<string> "
+                                            "-prmList=<string>... [params] [flags] <argumentList...>\n"
+                                            "Arguments:\n"
+                                            "<argument> (double)       \n"
+                                            "<argumentList> (float)    multi-value\n"
+                                            "Parameters:\n"
+                                            "-requiredParam=<string>   \n"
+                                            "-prmList=<string>         multi-value\n"
+                                            "-optionalParam=<string>   optional, default: \n"
+                                            "                            defaultValue\n"
+                                            "-optionalIntParam=<int>   optional\n"
+                                            "-optionalParamList=<int>  multi-value, optional,\n"
+                                            "                            default: {99, 100}\n"
+                                            "Flags:\n"
+                                            "--flg                     \n"
+                                            "--help                    show usage info and \n"
+                                            "                            exit\n"
+                                            "Commands:\n"
+                                            "nested [options]          \n\n"};
     EXPECT_EQ(output.str(), expectedDetailedInfo);
 }
 
@@ -977,15 +1214,19 @@ TEST(SimpleConfig, ExecNestedCommandHelp)
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc"};
     auto output = std::stringstream{};
     reader.setOutputStream(output);
-    auto expectedDetailedInfo = std::string{
-            "Usage: testproc subcommand nested -prm=<string> [flags] \n"
-            "Parameters:\n"
-            "   -prm=<string>     \n"
-            "Flags:\n"
-            "  --help             show usage info and exit\n\n"
-    };
-    EXPECT_EQ(reader.exec<FullConfigWithCommand>({"subcommand", "nested", "--help"}, [](const auto&) { return 0; }),
-              0);
+    auto expectedDetailedInfo = std::string{"Usage: testproc subcommand nested -prm=<string> [flags] \n"
+                                            "Parameters:\n"
+                                            "   -prm=<string>     \n"
+                                            "Flags:\n"
+                                            "  --help             show usage info and exit\n\n"};
+    EXPECT_EQ(
+            reader.exec<FullConfigWithCommand>(
+                    {"subcommand", "nested", "--help"},
+                    [](const auto&)
+                    {
+                        return 0;
+                    }),
+            0);
     EXPECT_EQ(output.str(), expectedDetailedInfo);
 }
 
@@ -999,24 +1240,43 @@ TEST(SimpleConfig, ExecNestedCommandHelpUsageInfoFormat)
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc", {}, format};
     auto output = std::stringstream{};
     reader.setOutputStream(output);
-    auto expectedDetailedInfo = std::string{
-            "Usage: testproc subcommand nested -prm=<string> [flags] \n"
-            "Parameters:\n"
-            "-prm=<string>   \n"
-            "Flags:\n"
-            "--help          show usage info and exit\n\n"
-    };
-    EXPECT_EQ(reader.exec<FullConfigWithCommand>({"subcommand", "nested", "--help"}, [](const auto&) { return 0; }),
-              0);
+    auto expectedDetailedInfo = std::string{"Usage: testproc subcommand nested -prm=<string> [flags] \n"
+                                            "Parameters:\n"
+                                            "-prm=<string>   \n"
+                                            "Flags:\n"
+                                            "--help          show usage info and exit\n\n"};
+    EXPECT_EQ(
+            reader.exec<FullConfigWithCommand>(
+                    {"subcommand", "nested", "--help"},
+                    [](const auto&)
+                    {
+                        return 0;
+                    }),
+            0);
     EXPECT_EQ(output.str(), expectedDetailedInfo);
 }
 
 TEST(SimpleConfig, ExecSuccess)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc"};
-    EXPECT_EQ(reader.exec<FullConfig>(
-            {"-requiredParam=FOO", "-optionalParam=BAR", "-optionalIntParam=9", "-prmList=zero", "-prmList=one",
-             "-optionalParamList=1,2", "--flg", "4.2", "1.1", "2.2", "3.3"}, [](const auto&) { return 0; }), 0);
+    EXPECT_EQ(
+            reader.exec<FullConfig>(
+                    {"-requiredParam=FOO",
+                     "-optionalParam=BAR",
+                     "-optionalIntParam=9",
+                     "-prmList=zero",
+                     "-prmList=one",
+                     "-optionalParamList=1,2",
+                     "--flg",
+                     "4.2",
+                     "1.1",
+                     "2.2",
+                     "3.3"},
+                    [](const auto&)
+                    {
+                        return 0;
+                    }),
+            0);
 }
 
 TEST(SimpleConfig, ExecError)
@@ -1024,10 +1284,24 @@ TEST(SimpleConfig, ExecError)
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::Simple>{"testproc"};
     auto errorOutput = std::stringstream{};
     reader.setErrorOutputStream(errorOutput);
-    EXPECT_EQ(reader.exec<FullConfig>({"-optionalParam=BAR", "-optionalIntParam=9", "-prmList=zero", "-prmList=one",
-                                          "-optionalParamList=1,2", "--flg", "4.2", "1.1", "2.2", "3.3"},
-                                         [](const auto&) { return 0; }), -1);
+    EXPECT_EQ(
+            reader.exec<FullConfig>(
+                    {"-optionalParam=BAR",
+                     "-optionalIntParam=9",
+                     "-prmList=zero",
+                     "-prmList=one",
+                     "-optionalParamList=1,2",
+                     "--flg",
+                     "4.2",
+                     "1.1",
+                     "2.2",
+                     "3.3"},
+                    [](const auto&)
+                    {
+                        return 0;
+                    }),
+            -1);
     EXPECT_EQ(errorOutput.str(), "Parameter '-requiredParam' is missing.\n");
 }
 
-}
+} //namespace test_simple_format

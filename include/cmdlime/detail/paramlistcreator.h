@@ -1,26 +1,27 @@
 #ifndef CMDLIME_PARAMLISTCREATOR_H
 #define CMDLIME_PARAMLISTCREATOR_H
 
-#include "paramlist.h"
 #include "icommandlinereader.h"
 #include "nameformat.h"
+#include "paramlist.h"
 #include "validator.h"
-#include "external/sfun/type_traits.h"
 #include "external/sfun/contract.h"
+#include "external/sfun/type_traits.h"
 
 namespace cmdlime::detail {
 
 template<typename TParamList>
-class ParamListCreator{
+class ParamListCreator {
     static_assert(sfun::is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
 
 public:
-    ParamListCreator(CommandLineReaderPtr reader,
-                     const std::string& varName,
-                     const std::string& type,
-                     TParamList& paramListValue)
-            : reader_(reader)
-            , paramListValue_(paramListValue)
+    ParamListCreator(
+            CommandLineReaderPtr reader,
+            const std::string& varName,
+            const std::string& type,
+            TParamList& paramListValue)
+        : reader_(reader)
+        , paramListValue_(paramListValue)
     {
         sfunPrecondition(!varName.empty());
         sfunPrecondition(!type.empty());
@@ -71,7 +72,6 @@ public:
         return *this;
     }
 
-
     auto& operator()(TParamList defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
@@ -93,6 +93,6 @@ private:
     TParamList& paramListValue_;
 };
 
-}
+} //namespace cmdlime::detail
 
 #endif //CMDLIME_PARAMLISTCREATOR_H
