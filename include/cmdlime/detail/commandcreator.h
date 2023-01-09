@@ -6,7 +6,7 @@
 #include "nameformat.h"
 #include "validator.h"
 #include "initializedoptional.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/contract.h"
 
 namespace cmdlime{
 class Config;

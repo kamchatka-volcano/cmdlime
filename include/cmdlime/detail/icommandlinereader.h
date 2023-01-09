@@ -2,6 +2,7 @@
 #define CMDLIME_ICOMMANDLINEREADER_H
 
 #include "commandlinereaderptr.h"
+#include "external/sfun/interface.h"
 #include <cmdlime/format.h>
 #include <vector>
 #include <string>
@@ -26,15 +27,8 @@ enum CommandLineReadResult{
     StoppedOnExitFlag
 };
 
-class ICommandLineReader{
+class ICommandLineReader : private sfun::Interface<ICommandLineReader>{
 public:
-    ICommandLineReader() = default;
-    virtual ~ICommandLineReader() = default;
-    ICommandLineReader(const ICommandLineReader&) = delete;
-    ICommandLineReader& operator=(const ICommandLineReader&) = delete;
-    ICommandLineReader(ICommandLineReader&&) = delete;
-    ICommandLineReader& operator=(ICommandLineReader&&) = delete;
-
     virtual CommandLineReadResult read(const std::vector<std::string>& cmdLine) = 0;
     virtual const std::string& versionInfo() const = 0;
     virtual std::string usageInfo() const = 0;

@@ -7,14 +7,13 @@
 #include "utils.h"
 #include <cmdlime/errors.h>
 #include "external/sfun/string_utils.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/contract.h"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <functional>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
 
 template <Format formatType>
 class DefaultParser : public Parser<formatType>
@@ -28,11 +27,11 @@ class DefaultParser : public Parser<formatType>
 
     void process(const std::string& token) override
     {
-        if (str::startsWith(token, "--") && token.size() > 2){
-            const auto flagName = str::after(token, "--");
+        if (sfun::startsWith(token, "--") && token.size() > 2){
+            const auto flagName = sfun::after(token, "--");
             this->readFlag(flagName);
         }
-        else if (str::startsWith(token, "-") && token.size() > 1){
+        else if (sfun::startsWith(token, "-") && token.size() > 1){
             if (isNumber(token)){
                 this->readArg(token);
                 return;
@@ -41,8 +40,8 @@ class DefaultParser : public Parser<formatType>
             if (token.find('=') == std::string::npos)
                 throw ParsingError{"Wrong parameter format: " + token + ". Parameter must have a form of -name=value"};
 
-            const auto paramName = str::before(str::after(token, "-"), "=");
-            const auto paramValue = std::string{str::after(token, "=")};
+            const auto paramName = sfun::before(sfun::after(token, "-"), "=");
+            const auto paramValue = std::string{sfun::after(token, "=")};
             this->readParam(paramName, paramValue);
         }
         else

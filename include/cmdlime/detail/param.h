@@ -6,14 +6,13 @@
 #include <cmdlime/errors.h>
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
-#include "external/sfun/traits.h"
+#include "external/sfun/type_traits.h"
 #include <sstream>
 #include <optional>
 #include <memory>
 #include <functional>
 
 namespace cmdlime::detail{
-using namespace sfun::traits;
 
 template<typename T>
 class Param : public IParam{
@@ -62,7 +61,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (is_optional_v<T>)
+        if constexpr (sfun::is_optional_v<T>)
             return true;
         else
             return hasValue_;
@@ -70,7 +69,7 @@ private:
 
     bool isOptional() const override
     {
-        if constexpr (is_optional_v<T>)
+        if constexpr (sfun::is_optional_v<T>)
             return true;
         else
             return defaultValue_.has_value();

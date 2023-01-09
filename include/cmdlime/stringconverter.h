@@ -2,7 +2,7 @@
 #define CMDLIME_STRINGCONVERTER_H
 
 #include "detail/utils.h"
-#include "detail/external/sfun/traits.h"
+#include "detail/external/sfun/type_traits.h"
 #include <string>
 #include <sstream>
 #include <optional>
@@ -14,7 +14,7 @@ template<typename T>
 struct StringConverter{
     static std::optional<std::string> toString(const T& value)
     {
-        if constexpr(sfun::traits::is_optional_v<T>){
+        if constexpr(sfun::is_optional_v<T>){
             if (!value)
                 return {};
             auto stream = std::stringstream{};
@@ -41,10 +41,10 @@ struct StringConverter{
             return value;
         };
 
-        if constexpr(std::is_convertible_v<sfun::traits::remove_optional_t<T>, std::string>){
+        if constexpr(std::is_convertible_v<sfun::remove_optional_t<T>, std::string>){
             return data;
         }
-        else if constexpr(sfun::traits::is_optional<T>::value){
+        else if constexpr(sfun::is_optional_v<T>){
             auto value = T{};
             value.emplace();
             return setValue(*value, data);

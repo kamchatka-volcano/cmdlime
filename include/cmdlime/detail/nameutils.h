@@ -7,7 +7,6 @@
 #include <type_traits>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
 
 namespace util{
 
@@ -17,12 +16,12 @@ inline std::string formatName(const std::string& name)
     //remove front non-alphabet characters
     result.erase(result.begin(), std::find_if(result.begin(), result.end(),
         [](char ch){
-            return str::isalpha(ch);
+            return sfun::isalpha(ch);
         })
     );
     //remove back non-alphabet and non-digit characters
     result.erase(std::find_if(result.rbegin(), result.rend(),
-        [](char ch){ return str::isalnum(ch);}).base(), result.end());
+        [](char ch){ return sfun::isalnum(ch);}).base(), result.end());
     return result;
 }
 }
@@ -33,7 +32,7 @@ inline std::string toCamelCase(const std::string& name)
     auto prevCharNonAlpha = false;
     auto formattedName = util::formatName(name);
     if (!formattedName.empty())
-        formattedName[0] = str::tolower(formattedName[0]);
+        formattedName[0] = sfun::tolower(formattedName[0]);
     for (auto ch : formattedName){
         if (!std::isalpha(ch)){
             if (std::isdigit(ch))
@@ -43,7 +42,7 @@ inline std::string toCamelCase(const std::string& name)
             continue;
         }
         if (prevCharNonAlpha)
-            ch = str::toupper(ch);
+            ch = sfun::toupper(ch);
         result.push_back(ch);
         prevCharNonAlpha = false;
     }
@@ -53,13 +52,13 @@ inline std::string toCamelCase(const std::string& name)
 inline std::string toKebabCase(const std::string& name)
 {
     auto result = std::string{};
-    auto formattedName = util::formatName(str::replace(name, "_", "-"));
+    auto formattedName = util::formatName(sfun::replace(name, "_", "-"));
     if (!formattedName.empty())
-        formattedName[0] = str::tolower(formattedName[0]);
+        formattedName[0] = sfun::tolower(formattedName[0]);
     for (auto ch : formattedName){
         if (std::isupper(ch) && !result.empty()){
             result.push_back('-');
-            result.push_back(str::tolower(ch));
+            result.push_back(sfun::tolower(ch));
         }
         else
             result.push_back(ch);
@@ -71,8 +70,8 @@ inline std::string toLowerCase(const std::string& name)
 {
     auto result = std::string{};
     for (auto ch : util::formatName(name)){
-        if (str::isalnum(ch))
-            result.push_back(str::tolower(ch));
+        if (sfun::isalnum(ch))
+            result.push_back(sfun::tolower(ch));
     }
     return result;
 }
@@ -88,7 +87,7 @@ inline std::string typeNameWithoutNamespace(const std::string& type)
 inline std::string templateType(const std::string& type)
 {
     if (type.find('<') != std::string::npos)
-        return std::string{str::before(str::after(type, "<"), ">")};
+        return std::string{sfun::before(sfun::after(type, "<"), ">")};
     return type;
 }
 

@@ -19,12 +19,11 @@
 #include <iomanip>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
 
 inline std::string adjustedToLineBreak(std::string line, std::string& text)
 {
     if (!text.empty() && !isspace(text.front())){
-        auto trimmedLine = str::trimFront(line);
+        auto trimmedLine = sfun::trimFront(line);
         if (std::find_if(trimmedLine.begin(), trimmedLine.end(), [](auto ch){return std::isspace(ch);}) == trimmedLine.end())
             return line;
         while(!isspace(line.back())){
@@ -42,7 +41,7 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
         auto line = text.substr(0, newLinePos);
         text.erase(text.begin(), text.begin() + static_cast<int>(newLinePos + 1));
         if (!firstLine)
-            line = str::trimFront(line);
+            line = sfun::trimFront(line);
         return line;
     }
 
@@ -52,7 +51,7 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
     else
         text.erase(text.begin(), text.begin() + static_cast<int>(width));
     if (!firstLine)
-        line = str::trimFront(line);
+        line = sfun::trimFront(line);
     return adjustedToLineBreak(line, text);
 }
 

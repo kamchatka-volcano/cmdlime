@@ -7,14 +7,13 @@
 #include "formatcfg.h"
 #include <cmdlime/errors.h>
 #include "external/sfun/string_utils.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/contract.h"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <functional>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
 
 template <Format formatType>
 class X11Parser : public Parser<formatType>
@@ -33,8 +32,8 @@ class X11Parser : public Parser<formatType>
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (str::startsWith(token, "-") && token.size() > 1){
-            auto command = str::after(token, "-");
+        else if (sfun::startsWith(token, "-") && token.size() > 1){
+            auto command = sfun::after(token, "-");
             if (isParamOrFlag(command) && !foundParam_.empty())
                 throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
 
@@ -71,10 +70,10 @@ class X11Parser : public Parser<formatType>
     void checkNames()
     {
         auto check = [](const OptionInfo& var, const std::string& varType){
-            if (!str::isalpha(var.name().front()))
+            if (!sfun::isalpha(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
             if (var.name().size() > 1){
-                auto nonSupportedCharIt = std::find_if(var.name().begin() + 1, var.name().end(), [](char ch){return !str::isalnum(ch) && ch != '-';});
+                auto nonSupportedCharIt = std::find_if(var.name().begin() + 1, var.name().end(), [](char ch){return !sfun::isalnum(ch) && ch != '-';});
                 if (nonSupportedCharIt != var.name().end())
                     throw ConfigError{varType + "'s name '" + var.name() + "' must consist of alphanumeric characters and hyphens"};
             }

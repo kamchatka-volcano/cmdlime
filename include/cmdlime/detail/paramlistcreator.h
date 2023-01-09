@@ -5,15 +5,14 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/traits.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/type_traits.h"
+#include "external/sfun/contract.h"
 
 namespace cmdlime::detail {
-using namespace sfun::traits;
 
 template<typename TParamList>
 class ParamListCreator{
-    static_assert(is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
+    static_assert(sfun::is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
 
 public:
     ParamListCreator(CommandLineReaderPtr reader,

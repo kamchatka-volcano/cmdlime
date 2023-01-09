@@ -7,17 +7,17 @@
 #include <cmdlime/customnames.h>
 #include <cmdlime/stringconverter.h>
 #include "external/sfun/string_utils.h"
+#include "external/sfun/type_traits.h"
 #include <vector>
 #include <sstream>
 #include <functional>
 #include <memory>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
 
 template <typename TParamList>
 class ParamList : public IParamList{
-    static_assert(is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
+    static_assert(sfun::is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
 
 public:
     ParamList(std::string name,
@@ -58,7 +58,7 @@ private:
             isDefaultValueOverwritten_ = true;
         }
 
-        const auto dataParts = str::split(data, ",");
+        const auto dataParts = sfun::split(data, ",");
         for (const auto& part : dataParts){
             auto paramVal = convertFromString<typename TParamList::value_type>(std::string{part});
             if (!paramVal)

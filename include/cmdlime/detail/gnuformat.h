@@ -7,7 +7,7 @@
 #include "formatcfg.h"
 #include <cmdlime/errors.h>
 #include "external/sfun/string_utils.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/contract.h"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -15,7 +15,6 @@
 #include <optional>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
 
 template <Format formatType>
 class GNUParser : public Parser<formatType>
@@ -36,9 +35,9 @@ class GNUParser : public Parser<formatType>
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (str::startsWith(token, "--") && token.size() > 2)
+        else if (sfun::startsWith(token, "--") && token.size() > 2)
             processCommand(token);
-        else if (str::startsWith(token, "-") && token.size() > 1)
+        else if (sfun::startsWith(token, "-") && token.size() > 1)
             processShortCommand(token);
         else
             this->readArg(token);
@@ -52,11 +51,11 @@ class GNUParser : public Parser<formatType>
 
     void processCommand(const std::string& commandStr)
     {
-        auto command = str::after(commandStr, "--");
+        auto command = sfun::after(commandStr, "--");
         auto paramValue = std::optional<std::string>{};
         if (command.find('=') != std::string::npos){
-            paramValue = str::after(command, "=");
-            command = str::before(command, "=");
+            paramValue = sfun::after(command, "=");
+            command = sfun::before(command, "=");
         }
         if (isParamOrFlag(command) &&
             !foundParam_.empty() &&
@@ -79,7 +78,7 @@ class GNUParser : public Parser<formatType>
     void processShortCommand(std::string command)
     {
         auto possibleNumberArg = command;
-        command = str::after(command, "-");
+        command = sfun::after(command, "-");
         if (isShortParamOrFlag(command)){
             if (!foundParam_.empty() && this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands)
                 throw ParsingError{"Parameter '" + foundParamPrefix_ + foundParam_ + "' value can't be empty"};

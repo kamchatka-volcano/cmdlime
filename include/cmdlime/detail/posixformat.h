@@ -7,14 +7,13 @@
 #include "formatcfg.h"
 #include <cmdlime/errors.h>
 #include "external/sfun/string_utils.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/contract.h"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <functional>
 
 namespace cmdlime::detail{
-namespace str = sfun::string_utils;
 
 template <Format formatType>
 class PosixParser : public Parser<formatType>
@@ -24,7 +23,7 @@ class PosixParser : public Parser<formatType>
     void processCommand(std::string command)
     {
         auto possibleNumberArg = command;
-        command = str::after(command, "-");
+        command = sfun::after(command, "-");
         if (isParamOrFlag(command)){
             if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands){
                 if (!foundParam_.empty())
@@ -55,7 +54,7 @@ class PosixParser : public Parser<formatType>
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (str::startsWith(token, "-") && token.size() > 1)
+        else if (sfun::startsWith(token, "-") && token.size() > 1)
            processCommand(token);
         else{
             this->readArg(token);

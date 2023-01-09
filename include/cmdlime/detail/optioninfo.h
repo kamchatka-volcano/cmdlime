@@ -1,7 +1,7 @@
 #ifndef CMDLIME_OPTIONINFO_H
 #define CMDLIME_OPTIONINFO_H
 
-#include "external/sfun/asserts.h"
+#include "external/sfun/contract.h"
 #include <string>
 #include <sstream>
 #include <utility>

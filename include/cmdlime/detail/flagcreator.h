@@ -5,7 +5,7 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/contract.h"
 
 namespace cmdlime::detail{
 
