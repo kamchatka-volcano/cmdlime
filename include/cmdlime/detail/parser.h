@@ -14,6 +14,7 @@
 #include <deque>
 #include <functional>
 #include <optional>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -166,18 +167,30 @@ protected:
                     "Parameter '" + OutputFormatter::paramPrefix() + std::string{name} + "' value can't be empty"};
         auto param = findParam(name);
         if (param) {
-            if (!param->read(value))
+            try {
+                param->read(value);
+            }
+            catch (const StringConversionError& error) {
+                const auto errorMessage = std::string_view{error.what()};
                 throw ParsingError{
                         "Couldn't set parameter '" + OutputFormatter::paramPrefix() + param->info().name() +
-                        "' value from '" + value + "'"};
+                        "' value from '" + value + "'" +
+                        (!errorMessage.empty() ? ": " + std::string{errorMessage} : std::string{})};
+            }
             return;
         }
         auto paramList = findParamList(name);
         if (paramList) {
-            if (!paramList->read(value))
+            try {
+                paramList->read(value);
+            }
+            catch (const StringConversionError& error) {
+                const auto errorMessage = std::string_view{error.what()};
                 throw ParsingError{
                         "Couldn't set parameter '" + OutputFormatter::paramPrefix() + paramList->info().name() +
-                        "' value from '" + value + "'"};
+                        "' value from '" + value + "'" +
+                        (!errorMessage.empty() ? ": " + std::string{errorMessage} : std::string{})};
+            }
             return;
         }
         throw ParsingError{
@@ -234,17 +247,30 @@ protected:
             if (value.empty())
                 throw ParsingError{"Argument '" + arg.info().name() + "' value can't be empty"};
             argsToRead_.pop_front();
-            if (!arg.read(value))
-                throw ParsingError{"Couldn't set argument '" + arg.info().name() + "' value from '" + value + "'"};
+            try {
+                arg.read(value);
+            }
+            catch (const StringConversionError& error) {
+                const auto errorMessage = std::string_view{error.what()};
+                throw ParsingError{
+                        "Couldn't set argument '" + arg.info().name() + "' value from '" + value + "'" +
+                        (!errorMessage.empty() ? ": " + std::string{errorMessage} : std::string{})};
+            }
         }
         else if (options_.argList()) {
             if (value.empty())
                 throw ParsingError{
                         "Argument list '" + options_.argList()->info().name() + "' element value can't be empty"};
-            if (!options_.argList()->read(value))
+            try {
+                options_.argList()->read(value);
+            }
+            catch (const StringConversionError& error) {
+                const auto errorMessage = std::string_view{error.what()};
                 throw ParsingError{
                         "Couldn't set argument list '" + options_.argList()->info().name() +
-                        "' element's value from '" + value + "'"};
+                        "' element's value from '" + value + "'" +
+                        (!errorMessage.empty() ? ": " + std::string{errorMessage} : std::string{})};
+            }
         }
         else
             throw ParsingError("Encountered unknown positional argument '" + value + "'");

@@ -44,18 +44,15 @@ public:
     }
 
 private:
-    bool read(const std::string& data) override
+    void read(const std::string& data) override
     {
         if (!isDefaultValueOverwritten_) {
             argListValue_.clear();
             isDefaultValueOverwritten_ = true;
         }
         auto argVal = convertFromString<typename TArgList::value_type>(data);
-        if (!argVal)
-            return false;
-        argListValue_.emplace_back(*argVal);
+        argListValue_.emplace_back(std::move(argVal));
         hasValue_ = true;
-        return true;
     }
 
     bool hasValue() const override

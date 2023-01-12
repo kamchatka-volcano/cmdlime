@@ -48,7 +48,7 @@ public:
     }
 
 private:
-    bool read(const std::string& data) override
+    void read(const std::string& data) override
     {
         if (!isDefaultValueOverwritten_) {
             paramListValue_.clear();
@@ -58,12 +58,9 @@ private:
         const auto dataParts = sfun::split(data, ",");
         for (const auto& part : dataParts) {
             auto paramVal = convertFromString<typename TParamList::value_type>(std::string{part});
-            if (!paramVal)
-                return false;
-            paramListValue_.emplace_back(*paramVal);
+            paramListValue_.emplace_back(std::move(paramVal));
         }
         hasValue_ = true;
-        return true;
     }
 
     bool hasValue() const override

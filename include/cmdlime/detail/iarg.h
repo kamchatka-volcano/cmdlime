@@ -8,7 +8,7 @@ namespace cmdlime::detail {
 
 class IArg : public IOption {
 public:
-    virtual bool read(const std::string& data) = 0;
+    virtual void read(const std::string& data) = 0;
 };
 
 } //namespace cmdlime::detail

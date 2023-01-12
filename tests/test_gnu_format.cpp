@@ -1476,15 +1476,119 @@ TEST(GNUConfig, CustomTypeUsage)
 {
     auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
     auto cfg = reader.read<CustomTypeConfig>(
-            {"--prm", "hello world", "test arg", "--prm-list", "foo bar", "--prm-list", "baz", "1", "2 3"});
+            {"--prm", "hello world", "test arg", "--prm-list", "foo bar", "--prm-list", "baz", "a", "b c"});
     EXPECT_EQ(cfg.prm.value, "hello world");
     ASSERT_EQ(cfg.prmList.size(), 2); //(std::vector<CustomType>{{"foo bar"}, {"baz"}}));
     EXPECT_EQ(cfg.prmList.at(0).value, "foo bar");
     EXPECT_EQ(cfg.prmList.at(1).value, "baz");
     EXPECT_EQ(cfg.argument.value, "test arg");
     EXPECT_EQ(cfg.argumentList.size(), 2);
-    EXPECT_EQ(cfg.argumentList.at(0).value, "1");
-    EXPECT_EQ(cfg.argumentList.at(1).value, "2 3");
+    EXPECT_EQ(cfg.argumentList.at(0).value, "a");
+    EXPECT_EQ(cfg.argumentList.at(1).value, "b c");
+}
+
+TEST(GNUConfig, CustomTypeUsageErrorInParameter)
+{
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
+    assert_exception<cmdlime::ParsingError>(
+            [&]
+            {
+                reader.read<CustomTypeConfig>(
+                        {"--prm",
+                         "hello world1",
+                         "test arg",
+                         "--prm-list",
+                         "foo bar",
+                         "--prm-list",
+                         "baz",
+                         "a",
+                         "b c"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Couldn't set parameter '--prm' value from 'hello world1': CustomType can't "
+                                    "contain digits"});
+            });
+}
+
+TEST(GNUConfig, CustomTypeUsageErrorInParameterList)
+{
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
+    assert_exception<cmdlime::ParsingError>(
+            [&]
+            {
+                reader.read<CustomTypeConfig>(
+                        {"--prm",
+                         "hello world",
+                         "test arg",
+                         "--prm-list",
+                         "foo bar",
+                         "--prm-list",
+                         "baz2",
+                         "a",
+                         "b c"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Couldn't set parameter '--prm-list' value from 'baz2': CustomType can't contain "
+                                    "digits"});
+            });
+}
+
+TEST(GNUConfig, CustomTypeUsageErrorInArgument)
+{
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
+    assert_exception<cmdlime::ParsingError>(
+            [&]
+            {
+                reader.read<CustomTypeConfig>(
+                        {"--prm",
+                         "hello world",
+                         "test arg3",
+                         "--prm-list",
+                         "foo bar",
+                         "--prm-list",
+                         "baz",
+                         "a",
+                         "b c"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Couldn't set argument 'argument' value from 'test arg3': CustomType can't contain "
+                                    "digits"});
+            });
+}
+
+TEST(GNUConfig, CustomTypeUsageErrorInArgumentList)
+{
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
+    assert_exception<cmdlime::ParsingError>(
+            [&]
+            {
+                reader.read<CustomTypeConfig>(
+                        {"--prm",
+                         "hello world",
+                         "test arg",
+                         "--prm-list",
+                         "foo bar",
+                         "--prm-list",
+                         "baz",
+                         "a4",
+                         "b c"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        std::string{"Couldn't set argument list 'argument-list' element's value from 'a4': CustomType "
+                                    "can't contain digits"});
+            });
 }
 
 TEST(GNUConfig, CustomTypeIntUsage)
@@ -1502,6 +1606,21 @@ TEST(GNUConfig, CustomTypeIntUsage)
     EXPECT_EQ(cfg.argumentList.at(1).value, 44);
 }
 
+TEST(GNUConfig, CustomTypeIntError)
+{
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
+    assert_exception<cmdlime::ParsingError>(
+            [&]
+            {
+                reader.read<CustomTypeIntConfig>(
+                        {"--prm", "a10", "42", "--prm-list", "0", "--prm-list", "1", "43", "44"});
+            },
+            [](const cmdlime::ParsingError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, std::string{"Couldn't set parameter '--prm' value from 'a10'"});
+            });
+}
+
 } //namespace test_gnu_format
 
 namespace cmdlime {
@@ -1514,6 +1633,15 @@ struct StringConverter<test_gnu_format::CustomType> {
 
     static std::optional<test_gnu_format::CustomType> fromString(const std::string& str)
     {
+        if (std::any_of(
+                    str.begin(),
+                    str.end(),
+                    [](char ch)
+                    {
+                        return std::isalnum(ch) && !std::isalpha(ch);
+                    }))
+            throw ValidationError{"CustomType can't contain digits"};
+
         auto val = test_gnu_format::CustomType{};
         val.value = str;
         return val;
