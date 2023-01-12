@@ -22,6 +22,19 @@ class ValidationError : public Error {
     using Error::Error;
 };
 
+class StringConversionError : public Error {
+public:
+    StringConversionError()
+        : Error("")
+    {
+    }
+
+    explicit StringConversionError(std::string_view msg)
+        : Error(msg.data())
+    {
+    }
+};
+
 class CommandError : public Error {
 public:
     CommandError(std::string commandName, std::string commandUsageInfo, const std::string& errorMsg)

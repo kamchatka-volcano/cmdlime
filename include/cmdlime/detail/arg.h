@@ -37,13 +37,9 @@ public:
     }
 
 private:
-    bool read(const std::string& data) override
+    void read(const std::string& data) override
     {
-        auto argVal = convertFromString<T>(data);
-        if (!argVal)
-            return false;
-        argValue_ = *argVal;
-        return true;
+        argValue_ = convertFromString<T>(data);
     }
 
 private:

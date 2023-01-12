@@ -545,16 +545,36 @@ int main(int argc, char** argv)
     return reader.exec<Cfg>(argc, argv, mainApp);
 }
 ```
+
 ```console
 kamchatka-volcano@home:~$ ./person-finder 684007 --surname Deer --coord 53.0-157.25
 Looking for person  Deer in the region with zip code: 684007
 Possible location:53 157.25
 ```
 
+To provide additional information in the error message of the StringConverter::fromString method, you can use the
+cmdlime::ValidationError exception:
+
+```cpp
+    static std::optional<Coord> fromString(const std::string& data)
+    {
+        auto delimPos = data.find('-');
+        if (delimPos == std::string::npos)
+            throw ValidationError{"the coord parameter must be in the format 'lat-lon'"};
+        auto coord = Coord{};
+        coord.lat = std::stod(data.substr(0, delimPos));
+        coord.lon = std::stod(data.substr(delimPos + 1, data.size() - delimPos - 1));
+        return coord;
+    }
+```
+
 ### Using subcommands
 
-With **cmdlime**, it's possible to place a config structure inside another config field by creating a subcommand. Subcommands are specified in the command line by their full name, and all following parameters are used to fill the subcommand's structure instead of the main one.  
+With **cmdlime**, it's possible to place a config structure inside another config field by creating a subcommand.
+Subcommands are specified in the command line by their full name, and all following parameters are used to fill the
+subcommand's structure instead of the main one.  
 Let's enhance `person-finder` program by adding a result recording mode.
+
 ```C++
 ///examples/ex13.cpp
 ///

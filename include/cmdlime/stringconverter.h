@@ -1,11 +1,13 @@
 #ifndef CMDLIME_STRINGCONVERTER_H
 #define CMDLIME_STRINGCONVERTER_H
 
+#include "errors.h"
 #include "detail/external/sfun/type_traits.h"
 #include "detail/utils.h"
 #include <optional>
 #include <sstream>
 #include <string>
+#include <variant>
 
 namespace cmdlime {
 
@@ -68,13 +70,19 @@ std::optional<std::string> convertToString(const T& value)
 }
 
 template<typename T>
-std::optional<T> convertFromString(const std::string& data)
+T convertFromString(const std::string& data)
 {
     try {
-        return StringConverter<T>::fromString(data);
+        const auto result = StringConverter<T>::fromString(data);
+        if (!result)
+            throw StringConversionError{};
+        return result.value();
+    }
+    catch (const ValidationError& error) {
+        throw StringConversionError{error.what()};
     }
     catch (...) {
-        return {};
+        throw StringConversionError{};
     }
 }
 

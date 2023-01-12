@@ -45,15 +45,10 @@ public:
     }
 
 private:
-    bool read(const std::string& data) override
+    void read(const std::string& data) override
     {
-        auto paramValue = convertFromString<T>(data);
-        if (!paramValue)
-            return false;
-
-        paramValue_ = *paramValue;
+        paramValue_ = convertFromString<T>(data);
         hasValue_ = true;
-        return true;
     }
 
     bool hasValue() const override
