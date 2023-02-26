@@ -9,14 +9,14 @@ if (CMDLIME_USE_NAMEOF)
     SealLake_Bundle(
             NAME nameof
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
-            GIT_TAG        b877a1a
+            GIT_TAG        master
     )
 endif()
 
 SealLake_Bundle(
         NAME cmdlime_sfun
         GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
-        GIT_TAG        v3.1.1
+        GIT_TAG        dev
         DESTINATION include/cmdlime/detail/external
         DIRECTORIES include/sfun
         TEXT_REPLACEMENTS
