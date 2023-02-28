@@ -4,6 +4,8 @@ include(GNUInstallDirs)
 include(external/seal_lake)
 
 option(CMDLIME_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
+option(CMDLIME_NO_WINDOWS_UNICODE "Disable storing std::wstring and std::filesystem::path with UTF16 encoding on Windows" OFF)
+
 if (CMDLIME_USE_NAMEOF)
     SealLake_IsInstalled(NAMEOF_OPT_INSTALL)
     SealLake_Bundle(
@@ -41,6 +43,10 @@ if (CMDLIME_USE_NAMEOF)
     SealLake_Dependencies(
             nameof 0.10.2
     )
+endif()
+
+if (CMDLIME_NO_WINDOWS_UNICODE)
+    target_compile_definitions(cmdlime INTERFACE CMDLIME_NO_WINDOWS_UNICODE_SUPPORT)
 endif()
 
 SealLake_OptionalBuildSteps(tests examples)
