@@ -12,6 +12,7 @@
 #include "detail/nameof_import.h"
 #include "detail/paramcreator.h"
 #include "detail/paramlistcreator.h"
+#include "detail/windows_unicode_support.h"
 #include <optional>
 #include <string>
 

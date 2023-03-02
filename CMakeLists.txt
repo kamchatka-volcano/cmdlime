@@ -1,22 +1,24 @@
 cmake_minimum_required(VERSION 3.18)
-project(cmdlime VERSION 2.3.1 DESCRIPTION "C++17 command line parsing library")
+project(cmdlime VERSION 2.4.0 DESCRIPTION "C++17 command line parsing library")
 include(GNUInstallDirs)
 include(external/seal_lake)
 
 option(CMDLIME_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
+option(CMDLIME_NO_WINDOWS_UNICODE "Disable storing std::wstring and std::filesystem::path with UTF16 encoding on Windows" OFF)
+
 if (CMDLIME_USE_NAMEOF)
     SealLake_IsInstalled(NAMEOF_OPT_INSTALL)
     SealLake_Bundle(
             NAME nameof
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
-            GIT_TAG        b877a1a
+            GIT_TAG        master
     )
 endif()
 
 SealLake_Bundle(
         NAME cmdlime_sfun
         GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
-        GIT_TAG        v3.1.1
+        GIT_TAG        dev
         DESTINATION include/cmdlime/detail/external
         DIRECTORIES include/sfun
         TEXT_REPLACEMENTS
@@ -41,6 +43,10 @@ if (CMDLIME_USE_NAMEOF)
     SealLake_Dependencies(
             nameof 0.10.2
     )
+endif()
+
+if (CMDLIME_NO_WINDOWS_UNICODE)
+    target_compile_definitions(cmdlime INTERFACE CMDLIME_NO_WINDOWS_UNICODE_SUPPORT)
 endif()
 
 SealLake_OptionalBuildSteps(tests examples)

@@ -6,6 +6,7 @@
 #include "format.h"
 #include "usageinfoformat.h"
 #include "detail/configmacros.h"
+#include "detail/external/sfun/wstringconv.h"
 #include "detail/flag.h"
 #include "detail/formatcfg.h"
 #include "detail/nameformat.h"
@@ -68,6 +69,47 @@ public:
                 });
     }
 
+#ifdef _WIN32
+    template<typename TCfg>
+    int exec(int argc, wchar_t** argv, std::function<int(const TCfg&)> func)
+    {
+        auto wCmdLine = std::vector<std::wstring>{argv + 1, argv + argc};
+        auto cmdLine = std::vector<std::string>{};
+        std::transform(
+                wCmdLine.begin(),
+                wCmdLine.end(),
+                std::back_inserter(cmdLine),
+                [](const std::wstring& arg)
+                {
+                    return sfun::fromWString(arg);
+                });
+
+        return exec<TCfg>(cmdLine, func);
+    }
+
+    template<typename TCfg>
+    int exec(int argc, wchar_t** argv, std::function<int(int, wchar_t**, const TCfg&)> func)
+    {
+        auto wCmdLine = std::vector<std::wstring>{argv + 1, argv + argc};
+        auto cmdLine = std::vector<std::string>{};
+        std::transform(
+                wCmdLine.begin(),
+                wCmdLine.end(),
+                std::back_inserter(cmdLine),
+                [](const std::wstring& arg)
+                {
+                    return sfun::fromWString(arg);
+                });
+
+        return exec<TCfg>(
+                cmdLine,
+                [=](const TCfg& cfg)
+                {
+                    return func(argc, argv, cfg);
+                });
+    }
+#endif
+
     template<typename TCfg>
     int exec(const std::vector<std::string>& cmdLine, std::function<int(const TCfg&)> func)
     {
@@ -75,7 +117,6 @@ public:
         setCommandName(commandName_);
         setUsageInfoFormat(usageInfoFormat_);
         addDefaultFlags();
-
         try {
             if (read(cmdLine) != detail::CommandLineReadResult::StoppedOnExitFlag)
                 validate({});
