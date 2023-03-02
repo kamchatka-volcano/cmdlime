@@ -241,12 +241,36 @@ int main(int argc, char** argv)
 ```
 
 Try to run it and...
+
 ```console
 Usage: person-finder <zip-code> --name <string> [--verbose] [--help] [--version]
 Flag's short name 'v' is already used.
 ```
-you'll get this error. The thing is, the default command line format supports short names and our flags `--verbose` and `--version` ended up having the same short name `-v`. Read the next section to learn how to fix it.
 
+you'll get this error. The thing is, the default command line format supports short names and our flags `--verbose`
+and `--version` ended up having the same short name `-v`. Read the next section to learn how to fix it.
+
+### Unicode support
+
+`cmdlime` stores strings in `std::string`, and all operations only require the used encoding to be compatible with
+ASCII. This means that UTF-8 command line arguments are supported by default. On Windows Unicode command line arguments
+encoded with UTF-16 can be automatically converted to UTF-8 with the `CommandLineReader::exec()` overload, which takes a
+wide string array. In this case, the `wmain` entry point function should be used:
+
+```
+int wmain(int argc, wchar_t** argv)
+{
+    auto reader = cmdlime::CommandLineReader{"person-finder"};
+    reader.setVersionInfo("person-finder 1.0");
+    return reader.exec<Cfg>(argc, argv, mainApp);
+}
+```
+
+Additionally, on Windows, `cmdlime` parameters of types `std::wstring` and `std::filesystem::path` are stored with
+UTF-16 encoding by default. This allows using filesystem paths from your cmdlime config structure with `std::fstream`
+and `std::filesystem` functions without any manual conversions. This functionality can be disabled by setting a CMake
+variable `CMDLIME_NO_WINDOWS_UNICODE`, or by manually adding a compiler definition `CMDLIME_NO_WINDOWS_UNICODE_SUPPORT`
+to your target.
 
 ### Custom names
 
