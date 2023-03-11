@@ -7,6 +7,7 @@ set(SRC
     test_posix_format.cpp
     test_x11_format.cpp
     test_validator.cpp
+    test_postprocessor.cpp
     test_nameutils.cpp
 )
 

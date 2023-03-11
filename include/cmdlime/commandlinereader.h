@@ -4,6 +4,7 @@
 #include "config.h"
 #include "errors.h"
 #include "format.h"
+#include "postprocessor.h"
 #include "usageinfoformat.h"
 #include "detail/configmacros.h"
 #include "detail/external/sfun/wstringconv.h"
@@ -47,6 +48,12 @@ public:
         if (read(cmdLine) != detail::CommandLineReadResult::StoppedOnExitFlag)
             validate({});
         resetCommandLineReader(cfg);
+        try {
+            PostProcessor<TCfg>{}(cfg);
+        }
+        catch (const ValidationError& e) {
+            throw ParsingError{std::string{"Config is invalid: "} + e.what()};
+        }
         return cfg;
     }
 
@@ -131,9 +138,16 @@ public:
             output_.get() << usageInfo() << std::endl;
             return -1;
         }
-
         if (processDefaultFlags())
             return 0;
+
+        try {
+            PostProcessor<TCfg>{}(cfg);
+        }
+        catch (const ValidationError& e) {
+            errorOutput_.get() << "Config is invalid: " << e.what() << "\n";
+            return -1;
+        }
 
         resetCommandLineReader(cfg);
         return func(cfg);

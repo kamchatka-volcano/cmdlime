@@ -55,6 +55,7 @@ Please note that in the example above, `--name` is a parameter, `--verbose` is a
      * [Using custom types](#using-custom-types)
      * [Using subcommands](#using-subcommands)
      * [Using validators](#using-validators)
+     * [Using post-processors](#using-post-processors)
 *    [Installation](#installation)
 *    [Running tests](#running-tests)
 *    [Building examples](#building-examples)
@@ -793,7 +794,40 @@ Parameter 'surname' is invalid: value must contain alphabet characters only.
 Usage: person-finder [commands] <zip-code> --surname <string> [--name <string>] [--verbose] [--help] 
 ```
 
+### Using post-processors
 
+If you need to modify or validate the config object that is produced by `cmdlime::CommandLineReader`, you can register
+the necessary action by creating a specialization of the `cmdlime::PostProcessor` class template. For instance, let's
+capitalize a surname parameter only when the optional name parameter is not provided:
+
+```cpp
+///examples/ex16.cpp
+///
+struct Cfg : public cmdlime::Config{
+    CMDLIME_ARG(zipCode, int)             << "zip code of the searched region";
+    CMDLIME_PARAM(surname, std::string)   << "surname of the person to find";
+    CMDLIME_PARAM(name, std::string)()    << "name of the person to find";
+    CMDLIME_FLAG(verbose)                 << "adds more information to the output";
+};
+
+namespace cmdlime{
+template<>
+struct PostProcessor<Cfg> {
+    void operator()(Cfg& cfg)
+    {
+        if (cfg.name.empty())
+            std::transform(
+                    cfg.surname.begin(),
+                    cfg.surname.end(),
+                    cfg.surname.begin(),
+                    [](const auto& ch)
+                    {
+                        return sfun::toupper(ch);
+                    });
+    }
+};
+}
+```
 
 ## Installation
 Download and link the library from your project's CMakeLists.txt:
