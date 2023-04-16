@@ -1044,7 +1044,7 @@ TEST(SimpleConfig, ExecMissingVersionInfo)
                     {
                         return 0;
                     }),
-            -1);
+            1);
     EXPECT_EQ(errorOutput.str(), "Encountered unknown flag '--version'\n");
 }
 
@@ -1300,7 +1300,7 @@ TEST(SimpleConfig, ExecError)
                     {
                         return 0;
                     }),
-            -1);
+            1);
     EXPECT_EQ(errorOutput.str(), "Parameter '-requiredParam' is missing.\n");
 }
 

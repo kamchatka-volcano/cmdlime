@@ -131,12 +131,12 @@ public:
         catch (const CommandError& e) {
             errorOutput_.get() << "Command '" + e.commandName() + "' error: " << e.what() << "\n";
             output_.get() << e.commandUsageInfo() << std::endl;
-            return -1;
+            return 1;
         }
         catch (const Error& e) {
             errorOutput_.get() << e.what() << "\n";
             output_.get() << usageInfo() << std::endl;
-            return -1;
+            return 1;
         }
         if (processDefaultFlags())
             return 0;
@@ -146,7 +146,7 @@ public:
         }
         catch (const ValidationError& e) {
             errorOutput_.get() << "Config is invalid: " << e.what() << "\n";
-            return -1;
+            return 1;
         }
 
         resetCommandLineReader(cfg);
