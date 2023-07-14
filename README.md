@@ -45,14 +45,15 @@ Please note that in the example above, `--name` is a parameter, `--verbose` is a
      * [Avoiding macros](#avoiding-macros)
      * [Using CommandLineReader::exec()](#using-commandlinereaderexec)
      * [Unicode support](#unicode-support)
+     * [Filesystem paths support](#filesystem-paths-support)
      * [Custom names](#custom-names)
      * [Auto-generated usage info](#auto-generated-usage-info)
      * [Supported formats](#supported-formats)
-          *    [GNU](#gnu)
-          *    [POSIX](#posix)
-          *    [X11](#x11)
-          *    [Simple format](#simple-format)
-     * [Using custom types](#using-custom-types)
+         * [GNU](#gnu)
+         * [POSIX](#posix)
+         * [X11](#x11)
+         * [Simple format](#simple-format)
+     * [User-defined types support](#user-defined-types-support)
      * [Using subcommands](#using-subcommands)
      * [Using validators](#using-validators)
      * [Using post-processors](#using-post-processors)
@@ -273,6 +274,14 @@ UTF-16 encoding by default. This allows using filesystem paths from your cmdlime
 and `std::filesystem` functions without any manual conversions. This functionality can be disabled by setting a CMake
 variable `CMDLIME_NO_WINDOWS_UNICODE`, or by manually adding a compiler definition `CMDLIME_NO_WINDOWS_UNICODE_SUPPORT`
 to your target.
+
+### Filesystem paths support
+
+The `std::filesystem::path` parameters are automatically converted to the canonical form using
+the `std::filesystem::weakly_canonical()` function.
+
+This functionality can be disabled by either setting a CMake variable `CMDLIME_NO_CANONICAL_PATHS` or manually adding a
+compiler definition `CMDLIME_NO_CANONICAL_PATHS`.
 
 ### Custom names
 
@@ -510,8 +519,10 @@ Flags:
   --version              show version info and exit
 ```
 
-### Using custom types
-To use custom types in the config, you need to add a specialization of the `cmdlime::StringConverter` struct and implement its static methods `toString and fromString`.
+### User-defined types support
+
+To use user-defined types in the config, you need to add a specialization of the `cmdlime::StringConverter` struct and
+implement its static methods `toString and fromString`.
 
 For example, let's add a coordinate parameter `--coord` to the `person-finder` program.
 

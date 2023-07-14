@@ -49,4 +49,8 @@ if (CMDLIME_NO_WINDOWS_UNICODE)
     target_compile_definitions(cmdlime INTERFACE CMDLIME_NO_WINDOWS_UNICODE_SUPPORT)
 endif()
 
+if (CMDLIME_NO_CANONICAL_PATHS)
+    target_compile_definitions(cmdlime INTERFACE CMDLIME_NO_CANONICAL_PATHS)
+endif()
+
 SealLake_OptionalBuildSteps(tests examples)
