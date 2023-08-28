@@ -5,7 +5,7 @@
 #include "nameformat.h"
 #include "paramlist.h"
 #include "validator.h"
-#include "external/sfun/contract.h"
+#include "external/sfun/precondition.h"
 #include "external/sfun/type_traits.h"
 
 namespace cmdlime::detail {
@@ -17,18 +17,16 @@ class ParamListCreator {
 public:
     ParamListCreator(
             CommandLineReaderPtr reader,
-            const std::string& varName,
-            const std::string& type,
+            sfun::not_empty<const std::string&> varName,
+            sfun::not_empty<const std::string&> type,
             TParamList& paramListValue)
         : reader_(reader)
         , paramListValue_(paramListValue)
     {
-        sfunPrecondition(!varName.empty());
-        sfunPrecondition(!type.empty());
         paramList_ = std::make_unique<ParamList<TParamList>>(
-                reader_ ? NameFormat::name(reader_->format(), varName) : varName,
-                reader_ ? NameFormat::shortName(reader_->format(), varName) : varName,
-                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
+                reader_ ? NameFormat::name(reader_->format(), varName.get()) : varName.get(),
+                reader_ ? NameFormat::shortName(reader_->format(), varName.get()) : varName.get(),
+                reader_ ? NameFormat::valueName(reader_->format(), type.get()) : type.get(),
                 paramListValue);
     }
 

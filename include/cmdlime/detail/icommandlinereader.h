@@ -27,7 +27,7 @@ enum CommandLineReadResult {
     StoppedOnExitFlag
 };
 
-class ICommandLineReader : private sfun::Interface<ICommandLineReader> {
+class ICommandLineReader : private sfun::interface<ICommandLineReader> {
 public:
     virtual CommandLineReadResult read(const std::vector<std::string>& cmdLine) = 0;
     virtual const std::string& versionInfo() const = 0;

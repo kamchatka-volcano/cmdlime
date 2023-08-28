@@ -5,7 +5,7 @@
 #include "nameutils.h"
 #include "parser.h"
 #include "utils.h"
-#include "external/sfun/contract.h"
+#include "external/sfun/precondition.h"
 #include "external/sfun/string_utils.h"
 #include <cmdlime/errors.h>
 #include <algorithm>
@@ -21,8 +21,10 @@ class PosixParser : public Parser<formatType> {
 
     void processCommand(std::string command)
     {
+        sfun_precondition(sfun::starts_with(command, "-"));
+
         auto possibleNumberArg = command;
-        command = sfun::after(command, "-");
+        command = sfun::after(command, "-").value();
         if (isParamOrFlag(command)) {
             if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands) {
                 if (!foundParam_.empty())
@@ -53,7 +55,7 @@ class PosixParser : public Parser<formatType> {
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (sfun::startsWith(token, "-") && token.size() > 1)
+        else if (sfun::starts_with(token, "-") && token.size() > 1)
             processCommand(token);
         else {
             this->readArg(token);
@@ -130,27 +132,23 @@ private:
 
 class PosixNameProvider {
 public:
-    static std::string name(const std::string& optionName)
+    static std::string name(sfun::not_empty<const std::string&> optionName)
     {
-        sfunPrecondition(!optionName.empty());
-        return std::string{static_cast<char>(std::tolower(optionName.front()))};
+        return std::string{static_cast<char>(std::tolower(optionName.get().front()))};
     }
 
-    static std::string shortName(const std::string& optionName)
+    static std::string shortName(sfun::not_empty<const std::string&>)
     {
-        sfunPrecondition(!optionName.empty());
         return {};
     }
 
-    static std::string fullName(const std::string& optionName)
+    static std::string fullName(sfun::not_empty<const std::string&> optionName)
     {
-        sfunPrecondition(!optionName.empty());
         return toKebabCase(optionName);
     }
 
-    static std::string valueName(const std::string& typeName)
+    static std::string valueName(sfun::not_empty<const std::string&> typeName)
     {
-        sfunPrecondition(!typeName.empty());
         return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

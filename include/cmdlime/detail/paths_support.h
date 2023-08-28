@@ -15,7 +15,7 @@ struct StringConverter<std::filesystem::path> {
 #ifdef CMDLIME_NO_WINDOWS_UNICODE_SUPPORT
         return path.string();
 #else
-        return sfun::pathString(path);
+        return sfun::path_string(path);
 #endif
     }
 
@@ -31,7 +31,7 @@ struct StringConverter<std::filesystem::path> {
 #ifdef CMDLIME_NO_CANONICAL_PATHS
         return sfun::makePath(data);
 #else
-        return std::filesystem::weakly_canonical(sfun::makePath(data));
+        return std::filesystem::weakly_canonical(sfun::make_path(data));
 #endif
 #endif
     }

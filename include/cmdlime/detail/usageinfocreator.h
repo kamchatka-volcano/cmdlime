@@ -23,7 +23,7 @@ namespace cmdlime::detail {
 inline std::string adjustedToLineBreak(std::string line, std::string& text)
 {
     if (!text.empty() && !isspace(text.front())) {
-        auto trimmedLine = sfun::trimFront(line);
+        auto trimmedLine = sfun::trim_front(line);
         if (std::find_if(
                     trimmedLine.begin(),
                     trimmedLine.end(),
@@ -47,7 +47,7 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
         auto line = text.substr(0, newLinePos);
         text.erase(text.begin(), text.begin() + static_cast<int>(newLinePos + 1));
         if (!firstLine)
-            line = sfun::trimFront(line);
+            line = sfun::trim_front(line);
         return line;
     }
 
@@ -57,7 +57,7 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
     else
         text.erase(text.begin(), text.begin() + static_cast<int>(width));
     if (!firstLine)
-        line = sfun::trimFront(line);
+        line = sfun::trim_front(line);
     return adjustedToLineBreak(line, text);
 }
 

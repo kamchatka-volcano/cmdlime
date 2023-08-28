@@ -5,7 +5,7 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/contract.h"
+#include "external/sfun/precondition.h"
 
 namespace cmdlime::detail {
 
@@ -14,15 +14,14 @@ class FlagCreator {
 public:
     FlagCreator(
             CommandLineReaderPtr reader,
-            const std::string& varName,
+            sfun::not_empty<const std::string&> varName,
             bool& flagValue,
             Flag::Type flagType = Flag::Type::Normal)
         : reader_(reader)
     {
-        sfunPrecondition(!varName.empty());
         flag_ = std::make_unique<Flag>(
-                reader_ ? NameFormat::name(reader_->format(), varName) : varName,
-                reader_ ? NameFormat::shortName(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::name(reader_->format(), varName.get()) : varName.get(),
+                reader_ ? NameFormat::shortName(reader_->format(), varName.get()) : varName.get(),
                 flagValue,
                 flagType);
     }

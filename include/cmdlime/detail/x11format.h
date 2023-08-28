@@ -5,7 +5,7 @@
 #include "nameutils.h"
 #include "parser.h"
 #include "utils.h"
-#include "external/sfun/contract.h"
+#include "external/sfun/precondition.h"
 #include "external/sfun/string_utils.h"
 #include <cmdlime/errors.h>
 #include <algorithm>
@@ -31,8 +31,8 @@ class X11Parser : public Parser<formatType> {
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (sfun::startsWith(token, "-") && token.size() > 1) {
-            auto command = sfun::after(token, "-");
+        else if (sfun::starts_with(token, "-") && token.size() > 1) {
+            auto command = sfun::after(token, "-").value();
             if (isParamOrFlag(command) && !foundParam_.empty())
                 throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
 
@@ -107,27 +107,23 @@ private:
 
 class X11NameProvider {
 public:
-    static std::string name(const std::string& optionName)
+    static std::string name(sfun::not_empty<const std::string&> optionName)
     {
-        sfunPrecondition(!optionName.empty());
         return toLowerCase(optionName);
     }
 
-    static std::string shortName(const std::string& optionName)
+    static std::string shortName(sfun::not_empty<const std::string&>)
     {
-        sfunPrecondition(!optionName.empty());
         return {};
     }
 
-    static std::string fullName(const std::string& optionName)
+    static std::string fullName(sfun::not_empty<const std::string&> optionName)
     {
-        sfunPrecondition(!optionName.empty());
         return toLowerCase(optionName);
     }
 
-    static std::string valueName(const std::string& typeName)
+    static std::string valueName(sfun::not_empty<const std::string&> typeName)
     {
-        sfunPrecondition(!typeName.empty());
         return toLowerCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

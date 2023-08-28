@@ -18,7 +18,7 @@ enum class OptionType {
     ParamList
 };
 
-class IOption : private sfun::Interface<IOption> {
+class IOption : private sfun::interface<IOption> {
 public:
     virtual OptionInfo& info() = 0;
     virtual const OptionInfo& info() const = 0;

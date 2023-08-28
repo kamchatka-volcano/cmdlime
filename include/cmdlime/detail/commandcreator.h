@@ -6,7 +6,7 @@
 #include "initializedoptional.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/contract.h"
+#include "external/sfun/precondition.h"
 
 namespace cmdlime {
 class Config;
@@ -21,17 +21,16 @@ class CommandCreator {
 public:
     CommandCreator(
             CommandLineReaderPtr reader,
-            const std::string& varName,
+            sfun::not_empty<const std::string&> varName,
             InitializedOptional<TCfg>& commandValue,
             typename Command<TCfg>::Type type = Command<TCfg>::Type::Normal)
         : reader_(reader)
         , commandValue_(commandValue)
     {
-        sfunPrecondition(!varName.empty());
         nestedReader_ = reader_ ? reader_->makeNestedReader(NameFormat::fullName(reader_->format(), varName))
                                 : CommandLineReaderPtr{};
         command_ = std::make_unique<Command<TCfg>>(
-                reader_ ? NameFormat::fullName(reader->format(), varName) : varName,
+                reader_ ? NameFormat::fullName(reader->format(), varName.get()) : varName.get(),
                 commandValue,
                 nestedReader_,
                 type);

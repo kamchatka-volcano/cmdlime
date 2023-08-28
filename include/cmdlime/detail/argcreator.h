@@ -5,22 +5,24 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/contract.h"
+#include "external/sfun/precondition.h"
 
 namespace cmdlime::detail {
 
 template<typename T>
 class ArgCreator {
 public:
-    ArgCreator(CommandLineReaderPtr reader, const std::string& varName, const std::string& type, T& argValue)
+    ArgCreator(
+            CommandLineReaderPtr reader,
+            sfun::not_empty<const std::string&> varName,
+            sfun::not_empty<const std::string&> type,
+            T& argValue)
         : reader_(reader)
         , argValue_(argValue)
     {
-        sfunPrecondition(!varName.empty());
-        sfunPrecondition(!type.empty());
         arg_ = std::make_unique<Arg<T>>(
-                reader_ ? NameFormat::fullName(reader_->format(), varName) : varName,
-                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
+                reader_ ? NameFormat::fullName(reader_->format(), varName.get()) : varName.get(),
+                reader_ ? NameFormat::valueName(reader_->format(), type.get()) : type.get(),
                 argValue);
     }
 

@@ -5,7 +5,7 @@
 #include "nameutils.h"
 #include "parser.h"
 #include "utils.h"
-#include "external/sfun/contract.h"
+#include "external/sfun/precondition.h"
 #include "external/sfun/string_utils.h"
 #include <cmdlime/errors.h>
 #include <algorithm>
@@ -26,11 +26,11 @@ class DefaultParser : public Parser<formatType> {
 
     void process(const std::string& token) override
     {
-        if (sfun::startsWith(token, "--") && token.size() > 2) {
-            const auto flagName = sfun::after(token, "--");
+        if (sfun::starts_with(token, "--") && token.size() > 2) {
+            const auto flagName = sfun::after(token, "--").value();
             this->readFlag(flagName);
         }
-        else if (sfun::startsWith(token, "-") && token.size() > 1) {
+        else if (sfun::starts_with(token, "-") && token.size() > 1) {
             if (isNumber(token)) {
                 this->readArg(token);
                 return;
@@ -39,8 +39,8 @@ class DefaultParser : public Parser<formatType> {
             if (token.find('=') == std::string::npos)
                 throw ParsingError{"Wrong parameter format: " + token + ". Parameter must have a form of -name=value"};
 
-            const auto paramName = sfun::before(sfun::after(token, "-"), "=");
-            const auto paramValue = std::string{sfun::after(token, "=")};
+            const auto paramName = sfun::between(token, "-", "=").value();
+            const auto paramValue = std::string{sfun::after(token, "=").value()};
             this->readParam(paramName, paramValue);
         }
         else
@@ -85,27 +85,23 @@ class DefaultParser : public Parser<formatType> {
 
 class DefaultNameProvider {
 public:
-    static std::string name(const std::string& optionName)
+    static std::string name(sfun::not_empty<const std::string&> optionName)
     {
-        sfunPrecondition(!optionName.empty());
         return toCamelCase(optionName);
     }
 
-    static std::string shortName(const std::string& optionName)
+    static std::string shortName(sfun::not_empty<const std::string&>)
     {
-        sfunPrecondition(!optionName.empty());
         return {};
     }
 
-    static std::string fullName(const std::string& optionName)
+    static std::string fullName(sfun::not_empty<const std::string&> optionName)
     {
-        sfunPrecondition(!optionName.empty());
         return toCamelCase(optionName);
     }
 
-    static std::string valueName(const std::string& typeName)
+    static std::string valueName(sfun::not_empty<const std::string&> typeName)
     {
-        sfunPrecondition(!typeName.empty());
         return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

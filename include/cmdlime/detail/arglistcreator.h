@@ -5,7 +5,7 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/contract.h"
+#include "external/sfun/precondition.h"
 #include "external/sfun/type_traits.h"
 
 namespace cmdlime::detail {
@@ -17,17 +17,15 @@ class ArgListCreator {
 public:
     ArgListCreator(
             CommandLineReaderPtr reader,
-            const std::string& varName,
-            const std::string& type,
+            sfun::not_empty<const std::string&> varName,
+            sfun::not_empty<const std::string&> type,
             TArgList& argListValue)
         : reader_(reader)
         , argListValue_(argListValue)
     {
-        sfunPrecondition(!varName.empty());
-        sfunPrecondition(!type.empty());
         argList_ = std::make_unique<ArgList<TArgList>>(
-                reader_ ? NameFormat::fullName(reader_->format(), varName) : varName,
-                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
+                reader_ ? NameFormat::fullName(reader_->format(), varName.get()) : varName.get(),
+                reader_ ? NameFormat::valueName(reader_->format(), type.get()) : type.get(),
                 argListValue);
     }
 

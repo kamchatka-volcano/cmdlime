@@ -16,12 +16,12 @@ template<>
 struct StringConverter<std::wstring> {
     static std::optional<std::string> toString(const std::wstring& str)
     {
-        return sfun::fromWString(str);
+        return sfun::from_wstring(str);
     }
 
     static std::optional<std::wstring> fromString(const std::string& data)
     {
-        return sfun::toWString(data);
+        return sfun::to_wstring(data);
     }
 };
 

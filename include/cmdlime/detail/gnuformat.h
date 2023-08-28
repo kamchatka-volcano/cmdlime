@@ -5,7 +5,7 @@
 #include "nameutils.h"
 #include "parser.h"
 #include "utils.h"
-#include "external/sfun/contract.h"
+#include "external/sfun/precondition.h"
 #include "external/sfun/string_utils.h"
 #include <cmdlime/errors.h>
 #include <algorithm>
@@ -34,9 +34,9 @@ class GNUParser : public Parser<formatType> {
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (sfun::startsWith(token, "--") && token.size() > 2)
+        else if (sfun::starts_with(token, "--") && token.size() > 2)
             processCommand(token);
-        else if (sfun::startsWith(token, "-") && token.size() > 1)
+        else if (sfun::starts_with(token, "-") && token.size() > 1)
             processShortCommand(token);
         else
             this->readArg(token);
@@ -50,18 +50,21 @@ class GNUParser : public Parser<formatType> {
 
     void processCommand(const std::string& commandStr)
     {
-        auto command = sfun::after(commandStr, "--");
-        auto paramValue = std::optional<std::string>{};
+        sfun_precondition(sfun::starts_with(commandStr, "--"));
+
+        auto command = sfun::after(commandStr, "--").value();
+        auto paramValue = std::optional<std::string_view>{};
         if (command.find('=') != std::string::npos) {
             paramValue = sfun::after(command, "=");
-            command = sfun::before(command, "=");
+            command = sfun::before(command, "=").value();
         }
+
         if (isParamOrFlag(command) && !foundParam_.empty() &&
             this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands)
             throw ParsingError{"Parameter '" + foundParamPrefix_ + foundParam_ + "' value can't be empty"};
         if (this->findParam(command, FindMode::Name) || this->findParamList(command, FindMode::Name)) {
             if (paramValue.has_value())
-                this->readParam(command, paramValue.value());
+                this->readParam(command, std::string{paramValue.value()});
             else {
                 foundParam_ = command;
                 foundParamPrefix_ = "--";
@@ -75,8 +78,10 @@ class GNUParser : public Parser<formatType> {
 
     void processShortCommand(std::string command)
     {
+        sfun_precondition(sfun::starts_with(command, "-"));
+
         auto possibleNumberArg = command;
-        command = sfun::after(command, "-");
+        command = sfun::after(command, "-").value();
         if (isShortParamOrFlag(command)) {
             if (!foundParam_.empty() && this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands)
                 throw ParsingError{"Parameter '" + foundParamPrefix_ + foundParam_ + "' value can't be empty"};
@@ -212,27 +217,23 @@ private:
 
 class GNUNameProvider {
 public:
-    static std::string name(const std::string& optionName)
+    static std::string name(sfun::not_empty<const std::string&> optionName)
     {
-        sfunPrecondition(!optionName.empty());
         return toKebabCase(optionName);
     }
 
-    static std::string shortName(const std::string& optionName)
+    static std::string shortName(sfun::not_empty<const std::string&> optionName)
     {
-        sfunPrecondition(!optionName.empty());
-        return toLowerCase(optionName.substr(0, 1));
+        return toLowerCase(optionName.get().substr(0, 1));
     }
 
-    static std::string fullName(const std::string& optionName)
+    static std::string fullName(sfun::not_empty<const std::string&> optionName)
     {
-        sfunPrecondition(!optionName.empty());
         return toKebabCase(optionName);
     }
 
-    static std::string valueName(const std::string& typeName)
+    static std::string valueName(sfun::not_empty<const std::string&> typeName)
     {
-        sfunPrecondition(!typeName.empty());
         return toKebabCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

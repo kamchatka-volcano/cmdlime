@@ -88,7 +88,7 @@ public:
                 std::back_inserter(cmdLine),
                 [](const std::wstring& arg)
                 {
-                    return sfun::fromWString(arg);
+                    return sfun::from_wstring(arg);
                 });
 
         return exec<TCfg>(cmdLine, func);
@@ -105,7 +105,7 @@ public:
                 std::back_inserter(cmdLine),
                 [](const std::wstring& arg)
                 {
-                    return sfun::fromWString(arg);
+                    return sfun::from_wstring(arg);
                 });
 
         return exec<TCfg>(

@@ -98,9 +98,10 @@ inline std::string typeNameWithoutNamespace(const std::string& type)
 
 inline std::string templateType(const std::string& type)
 {
-    if (type.find('<') != std::string::npos)
-        return std::string{sfun::before(sfun::after(type, "<"), ">")};
-    return type;
+    auto result = sfun::between(type, "<", ">");
+    if (!result.has_value())
+        return type;
+    return std::string{result.value()};
 }
 
 } //namespace cmdlime::detail
