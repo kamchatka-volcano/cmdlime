@@ -77,7 +77,7 @@ TEST(TestPostProcessor, InvalidConfig)
             {
                 EXPECT_EQ(
                         std::string{error.what()},
-                        std::string{"Config is invalid: either name or alias parameter must be set."});
+                        std::string{"Command line is invalid: either name or alias parameter must be set."});
             });
 }
 

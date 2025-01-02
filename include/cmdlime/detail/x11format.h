@@ -222,6 +222,15 @@ public:
         stream << "<" << argList.info().name() << "> (" << argList.info().valueName() << ")";
         return stream.str();
     }
+
+    static std::string commandDescriptionName(const ICommand& command, int indent = 0)
+    {
+        auto stream = std::stringstream{};
+        if (indent)
+            stream << std::setw(indent) << " ";
+        stream << command.info().name() << " [options]";
+        return stream.str();
+    }
 };
 
 template<>

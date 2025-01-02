@@ -193,9 +193,9 @@ private:
 
     std::string paramsInfo()
     {
-        auto result = std::string{"Parameters:\n"};
         if (params_.empty())
-            return result;
+            return {};
+        auto result = std::string{"Parameters:\n"};
         for (const IParam& param : params_) {
             const auto name = OutputFormatter::paramDescriptionName(param, outputSettings_.nameIndentation) + "\n";
             result += makeConfigFieldInfo(name, getDescription(param));
@@ -205,9 +205,9 @@ private:
 
     std::string paramListsInfo()
     {
-        auto result = std::string{};
         if (paramLists_.empty())
-            return result;
+            return {};
+        auto result = std::string{};
         for (const IParamList& paramList : paramLists_) {
             const auto name =
                     OutputFormatter::paramListDescriptionName(paramList, outputSettings_.nameIndentation) + "\n";
@@ -364,6 +364,8 @@ private:
             updateLength(OutputFormatter::flagDescriptionName(*flag, outputSettings_.nameIndentation));
         for (auto& arg : options_.args())
             updateLength(OutputFormatter::argDescriptionName(*arg, outputSettings_.nameIndentation));
+        for (auto& command : options_.commands())
+            updateLength(OutputFormatter::commandDescriptionName(*command, outputSettings_.nameIndentation));
         if (options_.argList())
             updateLength(OutputFormatter::argListDescriptionName(*options_.argList(), outputSettings_.nameIndentation));
         return length;

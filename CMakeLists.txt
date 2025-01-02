@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(cmdlime VERSION 2.6.0 DESCRIPTION "C++17 command line parsing library")
+project(cmdlime VERSION 2.7.0 DESCRIPTION "C++17 command line parsing library")
 include(external/seal_lake)
 
 option(CMDLIME_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)

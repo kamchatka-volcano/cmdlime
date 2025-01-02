@@ -44,10 +44,10 @@ Please note that in the example above, `--name` is a parameter, `--verbose` is a
      * [Supporting non-aggregate config structures](#supporting-non-aggregate-config-structures)
      * [Avoiding macros](#avoiding-macros)
      * [Using CommandLineReader::exec()](#using-commandlinereaderexec)
-     * [Unicode support](#unicode-support)
-     * [Filesystem paths support](#filesystem-paths-support)
      * [Custom names](#custom-names)
      * [Auto-generated usage info](#auto-generated-usage-info)
+     * [Unicode support](#unicode-support)
+     * [Filesystem paths support](#filesystem-paths-support)
      * [Supported formats](#supported-formats)
          * [GNU](#gnu)
          * [POSIX](#posix)
@@ -253,36 +253,6 @@ Flag's short name 'v' is already used.
 you'll get this error. The thing is, the default command line format supports short names and our flags `--verbose`
 and `--version` ended up having the same short name `-v`. Read the next section to learn how to fix it.
 
-### Unicode support
-
-`cmdlime` stores strings in `std::string`, and all operations only require the used encoding to be compatible with
-ASCII. This means that UTF-8 command line arguments are supported by default. On Windows Unicode command line arguments
-encoded with UTF-16 can be automatically converted to UTF-8 with the `CommandLineReader::exec()` overload, which takes a
-wide string array. In this case, the `wmain` entry point function should be used:
-
-```
-int wmain(int argc, wchar_t** argv)
-{
-    auto reader = cmdlime::CommandLineReader{"person-finder"};
-    reader.setVersionInfo("person-finder 1.0");
-    return reader.exec<Cfg>(argc, argv, mainApp);
-}
-```
-
-Additionally, on Windows, `cmdlime` parameters of types `std::wstring` and `std::filesystem::path` are stored with
-UTF-16 encoding by default. This allows using filesystem paths from your cmdlime config structure with `std::fstream`
-and `std::filesystem` functions without any manual conversions. This functionality can be disabled by setting a CMake
-variable `CMDLIME_NO_WINDOWS_UNICODE`, or by manually adding a compiler definition `CMDLIME_NO_WINDOWS_UNICODE_SUPPORT`
-to your target.
-
-### Filesystem paths support
-
-The `std::filesystem::path` parameters are automatically converted to the canonical form using
-the `std::filesystem::weakly_canonical()` function.
-
-This functionality can be disabled by either setting a CMake variable `CMDLIME_NO_CANONICAL_PATHS` or manually adding a
-compiler definition `CMDLIME_NO_CANONICAL_PATHS`.
-
 ### Custom names
 
 ```C++
@@ -363,6 +333,37 @@ Flags:
 ```
 
 If you don't like auto-generated usage info message you can set your own with `CommandLineReader::setUsageInfo()` and `CommandLineReader::setUsageInfoDetailed()`
+
+### Unicode support
+
+`cmdlime` stores strings in `std::string`, and all operations only require the used encoding to be compatible with
+ASCII. This means that UTF-8 command line arguments are supported by default. On Windows Unicode command line arguments
+encoded with UTF-16 can be automatically converted to UTF-8 with the `CommandLineReader::exec()` overload, which takes a
+wide string array. In this case, the `wmain` entry point function should be used:
+
+```
+int wmain(int argc, wchar_t** argv)
+{
+    auto reader = cmdlime::CommandLineReader{"person-finder"};
+    reader.setVersionInfo("person-finder 1.0");
+    return reader.exec<Cfg>(argc, argv, mainApp);
+}
+```
+
+Additionally, on Windows, `cmdlime` parameters of types `std::wstring` and `std::filesystem::path` are stored with
+UTF-16 encoding by default. This allows using filesystem paths from your cmdlime config structure with `std::fstream`
+and `std::filesystem` functions without any manual conversions. This functionality can be disabled by setting a CMake
+variable `CMDLIME_NO_WINDOWS_UNICODE`, or by manually adding a compiler definition `CMDLIME_NO_WINDOWS_UNICODE_SUPPORT`
+to your target.
+
+### Filesystem paths support
+
+The `std::filesystem::path` parameters are automatically converted to the canonical form using
+the `std::filesystem::weakly_canonical()` function.
+
+This functionality can be disabled by either setting a CMake variable `CMDLIME_NO_CANONICAL_PATHS` or manually adding a
+compiler definition `CMDLIME_NO_CANONICAL_PATHS`.
+
 
 ### Supported formats
 

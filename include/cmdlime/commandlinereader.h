@@ -52,7 +52,7 @@ public:
             PostProcessor<TCfg>{}(cfg);
         }
         catch (const ValidationError& e) {
-            throw ParsingError{std::string{"Config is invalid: "} + e.what()};
+            throw ParsingError{std::string{"Command line is invalid: "} + e.what()};
         }
         return cfg;
     }
@@ -145,7 +145,7 @@ public:
             PostProcessor<TCfg>{}(cfg);
         }
         catch (const ValidationError& e) {
-            errorOutput_.get() << "Config is invalid: " << e.what() << "\n";
+            errorOutput_.get() << "Command line is invalid: " << e.what() << "\n";
             return 1;
         }
 

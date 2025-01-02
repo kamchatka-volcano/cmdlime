@@ -44,6 +44,11 @@ struct FullConfig : public Config {
     CMDLIME_SUBCOMMAND(subcommand, SubcommandConfig);
 };
 
+struct CommandsConfig : public Config {
+    CMDLIME_COMMAND(cmd, SubcommandConfig);
+    CMDLIME_SUBCOMMAND(subcommand, SubcommandConfig);
+};
+
 #ifdef CMDLIME_NAMEOF_AVAILABLE
 struct FullConfigWithoutMacro : public Config {
     std::string requiredParam = param<&T::requiredParam>();
@@ -1386,6 +1391,19 @@ TEST(GNUConfig, DetailedUsageInfo)
                         "    subcommand [options]              \n"};
     EXPECT_EQ(reader.usageInfoDetailed<FullConfig>(), expectedDetailedInfo);
 }
+
+TEST(GNUConfig, DetailedUsageInfoCommandsOnly)
+{
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
+    reader.setProgramName("testproc");
+    auto expectedDetailedInfo =
+            std::string{"Usage: testproc [commands] \n"
+                        "Commands:\n"
+                        "    cmd [options]            \n"
+                        "    subcommand [options]     \n"};
+    EXPECT_EQ(reader.usageInfoDetailed<CommandsConfig>(), expectedDetailedInfo);
+}
+
 
 TEST(GNUConfig, DetailedUsageInfoWithoutMacro)
 {
