@@ -7,7 +7,7 @@
 #include "postprocessor.h"
 #include "usageinfoformat.h"
 #include "detail/configmacros.h"
-#include "detail/external/sfun/wstringconv.h"
+#include "detail/external/eel/wstringconv.h"
 #include "detail/flag.h"
 #include "detail/formatcfg.h"
 #include "detail/nameformat.h"
@@ -88,7 +88,7 @@ public:
                 std::back_inserter(cmdLine),
                 [](const std::wstring& arg)
                 {
-                    return sfun::from_wstring(arg);
+                    return eel::from_wstring(arg);
                 });
 
         return exec<TCfg>(cmdLine, func);
@@ -105,7 +105,7 @@ public:
                 std::back_inserter(cmdLine),
                 [](const std::wstring& arg)
                 {
-                    return sfun::from_wstring(arg);
+                    return eel::from_wstring(arg);
                 });
 
         return exec<TCfg>(

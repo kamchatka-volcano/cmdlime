@@ -3,8 +3,8 @@
 
 #include "iparamlist.h"
 #include "optioninfo.h"
-#include "external/sfun/string_utils.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/string_utils.h"
+#include "external/eel/type_traits.h"
 #include <cmdlime/customnames.h>
 #include <cmdlime/errors.h>
 #include <cmdlime/stringconverter.h>
@@ -17,7 +17,7 @@ namespace cmdlime::detail {
 
 template<typename TParamList>
 class ParamList : public IParamList {
-    static_assert(sfun::is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
+    static_assert(eel::is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
 
 public:
     ParamList(std::string name, std::string shortName, std::string type, TParamList& paramListValue)
@@ -55,7 +55,7 @@ private:
             isDefaultValueOverwritten_ = true;
         }
 
-        const auto dataParts = sfun::split(data, ",");
+        const auto dataParts = eel::split(data, ",");
         for (const auto& part : dataParts) {
             auto paramVal = convertFromString<typename TParamList::value_type>(std::string{part});
             paramListValue_.emplace_back(std::move(paramVal));

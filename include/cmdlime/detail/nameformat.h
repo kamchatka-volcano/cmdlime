@@ -5,7 +5,7 @@
 #include "posixformat.h"
 #include "simpleformat.h"
 #include "x11format.h"
-#include "external/sfun/utility.h"
+#include "external/eel/utility.h"
 
 namespace cmdlime::detail {
 
@@ -22,7 +22,7 @@ struct NameFormat {
         case Format::GNU:
             return FormatCfg<Format::GNU>::nameProvider::name(varName);
         }
-        sfun::unreachable();
+        eel::unreachable();
     }
 
     static std::string shortName(Format format, const std::string& varName)
@@ -37,7 +37,7 @@ struct NameFormat {
         case Format::GNU:
             return FormatCfg<Format::GNU>::nameProvider::shortName(varName);
         }
-        sfun::unreachable();
+        eel::unreachable();
     }
     static std::string fullName(Format format, const std::string& varName)
     {
@@ -51,7 +51,7 @@ struct NameFormat {
         case Format::GNU:
             return FormatCfg<Format::GNU>::nameProvider::fullName(varName);
         }
-        sfun::unreachable();
+        eel::unreachable();
     }
     static std::string valueName(Format format, const std::string& type)
     {
@@ -65,7 +65,7 @@ struct NameFormat {
         case Format::GNU:
             return FormatCfg<Format::GNU>::nameProvider::valueName(type);
         }
-        sfun::unreachable();
+        eel::unreachable();
     }
 };
 

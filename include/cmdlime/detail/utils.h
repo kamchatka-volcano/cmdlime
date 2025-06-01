@@ -3,7 +3,7 @@
 
 #include "initializedoptional.h"
 #include "nameof_import.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/type_traits.h"
 #include <optional>
 #include <sstream>
 #include <string>
@@ -38,7 +38,7 @@ inline std::string nameOfType()
     using type = std::remove_const_t<std::remove_reference_t<TCfg>>;
     auto result = [&]
     {
-        if constexpr (sfun::is_optional_v<type> || sfun::is_dynamic_sequence_container_v<type>)
+        if constexpr (eel::is_optional_v<type> || eel::is_dynamic_sequence_container_v<type>)
             return std::string{nameof::nameof_short_type<typename type::value_type>()};
         else
             return std::string{nameof::nameof_short_type<type>()};

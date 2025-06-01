@@ -22,7 +22,7 @@ struct PostProcessor<Cfg> {
                     cfg.surname.begin(),
                     [](const auto& ch)
                     {
-                        return sfun::toupper(ch);
+                        return eel::toupper(ch);
                     });
     }
 };

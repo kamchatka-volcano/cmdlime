@@ -2,11 +2,11 @@
 #define CMDLIME_IVALIDATOR_H
 
 #include "ioption.h"
-#include "external/sfun/interface.h"
+#include "external/eel/interface.h"
 
 namespace cmdlime::detail {
 
-class IValidator : private sfun::interface<IValidator> {
+class IValidator : private eel::interface<IValidator> {
 public:
     virtual void validate(const std::string& commandName) const = 0;
     virtual OptionType optionType() const = 0;

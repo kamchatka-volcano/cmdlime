@@ -1,7 +1,7 @@
 #include "assert_exception.h"
 #include <cmdlime/commandlinereader.h>
 #include <cmdlime/config.h>
-#include <cmdlime/detail/external/sfun/string_utils.h>
+#include <cmdlime/detail/external/eel/string_utils.h>
 #include <cmdlime/postprocessor.h>
 #include <gtest/gtest.h>
 #include <algorithm>
@@ -42,7 +42,7 @@ struct PostProcessor<test_postprocessor::FullConfig> {
                 cfg.requiredParam.begin(),
                 [](const auto& ch)
                 {
-                    return sfun::toupper(ch);
+                    return eel::toupper(ch);
                 });
         if (!cfg.name.has_value() && !cfg.alias.has_value())
             throw cmdlime::ValidationError{"either name or alias parameter must be set."};

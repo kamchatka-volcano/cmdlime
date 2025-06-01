@@ -5,7 +5,7 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/precondition.h"
+#include "external/eel/contract.h"
 
 namespace cmdlime::detail {
 
@@ -14,15 +14,18 @@ class ArgCreator {
 public:
     ArgCreator(
             CommandLineReaderPtr reader,
-            sfun::not_empty<const std::string&> varName,
-            sfun::not_empty<const std::string&> type,
+            const std::string& varName,
+            const std::string& type,
             T& argValue)
         : reader_(reader)
         , argValue_(argValue)
     {
+        eel::precondition(!varName.empty(), CMDLIME_EEL_LINE);
+        eel::precondition(!type.empty(), CMDLIME_EEL_LINE);
+
         arg_ = std::make_unique<Arg<T>>(
-                reader_ ? NameFormat::fullName(reader_->format(), varName.get()) : varName.get(),
-                reader_ ? NameFormat::valueName(reader_->format(), type.get()) : type.get(),
+                reader_ ? NameFormat::fullName(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
                 argValue);
     }
 

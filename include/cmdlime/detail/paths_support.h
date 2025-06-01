@@ -1,7 +1,7 @@
 #ifndef CMDLIME_PATHS_SUPPORT_H
 #define CMDLIME_PATHS_SUPPORT_H
 
-#include "external/sfun/path.h"
+#include "external/eel/path.h"
 #include <cmdlime/stringconverter.h>
 #include <filesystem>
 #include <string>
@@ -15,7 +15,7 @@ struct StringConverter<std::filesystem::path> {
 #ifdef CMDLIME_NO_WINDOWS_UNICODE_SUPPORT
         return path.string();
 #else
-        return sfun::path_string(path);
+        return eel::to_string(path);
 #endif
     }
 
@@ -29,9 +29,9 @@ struct StringConverter<std::filesystem::path> {
 #endif
 #else
 #ifdef CMDLIME_NO_CANONICAL_PATHS
-        return sfun::makePath(data);
+        return eel::makePath(data);
 #else
-        return std::filesystem::weakly_canonical(sfun::make_path(data));
+        return std::filesystem::weakly_canonical(eel::make_path(data));
 #endif
 #endif
     }

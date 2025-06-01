@@ -4,8 +4,8 @@
 #ifdef _WIN32
 #ifndef CMDLIME_NO_WINDOWS_UNICODE_SUPPORT
 
-#include "external/sfun/path.h"
-#include "external/sfun/wstringconv.h"
+#include "external/eel/path.h"
+#include "external/eel/wstringconv.h"
 #include <cmdlime/stringconverter.h>
 #include <filesystem>
 #include <string>
@@ -16,12 +16,12 @@ template<>
 struct StringConverter<std::wstring> {
     static std::optional<std::string> toString(const std::wstring& str)
     {
-        return sfun::from_wstring(str);
+        return eel::from_wstring(str);
     }
 
     static std::optional<std::wstring> fromString(const std::string& data)
     {
-        return sfun::to_wstring(data);
+        return eel::to_wstring(data);
     }
 };
 

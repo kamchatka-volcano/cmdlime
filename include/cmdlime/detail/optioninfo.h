@@ -1,7 +1,7 @@
 #ifndef CMDLIME_OPTIONINFO_H
 #define CMDLIME_OPTIONINFO_H
 
-#include "external/sfun/precondition.h"
+#include "external/eel/contract.h"
 #include <sstream>
 #include <string>
 #include <utility>
@@ -10,11 +10,12 @@ namespace cmdlime::detail {
 
 class OptionInfo {
 public:
-    OptionInfo(sfun::not_empty<std::string> name, std::string shortName, std::string valueName)
+    OptionInfo(std::string name, std::string shortName, std::string valueName)
         : name_(std::move(name))
         , shortName_(std::move(shortName))
         , valueName_(std::move(valueName))
     {
+        eel::precondition(!name_.empty(), CMDLIME_EEL_LINE);
     }
 
     void addDescription(const std::string& desc)
@@ -22,8 +23,9 @@ public:
         description_ += desc;
     }
 
-    void resetName(sfun::not_empty<const std::string&> name)
+    void resetName(const std::string& name)
     {
+        eel::precondition(!name.empty(), CMDLIME_EEL_LINE);
         name_ = name;
     }
 

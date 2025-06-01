@@ -3,7 +3,7 @@
 
 #include "iparam.h"
 #include "optioninfo.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/type_traits.h"
 #include <cmdlime/customnames.h>
 #include <cmdlime/errors.h>
 #include <cmdlime/stringconverter.h>
@@ -53,7 +53,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (sfun::is_optional_v<T>)
+        if constexpr (eel::is_optional_v<T>)
             return true;
         else
             return hasValue_;
@@ -61,7 +61,7 @@ private:
 
     bool isOptional() const override
     {
-        if constexpr (sfun::is_optional_v<T>)
+        if constexpr (eel::is_optional_v<T>)
             return true;
         else
             return defaultValue_.has_value();

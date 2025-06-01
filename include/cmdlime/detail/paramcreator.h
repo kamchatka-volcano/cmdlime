@@ -5,7 +5,7 @@
 #include "nameformat.h"
 #include "param.h"
 #include "validator.h"
-#include "external/sfun/precondition.h"
+#include "external/eel/contract.h"
 
 namespace cmdlime::detail {
 
@@ -14,16 +14,19 @@ class ParamCreator {
 public:
     ParamCreator(
             CommandLineReaderPtr reader,
-            sfun::not_empty<const std::string&> varName,
-            sfun::not_empty<const std::string&> type,
+            const std::string& varName,
+            const std::string& type,
             T& paramValue)
         : reader_(reader)
         , paramValue_(paramValue)
     {
+        eel::precondition(!varName.empty(), CMDLIME_EEL_LINE);
+        eel::precondition(!type.empty(), CMDLIME_EEL_LINE);
+
         param_ = std::make_unique<Param<T>>(
-                reader_ ? NameFormat::name(reader->format(), varName.get()) : varName.get(),
-                reader_ ? NameFormat::shortName(reader->format(), varName.get()) : varName.get(),
-                reader_ ? NameFormat::valueName(reader->format(), type.get()) : varName.get(),
+                reader_ ? NameFormat::name(reader->format(), varName) : varName,
+                reader_ ? NameFormat::shortName(reader->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader->format(), type) : varName,
                 paramValue);
     }
 

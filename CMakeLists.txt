@@ -15,14 +15,14 @@ if (CMDLIME_USE_NAMEOF)
 endif()
 
 SealLake_Bundle(
-        NAME cmdlime_sfun
-        GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
-        GIT_TAG v5.1.0
+        NAME cmdlime_eel
+        GIT_REPOSITORY https://github.com/kamchatka-volcano/eel.git
+        GIT_TAG dev
         DESTINATION include/cmdlime/detail/external
-        DIRECTORIES include/sfun
+        DIRECTORIES include/eel
         TEXT_REPLACEMENTS
-            "namespace sfun" "namespace cmdlime::sfun"
-            "SFUN_" "CMDLIME_SFUN_"
+            "namespace eel" "namespace cmdlime::eel"
+            "EEL_" "CMDLIME_EEL_"
 )
 
 if (CMDLIME_USE_NAMEOF AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

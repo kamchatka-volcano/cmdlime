@@ -1,7 +1,7 @@
 #ifndef CMDLIME_IOPTION_H
 #define CMDLIME_IOPTION_H
 
-#include "external/sfun/interface.h"
+#include "external/eel/interface.h"
 #include <string>
 
 namespace cmdlime::detail {
@@ -18,7 +18,7 @@ enum class OptionType {
     ParamList
 };
 
-class IOption : private sfun::interface<IOption> {
+class IOption : private eel::interface<IOption> {
 public:
     virtual OptionInfo& info() = 0;
     virtual const OptionInfo& info() const = 0;

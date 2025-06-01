@@ -5,8 +5,8 @@
 #include "nameutils.h"
 #include "parser.h"
 #include "utils.h"
-#include "external/sfun/precondition.h"
-#include "external/sfun/string_utils.h"
+#include "external/eel/contract.h"
+#include "external/eel/string_utils.h"
 #include <cmdlime/errors.h>
 #include <algorithm>
 #include <functional>
@@ -21,10 +21,10 @@ class PosixParser : public Parser<formatType> {
 
     void processCommand(std::string command)
     {
-        sfun_precondition(sfun::starts_with(command, "-"));
+        precondition(eel::starts_with(command, "-"), CMDLIME_EEL_LINE);
 
         auto possibleNumberArg = command;
-        command = sfun::after(command, "-").value();
+        command = eel::after(command, "-").value();
         if (isParamOrFlag(command)) {
             if (this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands) {
                 if (!foundParam_.empty())
@@ -55,7 +55,7 @@ class PosixParser : public Parser<formatType> {
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (sfun::starts_with(token, "-") && token.size() > 1)
+        else if (eel::starts_with(token, "-") && token.size() > 1)
             processCommand(token);
         else {
             this->readArg(token);
@@ -132,23 +132,26 @@ private:
 
 class PosixNameProvider {
 public:
-    static std::string name(sfun::not_empty<const std::string&> optionName)
+    static std::string name(const std::string& optionName)
     {
-        return std::string{static_cast<char>(std::tolower(optionName.get().front()))};
+        eel::precondition(!optionName.empty(), CMDLIME_EEL_LINE);
+        return std::string{static_cast<char>(std::tolower(optionName.front()))};
     }
 
-    static std::string shortName(sfun::not_empty<const std::string&>)
+    static std::string shortName(const std::string&)
     {
         return {};
     }
 
-    static std::string fullName(sfun::not_empty<const std::string&> optionName)
+    static std::string fullName(const std::string& optionName)
     {
+        eel::precondition(!optionName.empty(), CMDLIME_EEL_LINE);
         return toKebabCase(optionName);
     }
 
-    static std::string valueName(sfun::not_empty<const std::string&> typeName)
+    static std::string valueName(const std::string& typeName)
     {
+        eel::precondition(!typeName.empty(), CMDLIME_EEL_LINE);
         return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

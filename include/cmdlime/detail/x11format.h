@@ -5,8 +5,8 @@
 #include "nameutils.h"
 #include "parser.h"
 #include "utils.h"
-#include "external/sfun/precondition.h"
-#include "external/sfun/string_utils.h"
+#include "external/eel/contract.h"
+#include "external/eel/string_utils.h"
 #include <cmdlime/errors.h>
 #include <algorithm>
 #include <functional>
@@ -31,8 +31,8 @@ class X11Parser : public Parser<formatType> {
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (sfun::starts_with(token, "-") && token.size() > 1) {
-            auto command = sfun::after(token, "-").value();
+        else if (eel::starts_with(token, "-") && token.size() > 1) {
+            auto command = eel::after(token, "-").value();
             if (isParamOrFlag(command) && !foundParam_.empty())
                 throw ParsingError{"Parameter '-" + foundParam_ + "' value can't be empty"};
 
@@ -68,7 +68,7 @@ class X11Parser : public Parser<formatType> {
     {
         auto check = [](const OptionInfo& var, const std::string& varType)
         {
-            if (!sfun::isalpha(var.name().front()))
+            if (!eel::isalpha(var.name().front()))
                 throw ConfigError{varType + "'s name '" + var.name() + "' must start with an alphabet character"};
             if (var.name().size() > 1) {
                 auto nonSupportedCharIt = std::find_if(
@@ -76,7 +76,7 @@ class X11Parser : public Parser<formatType> {
                         var.name().end(),
                         [](char ch)
                         {
-                            return !sfun::isalnum(ch) && ch != '-';
+                            return !eel::isalnum(ch) && ch != '-';
                         });
                 if (nonSupportedCharIt != var.name().end())
                     throw ConfigError{
@@ -107,23 +107,26 @@ private:
 
 class X11NameProvider {
 public:
-    static std::string name(sfun::not_empty<const std::string&> optionName)
+    static std::string name(const std::string& optionName)
     {
+        eel::precondition(!optionName.empty(), CMDLIME_EEL_LINE);
         return toLowerCase(optionName);
     }
 
-    static std::string shortName(sfun::not_empty<const std::string&>)
+    static std::string shortName(const std::string&)
     {
         return {};
     }
 
-    static std::string fullName(sfun::not_empty<const std::string&> optionName)
+    static std::string fullName(const std::string& optionName)
     {
+        eel::precondition(!optionName.empty(), CMDLIME_EEL_LINE);
         return toLowerCase(optionName);
     }
 
-    static std::string valueName(sfun::not_empty<const std::string&> typeName)
+    static std::string valueName(const std::string& typeName)
     {
+        eel::precondition(!typeName.empty(), CMDLIME_EEL_LINE);
         return toLowerCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

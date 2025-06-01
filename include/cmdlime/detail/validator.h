@@ -5,7 +5,7 @@
 #include "ivalidator.h"
 #include "optioninfo.h"
 #include "utils.h"
-#include "external/sfun/utility.h"
+#include "external/eel/utility.h"
 #include <cmdlime/errors.h>
 #include <functional>
 
@@ -31,7 +31,7 @@ inline std::string validatorOptionTypeName(OptionType optionType)
     case OptionType::ParamList:
         return "parameter list";
     }
-    sfun::unreachable();
+    eel::unreachable();
 }
 
 template<typename T>

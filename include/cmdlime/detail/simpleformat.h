@@ -5,8 +5,8 @@
 #include "nameutils.h"
 #include "parser.h"
 #include "utils.h"
-#include "external/sfun/precondition.h"
-#include "external/sfun/string_utils.h"
+#include "external/eel/contract.h"
+#include "external/eel/string_utils.h"
 #include <cmdlime/errors.h>
 #include <algorithm>
 #include <functional>
@@ -26,11 +26,11 @@ class DefaultParser : public Parser<formatType> {
 
     void process(const std::string& token) override
     {
-        if (sfun::starts_with(token, "--") && token.size() > 2) {
-            const auto flagName = sfun::after(token, "--").value();
+        if (eel::starts_with(token, "--") && token.size() > 2) {
+            const auto flagName = eel::after(token, "--").value();
             this->readFlag(flagName);
         }
-        else if (sfun::starts_with(token, "-") && token.size() > 1) {
+        else if (eel::starts_with(token, "-") && token.size() > 1) {
             if (isNumber(token)) {
                 this->readArg(token);
                 return;
@@ -39,8 +39,8 @@ class DefaultParser : public Parser<formatType> {
             if (token.find('=') == std::string::npos)
                 throw ParsingError{"Wrong parameter format: " + token + ". Parameter must have a form of -name=value"};
 
-            const auto paramName = sfun::between(token, "-", "=").value();
-            const auto paramValue = std::string{sfun::after(token, "=").value()};
+            const auto paramName = eel::between(token, "-", "=").value();
+            const auto paramValue = std::string{eel::after(token, "=").value()};
             this->readParam(paramName, paramValue);
         }
         else
@@ -85,23 +85,26 @@ class DefaultParser : public Parser<formatType> {
 
 class DefaultNameProvider {
 public:
-    static std::string name(sfun::not_empty<const std::string&> optionName)
+    static std::string name(const std::string& optionName)
     {
+        eel::precondition(!optionName.empty(), CMDLIME_EEL_LINE);
         return toCamelCase(optionName);
     }
 
-    static std::string shortName(sfun::not_empty<const std::string&>)
+    static std::string shortName(const std::string&)
     {
         return {};
     }
 
-    static std::string fullName(sfun::not_empty<const std::string&> optionName)
+    static std::string fullName(const std::string& optionName)
     {
+        eel::precondition(!optionName.empty(), CMDLIME_EEL_LINE);
         return toCamelCase(optionName);
     }
 
-    static std::string valueName(sfun::not_empty<const std::string&> typeName)
+    static std::string valueName(const std::string& typeName)
     {
+        eel::precondition(!typeName.empty(), CMDLIME_EEL_LINE);
         return toCamelCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

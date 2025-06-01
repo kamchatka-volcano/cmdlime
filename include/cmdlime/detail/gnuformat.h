@@ -5,8 +5,8 @@
 #include "nameutils.h"
 #include "parser.h"
 #include "utils.h"
-#include "external/sfun/precondition.h"
-#include "external/sfun/string_utils.h"
+#include "external/eel/contract.h"
+#include "external/eel/string_utils.h"
 #include <cmdlime/errors.h>
 #include <algorithm>
 #include <functional>
@@ -34,9 +34,9 @@ class GNUParser : public Parser<formatType> {
             this->readParam(foundParam_, token);
             foundParam_.clear();
         }
-        else if (sfun::starts_with(token, "--") && token.size() > 2)
+        else if (eel::starts_with(token, "--") && token.size() > 2)
             processCommand(token);
-        else if (sfun::starts_with(token, "-") && token.size() > 1)
+        else if (eel::starts_with(token, "-") && token.size() > 1)
             processShortCommand(token);
         else
             this->readArg(token);
@@ -50,13 +50,13 @@ class GNUParser : public Parser<formatType> {
 
     void processCommand(const std::string& commandStr)
     {
-        sfun_precondition(sfun::starts_with(commandStr, "--"));
+        precondition(eel::starts_with(commandStr, "--"), CMDLIME_EEL_LINE);
 
-        auto command = sfun::after(commandStr, "--").value();
+        auto command = eel::after(commandStr, "--").value();
         auto paramValue = std::optional<std::string_view>{};
         if (command.find('=') != std::string::npos) {
-            paramValue = sfun::after(command, "=");
-            command = sfun::before(command, "=").value();
+            paramValue = eel::after(command, "=");
+            command = eel::before(command, "=").value();
         }
 
         if (isParamOrFlag(command) && !foundParam_.empty() &&
@@ -78,10 +78,10 @@ class GNUParser : public Parser<formatType> {
 
     void processShortCommand(std::string command)
     {
-        sfun_precondition(sfun::starts_with(command, "-"));
+        eel::precondition(eel::starts_with(command, "-"), CMDLIME_EEL_LINE);
 
         auto possibleNumberArg = command;
-        command = sfun::after(command, "-").value();
+        command = eel::after(command, "-").value();
         if (isShortParamOrFlag(command)) {
             if (!foundParam_.empty() && this->readMode_ != Parser<formatType>::ReadMode::ExitFlagsAndCommands)
                 throw ParsingError{"Parameter '" + foundParamPrefix_ + foundParam_ + "' value can't be empty"};
@@ -217,23 +217,27 @@ private:
 
 class GNUNameProvider {
 public:
-    static std::string name(sfun::not_empty<const std::string&> optionName)
+    static std::string name(const std::string& optionName)
     {
+        eel::precondition(!optionName.empty(), CMDLIME_EEL_LINE);
         return toKebabCase(optionName);
     }
 
-    static std::string shortName(sfun::not_empty<const std::string&> optionName)
+    static std::string shortName(const std::string& optionName)
     {
-        return toLowerCase(optionName.get().substr(0, 1));
+        eel::precondition(!optionName.empty(), CMDLIME_EEL_LINE);
+        return toLowerCase(optionName.substr(0, 1));
     }
 
-    static std::string fullName(sfun::not_empty<const std::string&> optionName)
+    static std::string fullName(const std::string& optionName)
     {
+        eel::precondition(!optionName.empty(), CMDLIME_EEL_LINE);
         return toKebabCase(optionName);
     }
 
-    static std::string valueName(sfun::not_empty<const std::string&> typeName)
+    static std::string valueName(const std::string& typeName)
     {
+        eel::precondition(!typeName.empty(), CMDLIME_EEL_LINE);
         return toKebabCase(templateType(typeNameWithoutNamespace(typeName)));
     }
 };

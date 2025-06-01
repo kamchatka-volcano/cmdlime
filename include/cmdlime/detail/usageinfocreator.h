@@ -10,7 +10,7 @@
 #include "iparamlist.h"
 #include "optioninfo.h"
 #include "options.h"
-#include "external/sfun/string_utils.h"
+#include "external/eel/string_utils.h"
 #include <cmdlime/usageinfoformat.h>
 #include <algorithm>
 #include <iomanip>
@@ -23,7 +23,7 @@ namespace cmdlime::detail {
 inline std::string adjustedToLineBreak(std::string line, std::string& text)
 {
     if (!text.empty() && !isspace(text.front())) {
-        auto trimmedLine = sfun::trim_front(line);
+        auto trimmedLine = eel::trim_front(line);
         if (std::find_if(
                     trimmedLine.begin(),
                     trimmedLine.end(),
@@ -47,7 +47,7 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
         auto line = text.substr(0, newLinePos);
         text.erase(text.begin(), text.begin() + static_cast<int>(newLinePos + 1));
         if (!firstLine)
-            line = sfun::trim_front(line);
+            line = eel::trim_front(line);
         return line;
     }
 
@@ -57,7 +57,7 @@ inline std::string popLine(std::string& text, std::size_t width, bool firstLine 
     else
         text.erase(text.begin(), text.begin() + static_cast<int>(width));
     if (!firstLine)
-        line = sfun::trim_front(line);
+        line = eel::trim_front(line);
     return adjustedToLineBreak(line, text);
 }
 

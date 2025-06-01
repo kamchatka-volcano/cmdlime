@@ -5,28 +5,31 @@
 #include "nameformat.h"
 #include "paramlist.h"
 #include "validator.h"
-#include "external/sfun/precondition.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/contract.h"
+#include "external/eel/type_traits.h"
 
 namespace cmdlime::detail {
 
 template<typename TParamList>
 class ParamListCreator {
-    static_assert(sfun::is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
+    static_assert(eel::is_dynamic_sequence_container_v<TParamList>, "Param list field must be a sequence container");
 
 public:
     ParamListCreator(
             CommandLineReaderPtr reader,
-            sfun::not_empty<const std::string&> varName,
-            sfun::not_empty<const std::string&> type,
+            const std::string& varName,
+            const std::string& type,
             TParamList& paramListValue)
         : reader_(reader)
         , paramListValue_(paramListValue)
     {
+        eel::precondition(!varName.empty(), CMDLIME_EEL_LINE);
+        eel::precondition(!type.empty(), CMDLIME_EEL_LINE);
+
         paramList_ = std::make_unique<ParamList<TParamList>>(
-                reader_ ? NameFormat::name(reader_->format(), varName.get()) : varName.get(),
-                reader_ ? NameFormat::shortName(reader_->format(), varName.get()) : varName.get(),
-                reader_ ? NameFormat::valueName(reader_->format(), type.get()) : type.get(),
+                reader_ ? NameFormat::name(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::shortName(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
                 paramListValue);
     }
 

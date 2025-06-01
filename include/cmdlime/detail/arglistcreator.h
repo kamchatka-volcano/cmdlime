@@ -5,27 +5,30 @@
 #include "icommandlinereader.h"
 #include "nameformat.h"
 #include "validator.h"
-#include "external/sfun/precondition.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/contract.h"
+#include "external/eel/type_traits.h"
 
 namespace cmdlime::detail {
 
 template<typename TArgList>
 class ArgListCreator {
-    static_assert(sfun::is_dynamic_sequence_container_v<TArgList>, "Argument list field must be a sequence container");
+    static_assert(eel::is_dynamic_sequence_container_v<TArgList>, "Argument list field must be a sequence container");
 
 public:
     ArgListCreator(
             CommandLineReaderPtr reader,
-            sfun::not_empty<const std::string&> varName,
-            sfun::not_empty<const std::string&> type,
+            const std::string& varName,
+            const std::string& type,
             TArgList& argListValue)
         : reader_(reader)
         , argListValue_(argListValue)
     {
+        eel::precondition(!varName.empty(), CMDLIME_EEL_LINE);
+        eel::precondition(!type.empty(), CMDLIME_EEL_LINE);
+
         argList_ = std::make_unique<ArgList<TArgList>>(
-                reader_ ? NameFormat::fullName(reader_->format(), varName.get()) : varName.get(),
-                reader_ ? NameFormat::valueName(reader_->format(), type.get()) : type.get(),
+                reader_ ? NameFormat::fullName(reader_->format(), varName) : varName,
+                reader_ ? NameFormat::valueName(reader_->format(), type) : type,
                 argListValue);
     }
 
