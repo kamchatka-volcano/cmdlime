@@ -91,7 +91,7 @@ protected:
         return subCommand<member>(ptr, memberName);
     }
 
-#ifdef CMDLIME_NAMEOF_AVAILABLE
+#ifdef CMDLIME_USE_NAMEOF
     template<auto member>
     auto param()
     {
@@ -155,7 +155,7 @@ protected:
     }
 
 private:
-#ifdef CMDLIME_NAMEOF_AVAILABLE
+#ifdef CMDLIME_USE_NAMEOF
     template<auto member, typename T, typename TCfg>
     auto param(T TCfg::*)
     {

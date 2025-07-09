@@ -1,9 +1,8 @@
 #ifndef CMDLIME_NAMEOF_IMPORT_H
 #define CMDLIME_NAMEOF_IMPORT_H
 
-#if __has_include(<nameof.hpp>)
-#include <nameof.hpp>
-#define CMDLIME_NAMEOF_AVAILABLE
+#ifdef CMDLIME_USE_NAMEOF
+#include "external/nameof/nameof.hpp"
 #endif
 
 #endif //CMDLIME_NAMEOF_IMPORT_H

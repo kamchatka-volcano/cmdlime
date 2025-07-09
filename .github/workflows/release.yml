@@ -1,0 +1,41 @@
+name: release
+
+on:
+  push:
+    tags: [ "v*" ]
+
+jobs:
+  build:
+    name: Publish release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ninja (Linux)
+        run: sudo apt install ninja-build
+      - uses: actions/checkout@v4
+      - uses: rui314/setup-mold@v1
+      - uses: hendrikmuhs/ccache-action@v1.2
+      - name: Configure CMake to download dependencies
+        run: cmake -B build --preset="clang-release"
+      - name: Create release package
+        run: release_pack/release.sh
+      - name: Build unit tests with release package
+        working-directory: tests
+        run: |
+          cp -r ../release .
+          cp release/seal_lake.cmake .
+          cp release/CPM.cmake .
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMDLIME_TEST_RELEASE=ON
+          cmake --build build
+      - name: Run unit tests
+        working-directory: tests/build
+        run: ./test_cmdlime
+      - name: Archive release artifacts
+        working-directory: tests
+        run: |
+          mv release cmdlime-${{ github.ref_name }}
+          zip -r cmdlime-${{ github.ref_name }}.zip cmdlime-${{ github.ref_name }}
+      - name: Upload release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            tests/cmdlime-${{ github.ref_name }}.zip

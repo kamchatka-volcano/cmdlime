@@ -11,7 +11,11 @@ set(SRC
     test_nameutils.cpp
 )
 
-SealLake_GoogleTest(
+if (CMDLIME_TEST_RELEASE)
+    add_subdirectory(release)
+endif ()
+
+SealLake_V040_GoogleTest(
         SOURCES ${SRC}
         COMPILE_FEATURES cxx_std_17
         PROPERTIES

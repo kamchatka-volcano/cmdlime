@@ -49,7 +49,7 @@ struct CommandsConfig : public Config {
     CMDLIME_SUBCOMMAND(subcommand, SubcommandConfig);
 };
 
-#ifdef CMDLIME_NAMEOF_AVAILABLE
+#ifdef CMDLIME_USE_NAMEOF
 struct FullConfigWithoutMacro : public Config {
     std::string requiredParam = param<&T::requiredParam>();
     std::string optionalParam = param<&T::optionalParam>()("defaultValue");

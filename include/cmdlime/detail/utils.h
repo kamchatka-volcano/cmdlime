@@ -31,7 +31,7 @@ inline bool isNumber(const std::string& str)
     return check(int64_t{}) || check(double{});
 }
 
-#ifdef CMDLIME_NAMEOF_AVAILABLE
+#ifdef CMDLIME_USE_NAMEOF
 template<typename TCfg>
 inline std::string nameOfType()
 {
