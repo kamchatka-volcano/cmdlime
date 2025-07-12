@@ -133,7 +133,11 @@ If you have a low tolerance for macros, it's possible to register structure fiel
         bool verbose     = flag<&Cfg::verbose>();
     };
 ```
-Internally, these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and types as strings. By default, **cmdlime** ships without it and these methods aren't available. To use them, you can enable the `CMDLIME_USE_NAMEOF` CMake variable to automatically download and configure the **nameof** library, or install it on your system yourself.  Note that on the MSVC compiler, some **nameof** features used by **cmdlime** require the C++20 standard. This is handled automatically by CMake configuration if MSVC is your default compiler, otherwise you will need to enable the C++20 standard manually.  
+
+Internally, these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names and
+types as strings. Note that on the MSVC compiler, some **nameof** features used by **cmdlime** require the C++20
+standard. This is handled automatically by CMake configuration if MSVC is your default compiler, otherwise you will need
+to enable the C++20 standard manually.  
 **nameof** relies on non-standard functionality of C++ compilers, so if you don't like it, you can use **cmdlime** without it by providing the names yourself:
 
 ```c++
@@ -844,13 +848,12 @@ struct PostProcessor<Cfg> {
 ## Installation
 Download and link the library from your project's CMakeLists.txt:
 ```
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.18)
 
 include(FetchContent)
 
 FetchContent_Declare(cmdlime
-    GIT_REPOSITORY "https://github.com/kamchatka-volcano/cmdlime.git"
-    GIT_TAG "origin/master"
+    URL https://github.com/kamchatka-volcano/cmdlime/releases/download/v2.8.0/cmdlime-v2.8.0.zip
 )
 #uncomment if you need to install cmdlime with your target
 #set(INSTALL_CMDLIME ON)
@@ -859,6 +862,9 @@ FetchContent_MakeAvailable(cmdlime)
 add_executable(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PRIVATE cmdlime::cmdlime)
 ```
+
+Prefer using the release ZIP archive with FetchContent, as it is fully self-contained and avoids spending additional
+time downloading the library dependencies during the CMake configuration step.
 
 To install the library system-wide, use the following commands:
 ```
@@ -871,7 +877,7 @@ cmake --install build
 
 After installation, you can use the `find_package()` command to make the installed library available inside your project:
 ```
-find_package(cmdlime 0.10.0 REQUIRED)
+find_package(cmdlime 2.8.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE cmdlime::cmdlime)   
 ```
 
