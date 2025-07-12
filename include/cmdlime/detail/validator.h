@@ -6,6 +6,7 @@
 #include "optioninfo.h"
 #include "utils.h"
 #include "external/eel/utility.h"
+#include "external/eel/type_traits.h"
 #include <cmdlime/errors.h>
 #include <functional>
 
@@ -37,7 +38,7 @@ inline std::string validatorOptionTypeName(OptionType optionType)
 template<typename T>
 class Validator : public IValidator {
 public:
-    Validator(IOption& option, T& optionValue, std::function<void(const T&)> validatingFunc)
+    Validator(IOption& option, T& optionValue, std::function<void(const remove_optional_t<T>&)> validatingFunc)
         : option_(option)
         , optionValue_(optionValue)
         , validatingFunc_(std::move(validatingFunc))
@@ -56,7 +57,12 @@ private:
         };
 
         try {
-            validatingFunc_(optionValue_);
+            if constexpr (is_optional_v<T>) {
+                if (optionValue_)
+                    validatingFunc_(*optionValue_);
+            }
+            else
+                validatingFunc_(optionValue_);
         }
         catch (const ValidationError& e) {
             throw ParsingError{makeErrorMessage(e.what())};
@@ -73,7 +79,7 @@ private:
 
     IOption& option_;
     T& optionValue_;
-    std::function<void(const T&)> validatingFunc_;
+    std::function<void(const remove_optional_t<T>&)> validatingFunc_;
 };
 
 } //namespace cmdlime::detail

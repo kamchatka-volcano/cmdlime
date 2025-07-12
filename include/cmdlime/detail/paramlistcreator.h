@@ -65,7 +65,7 @@ public:
         return *this;
     }
 
-    auto& operator<<(std::function<void(const TParamList&)> validationFunc)
+    auto& operator<<(std::function<void(const eel::remove_optional_t<TParamList>&)> validationFunc)
     {
         if (reader_)
             reader_->addValidator(

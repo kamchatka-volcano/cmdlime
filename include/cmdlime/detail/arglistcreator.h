@@ -50,7 +50,7 @@ public:
         return *this;
     }
 
-    auto& operator<<(std::function<void(const TArgList&)> validationFunc)
+    auto& operator<<(std::function<void(const eel::remove_optional_t<TArgList>&)> validationFunc)
     {
         if (reader_)
             reader_->addValidator(

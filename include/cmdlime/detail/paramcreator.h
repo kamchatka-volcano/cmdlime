@@ -6,6 +6,7 @@
 #include "param.h"
 #include "validator.h"
 #include "external/eel/contract.h"
+#include "external/eel/type_traits.h"
 
 namespace cmdlime::detail {
 
@@ -62,7 +63,7 @@ public:
         return *this;
     }
 
-    auto& operator<<(std::function<void(const T&)> validationFunc)
+    auto& operator<<(std::function<void(const eel::remove_optional_t<T>&)> validationFunc)
     {
         if (reader_)
             reader_->addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validationFunc)));

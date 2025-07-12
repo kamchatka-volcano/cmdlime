@@ -50,7 +50,7 @@ public:
         return *this;
     }
 
-    auto& operator<<(std::function<void(const InitializedOptional<TCfg>&)> validationFunc)
+    auto& operator<<(std::function<void(const remove_optional_t<TCfg>&)> validationFunc)
     {
         if (reader_)
             reader_->addValidator(std::make_unique<Validator<InitializedOptional<TCfg>>>(

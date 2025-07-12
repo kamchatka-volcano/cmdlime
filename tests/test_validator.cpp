@@ -49,9 +49,9 @@ struct SubcommandConfig : public Config {
     CMDLIME_EXITFLAG(exitFlg);
     CMDLIME_ARG(argument, double) << EnsurePositive{};
     CMDLIME_ARGLIST(argumentList, std::vector<float>) << EnsureNotShorterThan{2};
-    CMDLIME_COMMAND(nested, NestedSubcommandConfig) << [](auto& command)
+    CMDLIME_COMMAND(nested, NestedSubcommandConfig) << [](const auto& command)
     {
-        if (command && command->prm.size() >= 5)
+        if (command.prm.size() >= 5)
             throw cmdlime::ValidationError{"command param must have a length shorter than 5."};
     };
 };
@@ -70,9 +70,9 @@ struct FullConfig : public Config {
     };
     CMDLIME_PARAM(optionalIntParam, std::optional<int>)
     () << cmdlime::ShortName("i")
-       << [](auto param)
+       << [](int param)
     {
-        if (param && param < 0)
+        if (param < 0)
             throw cmdlime::ValidationError{"value can't be negative."};
     };
 
@@ -99,14 +99,14 @@ struct FullConfig : public Config {
         if (param.size() < 2)
             throw cmdlime::ValidationError{"size can't be less than 2."};
     };
-    CMDLIME_COMMAND(cmd, SubcommandConfig) << [](auto& command)
+    CMDLIME_COMMAND(cmd, SubcommandConfig) << [](const SubcommandConfig& command)
     {
-        if (command && command->requiredParam.size() >= 5)
+        if (command.requiredParam.size() >= 5)
             throw cmdlime::ValidationError{"command required param must have a length shorter than 5."};
     };
-    CMDLIME_SUBCOMMAND(subcommand, SubcommandConfig) << [](auto& command)
+    CMDLIME_SUBCOMMAND(subcommand, SubcommandConfig) << [](const SubcommandConfig& command)
     {
-        if (command && command->requiredParam.size() >= 5)
+        if (command.requiredParam.size() >= 5)
             throw cmdlime::ValidationError{"command required param must have a length shorter than 5."};
     };
 };
@@ -132,6 +132,32 @@ TEST(TestValidator, AllSet)
     EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
     EXPECT_EQ(cfg.optionalParam, std::string{"BAR"});
     EXPECT_EQ(cfg.optionalIntParam, 9);
+    EXPECT_EQ(cfg.prmList, (std::vector<std::string>{"zero", "one"}));
+    EXPECT_EQ(cfg.optionalParamList, (std::vector<int>{1, 2}));
+    EXPECT_EQ(cfg.argument, 4.2);
+    EXPECT_EQ(cfg.argumentList, (std::vector<float>{1.1f, 2.2f, 3.3f}));
+    EXPECT_FALSE(cfg.cmd);
+    EXPECT_FALSE(cfg.subcommand);
+}
+
+TEST(TestValidator, WithoutOptional)
+{
+    auto reader = cmdlime::CommandLineReader<cmdlime::Format::GNU>{};
+    auto cfg = reader.read<FullConfig>(
+            {"-r",
+             "FOO",
+             "-L",
+             "zero",
+             "-L",
+             "one",
+             "--optional-param-list=1,2",
+             "4.2",
+             "1.1",
+             "2.2",
+             "3.3"});
+    EXPECT_EQ(cfg.requiredParam, std::string{"FOO"});
+    EXPECT_EQ(cfg.optionalParam, std::string{"defaultValue"});
+    EXPECT_FALSE(cfg.optionalIntParam.has_value());
     EXPECT_EQ(cfg.prmList, (std::vector<std::string>{"zero", "one"}));
     EXPECT_EQ(cfg.optionalParamList, (std::vector<int>{1, 2}));
     EXPECT_EQ(cfg.argument, 4.2);
